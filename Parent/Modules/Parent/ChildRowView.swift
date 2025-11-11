@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ChildRowView: View {
-    let child: FamilyMember  // Изменили на FamilyMember
+    let child: FamilyMember
     
     var body: some View {
         HStack {
@@ -28,7 +28,7 @@ struct ChildRowView: View {
                 
                 HStack {
                     Circle()
-                        .fill(isOnline ? Color.green : Color.gray)  // Вычисляемое свойство
+                        .fill(isOnline ? Color.green : Color.gray)
                         .frame(width: 8, height: 8)
                     
                     Text(isOnline ? "В сети" : "Не в сети")
@@ -40,7 +40,7 @@ struct ChildRowView: View {
             Spacer()
             
             VStack(alignment: .trailing) {
-                Text(child.type.description)  // Показываем тип участника
+                Text(child.type.description)
                     .font(.caption)
                     .foregroundColor(.blue)
                 
@@ -56,8 +56,6 @@ struct ChildRowView: View {
     
     // Вычисляемое свойство для статуса онлайн
     private var isOnline: Bool {
-        // Здесь нужно добавить логику определения онлайн статуса
-        // Пока заглушка - можно сделать на основе deviceId
         return child.deviceId != nil
     }
 }

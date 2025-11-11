@@ -21,14 +21,30 @@ struct ChildManagementView: View {
             
             Section("Ограничения") {
                 NavigationLink("Настроить ограничения") {
-//                    RestrictionsSetupView(child: child)
+                    RestrictionsSetupView(child: child)
                 }
                 
                 NavigationLink("Статистика использования") {
-//                    UsageStatsView(child: child)
+                    UsageStatsView(child: child)
+                }
+            }
+            
+            Section("Быстрые действия") {
+                Button("Сбросить все ограничения", role: .destructive) {
+                    resetAllRestrictions()
                 }
             }
         }
         .navigationTitle(child.name)
+    }
+    
+    private func resetAllRestrictions() {
+        Task {
+            do {
+                try await familyManager.applyRestrictions(to: child, restrictions: ParentalRestrictions())
+            } catch {
+                print("Ошибка сброса ограничений: \(error)")
+            }
+        }
     }
 }
