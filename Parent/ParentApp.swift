@@ -9,9 +9,22 @@ import SwiftUI
 
 @main
 struct ParentApp: App {
+    @StateObject private var authManager = AuthenticationManager.shared
+    @StateObject private var familyManager = FamilyManager.shared
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(authManager)
+                .environmentObject(familyManager)
+                .onAppear {
+                    initializeApp()
+                }
         }
+    }
+    
+    private func initializeApp() {
+        print("🚀 Инициализация приложения...")
+        authManager.checkAuthorization()
     }
 }
