@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ChildInfoCard: View {
-    let child: FamilyMember  // Изменили на FamilyMember
+    let child: FamilyMember
     
     var body: some View {
         VStack(spacing: 16) {
@@ -22,7 +22,7 @@ struct ChildInfoCard: View {
                         .font(.body)
                         .foregroundColor(.secondary)
                     
-                    Text(child.type.description)  // Показываем тип участника
+                    Text(child.type.description)
                         .font(.caption)
                         .foregroundColor(.blue)
                 }
@@ -31,7 +31,7 @@ struct ChildInfoCard: View {
                 
                 VStack(alignment: .trailing, spacing: 4) {
                     Circle()
-                        .fill(isOnline ? Color.green : Color.gray)  // Вычисляемое свойство
+                        .fill(isOnline ? Color.green : Color.gray)
                         .frame(width: 12, height: 12)
                     
                     Text(isOnline ? "В сети" : "Не в сети")
@@ -53,10 +53,8 @@ struct ChildInfoCard: View {
         .cornerRadius(12)
     }
     
-    // Вычисляемое свойство для статуса онлайн
     private var isOnline: Bool {
         // Здесь можно добавить реальную логику определения онлайн статуса
-        // Пока используем наличие deviceId как индикатор
         return child.deviceId != nil
     }
     

@@ -7,8 +7,6 @@
 
 import Foundation
 
-// MARK: - Ошибки
-
 enum FamilyError: Error, LocalizedError {
     case authorizationDenied
     case authorizationFailed(Error)

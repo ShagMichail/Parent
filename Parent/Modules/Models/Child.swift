@@ -8,13 +8,8 @@
 import Foundation
 import FamilyControls
 
-// Модель ребенка
-struct Child: Identifiable, Codable {
+struct Child: Identifiable, Codable, Hashable {
     let id: UUID
-    let name: String
-    let deviceId: String
-    var isOnline: Bool
-    var lastActive: Date
-    var restrictions: FamilyActivitySelection
-    var timeLimit: TimeInterval
+    var name: String
+    let recordID: String // Уникальный ID из CloudKit
 }

@@ -9,6 +9,7 @@ import SwiftUI
 
 @main
 struct ParentApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var authManager = AuthenticationManager.shared
     @StateObject private var familyManager = FamilyManager.shared
     
@@ -25,6 +26,6 @@ struct ParentApp: App {
     
     private func initializeApp() {
         print("🚀 Инициализация приложения...")
-        authManager.checkAuthorization()
+//        authManager.checkAuthorization()
     }
 }

@@ -26,7 +26,6 @@ struct ChildDashboardView: View {
                 Text("Это ваш детский аккаунт")
                     .foregroundColor(.secondary)
                 
-                // Здесь можно показать текущие ограничения, статистику и т.д.
             }
             .padding()
             .navigationTitle("Мой аккаунт")

@@ -14,7 +14,6 @@ struct ChildMainView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 30) {
-                // Информация о ребенке
                 VStack(spacing: 16) {
                     Image(systemName: "person.circle.fill")
                         .font(.system(size: 80))
@@ -54,7 +53,6 @@ struct ChildMainView: View {
                         .font(.headline)
                         .padding(.horizontal)
                     
-                    // Здесь будет список доступных приложений
                     Text("Список разрешенных приложений")
                         .foregroundColor(.secondary)
                         .padding()

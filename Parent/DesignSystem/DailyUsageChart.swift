@@ -18,12 +18,11 @@ struct DailyUsageChart: View {
             HStack(alignment: .bottom, spacing: 8) {
                 ForEach(dailyUsage, id: \.date) { usage in
                     VStack(spacing: 4) {
-                        // График в виде столбцов
                         Rectangle()
                             .fill(Color.blue)
                             .frame(
                                 width: 20,
-                                height: CGFloat(usage.totalTime / 3600) * 20 // Масштабируем
+                                height: CGFloat(usage.totalTime / 3600) * 20
                             )
                             .cornerRadius(4)
                         

@@ -121,11 +121,9 @@ struct UsageStatsView: View {
         isLoading = true
         
         Task {
-            // В реальном приложении здесь будет загрузка из DeviceActivity
-            // Пока используем демо-данные
             let demoStats = createDemoStats(for: timeRange)
             
-            try? await Task.sleep(nanoseconds: 1_000_000_000) // Имитация загрузки
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
             
             await MainActor.run {
                 usageStats = demoStats
@@ -135,7 +133,6 @@ struct UsageStatsView: View {
     }
     
     private func createDemoStats(for range: TimeRange) -> DeviceUsageStats {
-        // Демо-данные - в реальном приложении будут из DeviceActivity
         return DeviceUsageStats(
             totalScreenTime: Double.random(in: 1...4) * 3600, // 1-4 часа
             mostUsedApps: [

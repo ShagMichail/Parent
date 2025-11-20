@@ -8,8 +8,7 @@
 import SwiftUI
 
 struct RoleSelectionView: View {
-    @EnvironmentObject var familyManager: FamilyManager
-    @State private var selectedRole: MemberType? = nil
+    @EnvironmentObject var stateManager: AuthenticationManager
     
     var body: some View {
         VStack(spacing: 30) {
@@ -19,12 +18,12 @@ struct RoleSelectionView: View {
             
             VStack(spacing: 20) {
                 Button("Войти как родитель") {
-                    selectedRole = .parent
+                    stateManager.selectRole(.parent)
                 }
                 .buttonStyle(PrimaryButtonStyle())
                 
                 Button("Войти как ребенок") {
-                    selectedRole = .child
+                    stateManager.selectRole(.child)
                 }
                 .buttonStyle(SecondaryButtonStyle())
             }
@@ -35,9 +34,6 @@ struct RoleSelectionView: View {
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
-        }
-        .sheet(item: $selectedRole) { role in
-            NameInputView(selectedRole: role)
         }
     }
 }
