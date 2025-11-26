@@ -9,17 +9,17 @@ import Foundation
 import CloudKit
 import Combine
 
-protocol CloudKitCommandReceiver: AnyObject {
-    func executeCommand(_ commandName: String)
+protocol CloudKitCommandExecutor: AnyObject {
+    func executeCommand(name: String, recordID: CKRecord.ID)
 }
 
 class CloudKitManager {
     static let shared = CloudKitManager()
     
-    weak var commandReceiver: CloudKitCommandReceiver?
+    weak var commandExecutor: CloudKitCommandExecutor?
     
     private let container = CKContainer.default()
-    private var privateDatabase: CKDatabase { container.privateCloudDatabase }
+    var publicDatabase: CKDatabase { container.publicCloudDatabase }
     
     
     func fetchUserRecordID() async -> String? {
@@ -39,54 +39,120 @@ class CloudKitManager {
         
         let invitationCode = String(format: "%06d", Int.random(in: 0...999999))
         
-        let record = CKRecord(recordType: "Invitation")
+        let recordID = CKRecord.ID(recordName: UUID().uuidString)
+        let record = CKRecord(recordType: "Invitation", recordID: recordID)
+        
         record["invitationCode"] = invitationCode as CKRecordValue
+        
         record["childUserRecordID"] = childID as CKRecordValue
         record["createdAt"] = Date() as CKRecordValue
         
-        try await privateDatabase.save(record)
-        print("✅ Приглашение с кодом \(invitationCode) создано.")
-        return invitationCode
+        do {
+            try await container.publicCloudDatabase.save(record)
+            print("✅ Приглашение с кодом \(invitationCode) создано в public database.")
+            return invitationCode
+        } catch {
+            print("❌ Ошибка создания приглашения: \(error)")
+            throw error
+        }
     }
     
-    func acceptInvitation(withCode code: String) async throws -> String {
+    func acceptInvitation(withCode code: String) async throws -> (childID: String, recordToUpdate: CKRecord) {
+        print("=== 🔍 ПОИСК ПРИГЛАШЕНИЯ ПО ПОЛЮ 'invitationCode' ===")
+        
         let predicate = NSPredicate(format: "invitationCode == %@", code)
         let query = CKQuery(recordType: "Invitation", predicate: predicate)
         
-        let (matchResults, _) = try await privateDatabase.records(matching: query)
+        let record: CKRecord
         
-        guard let record = matchResults.first?.1,
-              let result = try? record.get(),
-              let childID = result["childUserRecordID"] as? String else {
-            throw NSError(domain: "CloudKitManager", code: 404, userInfo: [NSLocalizedDescriptionKey: "Код не найден или истек"])
+        do {
+            let (matchResults, _) = try await container.publicCloudDatabase.records(matching: query)
+            
+            if let firstMatch = matchResults.first {
+                record = try firstMatch.1.get()
+                print("✅ Найдена запись для кода \(code)")
+            } else {
+                throw NSError(domain: "CloudKitManager", code: 404, userInfo: [NSLocalizedDescriptionKey: "Код не найден или недействителен"])
+            }
+        } catch {
+            print("❌ Ошибка при поиске приглашения: \(error.localizedDescription)")
+            throw error
         }
         
-        try await privateDatabase.deleteRecord(withID: result.recordID)
+        guard let childID = record["childUserRecordID"] as? String else {
+            throw NSError(domain: "CloudKitManager", code: 500, userInfo: [NSLocalizedDescriptionKey: "Запись повреждена (отсутствует ID ребенка)"])
+        }
         
-        print("✅ Приглашение принято! ID ребенка: \(childID)")
-        return childID
+        print("✅ Приглашение найдено! ID ребенка: \(childID)")
+        return (childID, record)
+    }
+    
+    func subscribeToInvitationUpdates(invitationCode: String) async throws {
+        let subscriptionID = "invitation-\(invitationCode)-accepted"
+        
+        let subscriptions = try await container.publicCloudDatabase.allSubscriptions()
+        if subscriptions.contains(where: { $0.subscriptionID == subscriptionID }) {
+            try await container.publicCloudDatabase.deleteSubscription(withID: subscriptionID)
+            print("ℹ️ Старая подписка \(subscriptionID) удалена.")
+        }
+        
+        let predicate = NSPredicate(format: "invitationCode == %@", invitationCode)
+        
+        let subscription = CKQuerySubscription(
+            recordType: "Invitation",
+            predicate: predicate,
+            subscriptionID: subscriptionID,
+            options: .firesOnRecordUpdate
+        )
+        
+        let notificationInfo = CKSubscription.NotificationInfo()
+        notificationInfo.shouldSendContentAvailable = true
+        subscription.notificationInfo = notificationInfo
+        
+        try await container.publicCloudDatabase.save(subscription)
+        print("✅ Ребенок успешно подписался на обновления для приглашения с кодом \(invitationCode)")
+    }
+    
+    func handleRemoteNotificationForInvitation(userInfo: [AnyHashable: Any]) {
+        if let notification = CKQueryNotification(fromRemoteNotificationDictionary: userInfo) {
+            if notification.queryNotificationReason == .recordUpdated {
+                print("📬 Получен push об обновлении приглашения!")
+                NotificationCenter.default.post(name: NSNotification.Name("InvitationAccepted"), object: nil)
+            }
+        }
+    }
+    
+    func deleteInvitation(withCode code: String) async throws {
+        let recordID = CKRecord.ID(recordName: code)
+        try await container.publicCloudDatabase.deleteRecord(withID: recordID)
+        print("✅ Ребенок сам удалил свое приглашение \(code).   НЕ УДАЛИЛ, НАДО СМОТРЕТЬ!")
     }
     
     func sendCommand(name: String, to childID: String) async throws {
         let record = CKRecord(recordType: "Command")
         record["commandName"] = name as CKRecordValue
         record["targetChildID"] = childID as CKRecordValue
-        record["timestamp"] = Date().timeIntervalSince1970 as CKRecordValue
+        record["createdAt"] = Date() as CKRecordValue
         
-        try await privateDatabase.save(record)
-        print("✅ Команда '\(name)' успешно отправлена в CloudKit.")
+        try await container.publicCloudDatabase.save(record)
+        print("✅ Команда '\(name)' отправлена ребенку \(childID)")
     }
     
     func subscribeToCommands(for childID: String) async throws {
-        let subscriptions = try await privateDatabase.allSubscriptions()
-        for sub in subscriptions {
-            try await privateDatabase.deleteSubscription(withID: sub.subscriptionID)
+        let subscriptionID = "commands-for-user-\(childID)"
+        
+        let subscriptions = try await publicDatabase.allSubscriptions()
+        if subscriptions.contains(where: { $0.subscriptionID == subscriptionID }) {
+            try await publicDatabase.deleteSubscription(withID: subscriptionID)
+            print("ℹ️ Старая подписка на команды удалена.")
         }
         
         let predicate = NSPredicate(format: "targetChildID == %@", childID)
+        
         let subscription = CKQuerySubscription(
             recordType: "Command",
             predicate: predicate,
+            subscriptionID: subscriptionID,
             options: .firesOnRecordCreation
         )
         
@@ -94,25 +160,31 @@ class CloudKitManager {
         notificationInfo.shouldSendContentAvailable = true
         subscription.notificationInfo = notificationInfo
         
-        try await privateDatabase.save(subscription)
-        print("✅ Успешно подписались на команды для ребенка \(childID).")
+        try await publicDatabase.save(subscription)
+        print("✅ Ребенок \(childID) успешно подписался на получение команд.")
     }
     
-    func handleRemoteNotification(userInfo: [AnyHashable: Any]) {
+    func handleRemoteNotificationForCommand(userInfo: [AnyHashable: Any]) {
         if let notification = CKQueryNotification(fromRemoteNotificationDictionary: userInfo) {
-            guard let recordID = notification.recordID else { return }
+            
+            guard notification.queryNotificationReason == .recordCreated,
+                  let recordID = notification.recordID else {
+                return
+            }
+            
+            print("📬 Получен push о новой команде! RecordID: \(recordID.recordName)")
             
             Task {
                 do {
-                    let record = try await privateDatabase.record(for: recordID)
+                    let record = try await publicDatabase.record(for: recordID)
                     if let commandName = record["commandName"] as? String {
-                        print("📬 Получена команда через push: \(commandName)")
+                        print("📬 Команда: \(commandName)")
                         await MainActor.run {
-                            commandReceiver?.executeCommand(commandName)
+                            commandExecutor?.executeCommand(name: commandName, recordID: recordID)
                         }
                     }
                 } catch {
-                    print("🚨 Не удалось загрузить запись из CloudKit: \(error)")
+                    print("🚨 Не удалось загрузить запись команды из CloudKit: \(error)")
                 }
             }
         }
@@ -152,11 +224,11 @@ class CloudKitManager {
         testRecord["testMessage"] = "Hello, CloudKit!" as CKRecordValue
         
         do {
-            try await privateDatabase.save(testRecord)
+            try await publicDatabase.save(testRecord)
             print("--- ✅✅✅ [Этап 2] СУПЕР-УСПЕХ! Тестовая запись успешно сохранена.")
             print("--- Это означает, что ваше приложение имеет полные права на чтение/запись в контейнер.")
             
-            try await privateDatabase.deleteRecord(withID: testRecord.recordID)
+            try await publicDatabase.deleteRecord(withID: testRecord.recordID)
             print("--- (Тестовая запись успешно удалена)")
             
         } catch {

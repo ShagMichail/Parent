@@ -9,7 +9,7 @@ import SwiftUI
 
 // Экран для ребенка
 struct ChildDashboardView: View {
-    let user: FamilyMember
+//    let user: FamilyMember
     @EnvironmentObject var familyManager: FamilyManager
     
     var body: some View {
@@ -19,7 +19,8 @@ struct ChildDashboardView: View {
                     .font(.system(size: 60))
                     .foregroundColor(.blue)
                 
-                Text("Привет, \(user.name)!")
+//                Text("Привет, \(user.name)!")
+                Text("Привет, Ваня!")
                     .font(.title2)
                     .fontWeight(.bold)
                 

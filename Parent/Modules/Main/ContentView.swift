@@ -15,18 +15,25 @@ struct ContentView: View {
         switch stateManager.appState {
         case .roleSelection:
             RoleSelectionView()
+            
         case .parentSetup:
             ParentSetupView()
-        case .childSetup:
-            ChildSetupView()
+            
+        case .childAuthorization:
+            ChildAuthorizationView()
+            
+        case .childPairing:
+            ChildPairingView()
+            
         case .parentDashboard:
             ParentDashboardView()
+            
         case .childDashboard:
-            Text("Экран ребенка")
-//            ChildDashboardView(user: ) // Главный экран ребенка
+            ChildDashboardView() 
+            
         case .accessDenied:
-            Text("Какая-то херня")
-//            AccessDeniedView()
+            Text("hello")
+            //               AccessDeniedView()   // Замените на ваш экран ошибки
         }
     }
 }

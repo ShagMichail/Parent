@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		FC4656C72EC766E100BBCD62 /* ActivityReportExtension.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = FC4656BB2EC766E100BBCD62 /* ActivityReportExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		FC6DAA312ED70D48000C582E /* DeviceActivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FC6DAA302ED70D48000C582E /* DeviceActivity.framework */; };
+		FC6DAA392ED70D48000C582E /* ActivityMonitorExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FC6DAA2E2ED70D48000C582E /* ActivityMonitorExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -17,6 +19,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = FC4656BA2EC766E100BBCD62;
 			remoteInfo = ActivityReportExtension;
+		};
+		FC6DAA372ED70D48000C582E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FC8A8A0A2EC1499C009A90EF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FC6DAA2D2ED70D48000C582E;
+			remoteInfo = ActivityMonitorExtension;
 		};
 		FC8A8A232EC1499E009A90EF /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -35,6 +44,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		FC0066F72ED596820027118B /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				FC6DAA392ED70D48000C582E /* ActivityMonitorExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FC4656CC2EC766E100BBCD62 /* Embed ExtensionKit Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -50,6 +70,8 @@
 
 /* Begin PBXFileReference section */
 		FC4656BB2EC766E100BBCD62 /* ActivityReportExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = ActivityReportExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		FC6DAA2E2ED70D48000C582E /* ActivityMonitorExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ActivityMonitorExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		FC6DAA302ED70D48000C582E /* DeviceActivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DeviceActivity.framework; path = System/Library/Frameworks/DeviceActivity.framework; sourceTree = SDKROOT; };
 		FC8A8A122EC1499C009A90EF /* Parent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Parent.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC8A8A222EC1499E009A90EF /* ParentTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ParentTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC8A8A2C2EC1499E009A90EF /* ParentUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ParentUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -62,6 +84,13 @@
 				Info.plist,
 			);
 			target = FC4656BA2EC766E100BBCD62 /* ActivityReportExtension */;
+		};
+		FC6DAA3D2ED70D48000C582E /* Exceptions for "ActivityMonitorExtension" folder in "ActivityMonitorExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = FC6DAA2D2ED70D48000C582E /* ActivityMonitorExtension */;
 		};
 		FC8A8A6E2EC1D937009A90EF /* Exceptions for "Parent" folder in "Parent" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -79,6 +108,14 @@
 				FC4656CB2EC766E100BBCD62 /* Exceptions for "ActivityReportExtension" folder in "ActivityReportExtension" target */,
 			);
 			path = ActivityReportExtension;
+			sourceTree = "<group>";
+		};
+		FC6DAA322ED70D48000C582E /* ActivityMonitorExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				FC6DAA3D2ED70D48000C582E /* Exceptions for "ActivityMonitorExtension" folder in "ActivityMonitorExtension" target */,
+			);
+			path = ActivityMonitorExtension;
 			sourceTree = "<group>";
 		};
 		FC8A8A142EC1499C009A90EF /* Parent */ = {
@@ -109,6 +146,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FC6DAA2B2ED70D48000C582E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FC6DAA312ED70D48000C582E /* DeviceActivity.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FC8A8A0F2EC1499C009A90EF /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -133,6 +178,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		FC6DAA2F2ED70D48000C582E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				FC6DAA302ED70D48000C582E /* DeviceActivity.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		FC8A8A092EC1499C009A90EF = {
 			isa = PBXGroup;
 			children = (
@@ -140,6 +193,8 @@
 				FC8A8A252EC1499E009A90EF /* ParentTests */,
 				FC8A8A2F2EC1499E009A90EF /* ParentUITests */,
 				FC4656BC2EC766E100BBCD62 /* ActivityReportExtension */,
+				FC6DAA322ED70D48000C582E /* ActivityMonitorExtension */,
+				FC6DAA2F2ED70D48000C582E /* Frameworks */,
 				FC8A8A132EC1499C009A90EF /* Products */,
 			);
 			sourceTree = "<group>";
@@ -151,6 +206,7 @@
 				FC8A8A222EC1499E009A90EF /* ParentTests.xctest */,
 				FC8A8A2C2EC1499E009A90EF /* ParentUITests.xctest */,
 				FC4656BB2EC766E100BBCD62 /* ActivityReportExtension.appex */,
+				FC6DAA2E2ED70D48000C582E /* ActivityMonitorExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -180,6 +236,28 @@
 			productReference = FC4656BB2EC766E100BBCD62 /* ActivityReportExtension.appex */;
 			productType = "com.apple.product-type.extensionkit-extension";
 		};
+		FC6DAA2D2ED70D48000C582E /* ActivityMonitorExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FC6DAA3A2ED70D48000C582E /* Build configuration list for PBXNativeTarget "ActivityMonitorExtension" */;
+			buildPhases = (
+				FC6DAA2A2ED70D48000C582E /* Sources */,
+				FC6DAA2B2ED70D48000C582E /* Frameworks */,
+				FC6DAA2C2ED70D48000C582E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				FC6DAA322ED70D48000C582E /* ActivityMonitorExtension */,
+			);
+			name = ActivityMonitorExtension;
+			packageProductDependencies = (
+			);
+			productName = ActivityMonitorExtension;
+			productReference = FC6DAA2E2ED70D48000C582E /* ActivityMonitorExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		FC8A8A112EC1499C009A90EF /* Parent */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = FC8A8A362EC1499E009A90EF /* Build configuration list for PBXNativeTarget "Parent" */;
@@ -188,11 +266,13 @@
 				FC8A8A0F2EC1499C009A90EF /* Frameworks */,
 				FC8A8A102EC1499C009A90EF /* Resources */,
 				FC4656CC2EC766E100BBCD62 /* Embed ExtensionKit Extensions */,
+				FC0066F72ED596820027118B /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				FC4656C62EC766E100BBCD62 /* PBXTargetDependency */,
+				FC6DAA382ED70D48000C582E /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				FC8A8A142EC1499C009A90EF /* Parent */,
@@ -263,6 +343,9 @@
 					FC4656BA2EC766E100BBCD62 = {
 						CreatedOnToolsVersion = 16.0;
 					};
+					FC6DAA2D2ED70D48000C582E = {
+						CreatedOnToolsVersion = 16.0;
+					};
 					FC8A8A112EC1499C009A90EF = {
 						CreatedOnToolsVersion = 16.0;
 					};
@@ -294,12 +377,20 @@
 				FC8A8A212EC1499E009A90EF /* ParentTests */,
 				FC8A8A2B2EC1499E009A90EF /* ParentUITests */,
 				FC4656BA2EC766E100BBCD62 /* ActivityReportExtension */,
+				FC6DAA2D2ED70D48000C582E /* ActivityMonitorExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		FC4656B92EC766E100BBCD62 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FC6DAA2C2ED70D48000C582E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -337,6 +428,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FC6DAA2A2ED70D48000C582E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FC8A8A0E2EC1499C009A90EF /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -365,6 +463,11 @@
 			isa = PBXTargetDependency;
 			target = FC4656BA2EC766E100BBCD62 /* ActivityReportExtension */;
 			targetProxy = FC4656C52EC766E100BBCD62 /* PBXContainerItemProxy */;
+		};
+		FC6DAA382ED70D48000C582E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FC6DAA2D2ED70D48000C582E /* ActivityMonitorExtension */;
+			targetProxy = FC6DAA372ED70D48000C582E /* PBXContainerItemProxy */;
 		};
 		FC8A8A242EC1499E009A90EF /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -397,8 +500,9 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.laborato.test.Parent.ActivityReportExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.laborato.Parent.ActivityReportExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -424,7 +528,62 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.laborato.test.Parent.ActivityReportExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.laborato.Parent.ActivityReportExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		FC6DAA3B2ED70D48000C582E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ActivityMonitorExtension/ActivityMonitorExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 497Z5AY56K;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ActivityMonitorExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ActivityMonitorExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.laborato.Parent.ActivityMonitorExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		FC6DAA3C2ED70D48000C582E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ActivityMonitorExtension/ActivityMonitorExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 497Z5AY56K;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ActivityMonitorExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ActivityMonitorExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.laborato.Parent.ActivityMonitorExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -577,7 +736,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.laborato.test.Parent;
+				PRODUCT_BUNDLE_IDENTIFIER = com.laborato.Parent;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -611,7 +770,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.laborato.test.Parent;
+				PRODUCT_BUNDLE_IDENTIFIER = com.laborato.Parent;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -700,6 +859,15 @@
 			buildConfigurations = (
 				FC4656C92EC766E100BBCD62 /* Debug */,
 				FC4656CA2EC766E100BBCD62 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FC6DAA3A2ED70D48000C582E /* Build configuration list for PBXNativeTarget "ActivityMonitorExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FC6DAA3B2ED70D48000C582E /* Debug */,
+				FC6DAA3C2ED70D48000C582E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
