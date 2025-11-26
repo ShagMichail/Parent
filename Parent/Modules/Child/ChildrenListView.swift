@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ChildrenListView: View {
     @EnvironmentObject var stateManager: AuthenticationManager
+    @EnvironmentObject var cloudKitManager: CloudKitManager
 
     var body: some View {
         List {
@@ -26,6 +27,6 @@ struct ChildrenListView: View {
                 }
             }
         }
-        .listStyle(.insetGrouped) // Используем красивый стиль списка
+        .listStyle(.insetGrouped)
     }
 }

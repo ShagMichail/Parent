@@ -203,7 +203,8 @@ class AuthenticationManager: ObservableObject, @preconcurrency CloudKitCommandEx
     func sendBlockCommand(for childID: String) {
         Task {
             do {
-                try await CloudKitManager.shared.sendCommand(name: "block_all_apps", to: childID)
+                let recordID = try await CloudKitManager.shared.sendCommand(name: "block_all_apps", to: childID)
+                print("✅ Команда блокировки отправлена: \(recordID)")
             } catch {
                 print("🚨 Ошибка отправки block команды: \(error)")
             }
@@ -213,10 +214,18 @@ class AuthenticationManager: ObservableObject, @preconcurrency CloudKitCommandEx
     func sendUnblockCommand(for childID: String) {
         Task {
             do {
-                try await CloudKitManager.shared.sendCommand(name: "unblock_all_apps", to: childID)
+                let recordID = try await CloudKitManager.shared.sendCommand(name: "unblock_all_apps", to: childID)
+                print("✅ Команда разблокировки отправлена: \(recordID)")
             } catch {
                 print("🚨 Ошибка отправки unblock команды: \(error)")
             }
+        }
+    }
+    
+    func getActiveCommands(for childID: String) -> [CommandStatus] {
+        return CloudKitManager.shared.pendingCommands.values.filter {
+            $0.targetChildID == childID &&
+            ($0.status == .pending || $0.status == .delivered)
         }
     }
     

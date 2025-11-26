@@ -12,12 +12,14 @@ struct ParentApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var authManager = AuthenticationManager.shared
     @StateObject private var familyManager = FamilyManager.shared
+    @StateObject private var cloudKitManager = CloudKitManager.shared
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(authManager)
                 .environmentObject(familyManager)
+                .environmentObject(cloudKitManager)
                 .onAppear {
                     initializeApp()
                 }

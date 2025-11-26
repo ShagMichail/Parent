@@ -10,6 +10,7 @@ import FamilyControls
 
 struct ContentView: View {
     @EnvironmentObject var stateManager: AuthenticationManager
+    @EnvironmentObject var cloudKitManager: CloudKitManager
     
     var body: some View {
         switch stateManager.appState {

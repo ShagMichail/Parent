@@ -11,6 +11,7 @@ import DeviceActivity
 
 struct ParentDashboardView: View {
     @EnvironmentObject var stateManager: AuthenticationManager
+    @EnvironmentObject var cloudKitManager: CloudKitManager
     
     var body: some View {
         NavigationView {
