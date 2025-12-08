@@ -1,0 +1,56 @@
+//
+//  ErrorView.swift
+//  Parent
+//
+//  Created by Михаил Шаговитов on 04.12.2025.
+//
+
+import SwiftUI
+ 
+struct ErrorView: View {
+    let errorMessage: String
+    let onRetry: () -> Void
+
+    var body: some View {
+        VStack(alignment: .center, spacing: 25) {
+            Text("Ошибка создания приглашения")
+                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                .frame(maxWidth: .infinity, alignment: .center)
+            
+            Text(errorMessage)
+                .font(.system(size: 16, weight: .regular, design: .rounded))
+                .frame(maxWidth: .infinity, alignment: .center)
+            
+            Image(systemName: "exclamationmark.triangle.fill")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+
+            Spacer()
+            
+            Button(action: onRetry) {
+                ContinueButton(
+                    model: ContinueButtonModel(
+                        title: "Попробовать снова",
+                        isEnabled: true,
+                        action: {
+                            
+                        }
+                    )
+                )
+                .frame(height: 50)
+            }
+        }
+        .padding(.top, 80)
+        .padding(.bottom, 92)
+        .padding(.horizontal, 20)
+        .background(Color.roleBackround.ignoresSafeArea())
+        .ignoresSafeArea(.container, edges: .bottom)
+    }
+}
+//
+//#Preview {
+//    ErrorView(errorMessage: "Что-то не работает", onRetry: {
+//        
+//    })
+//}
+

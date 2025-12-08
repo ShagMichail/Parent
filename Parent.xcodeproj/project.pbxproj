@@ -8,8 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		FC4656C72EC766E100BBCD62 /* ActivityReportExtension.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = FC4656BB2EC766E100BBCD62 /* ActivityReportExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		FC6DAA312ED70D48000C582E /* DeviceActivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FC6DAA302ED70D48000C582E /* DeviceActivity.framework */; };
-		FC6DAA392ED70D48000C582E /* ActivityMonitorExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FC6DAA2E2ED70D48000C582E /* ActivityMonitorExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		FC8124D02EE02EBB0085AD05 /* DeviceActivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FC6DAA302ED70D48000C582E /* DeviceActivity.framework */; };
+		FC8124D82EE02EBB0085AD05 /* ActivityMonitorExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FC8124CF2EE02EBB0085AD05 /* ActivityMonitorExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -20,11 +20,11 @@
 			remoteGlobalIDString = FC4656BA2EC766E100BBCD62;
 			remoteInfo = ActivityReportExtension;
 		};
-		FC6DAA372ED70D48000C582E /* PBXContainerItemProxy */ = {
+		FC8124D62EE02EBB0085AD05 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = FC8A8A0A2EC1499C009A90EF /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = FC6DAA2D2ED70D48000C582E;
+			remoteGlobalIDString = FC8124CE2EE02EBB0085AD05;
 			remoteInfo = ActivityMonitorExtension;
 		};
 		FC8A8A232EC1499E009A90EF /* PBXContainerItemProxy */ = {
@@ -50,7 +50,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				FC6DAA392ED70D48000C582E /* ActivityMonitorExtension.appex in Embed Foundation Extensions */,
+				FC8124D82EE02EBB0085AD05 /* ActivityMonitorExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -70,8 +70,8 @@
 
 /* Begin PBXFileReference section */
 		FC4656BB2EC766E100BBCD62 /* ActivityReportExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = ActivityReportExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		FC6DAA2E2ED70D48000C582E /* ActivityMonitorExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ActivityMonitorExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC6DAA302ED70D48000C582E /* DeviceActivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DeviceActivity.framework; path = System/Library/Frameworks/DeviceActivity.framework; sourceTree = SDKROOT; };
+		FC8124CF2EE02EBB0085AD05 /* ActivityMonitorExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ActivityMonitorExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC8A8A122EC1499C009A90EF /* Parent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Parent.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC8A8A222EC1499E009A90EF /* ParentTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ParentTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC8A8A2C2EC1499E009A90EF /* ParentUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ParentUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -85,12 +85,23 @@
 			);
 			target = FC4656BA2EC766E100BBCD62 /* ActivityReportExtension */;
 		};
-		FC6DAA3D2ED70D48000C582E /* Exceptions for "ActivityMonitorExtension" folder in "ActivityMonitorExtension" target */ = {
+		FC6DAA682ED8887D000C582E /* Exceptions for "ActivityReportExtension" folder in "Parent" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				ActivityReportModels.swift,
+				AppActivity/AppUsageChartView.swift,
+				AppActivity/CombinedActivityView.swift,
+				AppActivity/StatView.swift,
+				Notifications/AppNotificationsChartView.swift,
+			);
+			target = FC8A8A112EC1499C009A90EF /* Parent */;
+		};
+		FC8124DC2EE02EBB0085AD05 /* Exceptions for "ActivityMonitorExtension" folder in "ActivityMonitorExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = FC6DAA2D2ED70D48000C582E /* ActivityMonitorExtension */;
+			target = FC8124CE2EE02EBB0085AD05 /* ActivityMonitorExtension */;
 		};
 		FC8A8A6E2EC1D937009A90EF /* Exceptions for "Parent" folder in "Parent" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -99,21 +110,33 @@
 			);
 			target = FC8A8A112EC1499C009A90EF /* Parent */;
 		};
+		FC999DAF2EE2D981007359DC /* Exceptions for "Parent" folder in "ActivityMonitorExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Modules/Models/Child.swift,
+				Modules/Models/ChildLocation.swift,
+				Modules/Models/CommandStatus.swift,
+				Modules/Models/MemberType.swift,
+				Scheduling.swift,
+			);
+			target = FC8124CE2EE02EBB0085AD05 /* ActivityMonitorExtension */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		FC4656BC2EC766E100BBCD62 /* ActivityReportExtension */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				FC6DAA682ED8887D000C582E /* Exceptions for "ActivityReportExtension" folder in "Parent" target */,
 				FC4656CB2EC766E100BBCD62 /* Exceptions for "ActivityReportExtension" folder in "ActivityReportExtension" target */,
 			);
 			path = ActivityReportExtension;
 			sourceTree = "<group>";
 		};
-		FC6DAA322ED70D48000C582E /* ActivityMonitorExtension */ = {
+		FC8124D12EE02EBB0085AD05 /* ActivityMonitorExtension */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				FC6DAA3D2ED70D48000C582E /* Exceptions for "ActivityMonitorExtension" folder in "ActivityMonitorExtension" target */,
+				FC8124DC2EE02EBB0085AD05 /* Exceptions for "ActivityMonitorExtension" folder in "ActivityMonitorExtension" target */,
 			);
 			path = ActivityMonitorExtension;
 			sourceTree = "<group>";
@@ -122,6 +145,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				FC8A8A6E2EC1D937009A90EF /* Exceptions for "Parent" folder in "Parent" target */,
+				FC999DAF2EE2D981007359DC /* Exceptions for "Parent" folder in "ActivityMonitorExtension" target */,
 			);
 			path = Parent;
 			sourceTree = "<group>";
@@ -146,11 +170,11 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		FC6DAA2B2ED70D48000C582E /* Frameworks */ = {
+		FC8124CC2EE02EBB0085AD05 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FC6DAA312ED70D48000C582E /* DeviceActivity.framework in Frameworks */,
+				FC8124D02EE02EBB0085AD05 /* DeviceActivity.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -193,7 +217,7 @@
 				FC8A8A252EC1499E009A90EF /* ParentTests */,
 				FC8A8A2F2EC1499E009A90EF /* ParentUITests */,
 				FC4656BC2EC766E100BBCD62 /* ActivityReportExtension */,
-				FC6DAA322ED70D48000C582E /* ActivityMonitorExtension */,
+				FC8124D12EE02EBB0085AD05 /* ActivityMonitorExtension */,
 				FC6DAA2F2ED70D48000C582E /* Frameworks */,
 				FC8A8A132EC1499C009A90EF /* Products */,
 			);
@@ -206,7 +230,7 @@
 				FC8A8A222EC1499E009A90EF /* ParentTests.xctest */,
 				FC8A8A2C2EC1499E009A90EF /* ParentUITests.xctest */,
 				FC4656BB2EC766E100BBCD62 /* ActivityReportExtension.appex */,
-				FC6DAA2E2ED70D48000C582E /* ActivityMonitorExtension.appex */,
+				FC8124CF2EE02EBB0085AD05 /* ActivityMonitorExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -236,26 +260,26 @@
 			productReference = FC4656BB2EC766E100BBCD62 /* ActivityReportExtension.appex */;
 			productType = "com.apple.product-type.extensionkit-extension";
 		};
-		FC6DAA2D2ED70D48000C582E /* ActivityMonitorExtension */ = {
+		FC8124CE2EE02EBB0085AD05 /* ActivityMonitorExtension */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = FC6DAA3A2ED70D48000C582E /* Build configuration list for PBXNativeTarget "ActivityMonitorExtension" */;
+			buildConfigurationList = FC8124D92EE02EBB0085AD05 /* Build configuration list for PBXNativeTarget "ActivityMonitorExtension" */;
 			buildPhases = (
-				FC6DAA2A2ED70D48000C582E /* Sources */,
-				FC6DAA2B2ED70D48000C582E /* Frameworks */,
-				FC6DAA2C2ED70D48000C582E /* Resources */,
+				FC8124CB2EE02EBB0085AD05 /* Sources */,
+				FC8124CC2EE02EBB0085AD05 /* Frameworks */,
+				FC8124CD2EE02EBB0085AD05 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				FC6DAA322ED70D48000C582E /* ActivityMonitorExtension */,
+				FC8124D12EE02EBB0085AD05 /* ActivityMonitorExtension */,
 			);
 			name = ActivityMonitorExtension;
 			packageProductDependencies = (
 			);
 			productName = ActivityMonitorExtension;
-			productReference = FC6DAA2E2ED70D48000C582E /* ActivityMonitorExtension.appex */;
+			productReference = FC8124CF2EE02EBB0085AD05 /* ActivityMonitorExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 		FC8A8A112EC1499C009A90EF /* Parent */ = {
@@ -272,7 +296,7 @@
 			);
 			dependencies = (
 				FC4656C62EC766E100BBCD62 /* PBXTargetDependency */,
-				FC6DAA382ED70D48000C582E /* PBXTargetDependency */,
+				FC8124D72EE02EBB0085AD05 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				FC8A8A142EC1499C009A90EF /* Parent */,
@@ -343,7 +367,7 @@
 					FC4656BA2EC766E100BBCD62 = {
 						CreatedOnToolsVersion = 16.0;
 					};
-					FC6DAA2D2ED70D48000C582E = {
+					FC8124CE2EE02EBB0085AD05 = {
 						CreatedOnToolsVersion = 16.0;
 					};
 					FC8A8A112EC1499C009A90EF = {
@@ -377,7 +401,7 @@
 				FC8A8A212EC1499E009A90EF /* ParentTests */,
 				FC8A8A2B2EC1499E009A90EF /* ParentUITests */,
 				FC4656BA2EC766E100BBCD62 /* ActivityReportExtension */,
-				FC6DAA2D2ED70D48000C582E /* ActivityMonitorExtension */,
+				FC8124CE2EE02EBB0085AD05 /* ActivityMonitorExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -390,7 +414,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		FC6DAA2C2ED70D48000C582E /* Resources */ = {
+		FC8124CD2EE02EBB0085AD05 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -428,7 +452,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		FC6DAA2A2ED70D48000C582E /* Sources */ = {
+		FC8124CB2EE02EBB0085AD05 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -464,10 +488,10 @@
 			target = FC4656BA2EC766E100BBCD62 /* ActivityReportExtension */;
 			targetProxy = FC4656C52EC766E100BBCD62 /* PBXContainerItemProxy */;
 		};
-		FC6DAA382ED70D48000C582E /* PBXTargetDependency */ = {
+		FC8124D72EE02EBB0085AD05 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = FC6DAA2D2ED70D48000C582E /* ActivityMonitorExtension */;
-			targetProxy = FC6DAA372ED70D48000C582E /* PBXContainerItemProxy */;
+			target = FC8124CE2EE02EBB0085AD05 /* ActivityMonitorExtension */;
+			targetProxy = FC8124D62EE02EBB0085AD05 /* PBXContainerItemProxy */;
 		};
 		FC8A8A242EC1499E009A90EF /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -538,7 +562,7 @@
 			};
 			name = Release;
 		};
-		FC6DAA3B2ED70D48000C582E /* Debug */ = {
+		FC8124DA2EE02EBB0085AD05 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = ActivityMonitorExtension/ActivityMonitorExtension.entitlements;
@@ -565,7 +589,7 @@
 			};
 			name = Debug;
 		};
-		FC6DAA3C2ED70D48000C582E /* Release */ = {
+		FC8124DB2EE02EBB0085AD05 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = ActivityMonitorExtension/ActivityMonitorExtension.entitlements;
@@ -725,6 +749,9 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Parent/Info.plist;
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Приложению нужен постоянный доступ к геолокации для отслеживания местоположения ребенка даже когда приложение закрыто";
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "Приложению нужен постоянный доступ к геолокации для отслеживания местоположения ребенка даже когда приложение закрыто";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Приложению нужен доступ к вашей геолокации для определения местоположения ребенка";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -759,6 +786,9 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Parent/Info.plist;
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Приложению нужен постоянный доступ к геолокации для отслеживания местоположения ребенка даже когда приложение закрыто";
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "Приложению нужен постоянный доступ к геолокации для отслеживания местоположения ребенка даже когда приложение закрыто";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Приложению нужен доступ к вашей геолокации для определения местоположения ребенка";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -863,11 +893,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		FC6DAA3A2ED70D48000C582E /* Build configuration list for PBXNativeTarget "ActivityMonitorExtension" */ = {
+		FC8124D92EE02EBB0085AD05 /* Build configuration list for PBXNativeTarget "ActivityMonitorExtension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				FC6DAA3B2ED70D48000C582E /* Debug */,
-				FC6DAA3C2ED70D48000C582E /* Release */,
+				FC8124DA2EE02EBB0085AD05 /* Debug */,
+				FC8124DB2EE02EBB0085AD05 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

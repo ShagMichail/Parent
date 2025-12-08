@@ -29,15 +29,6 @@ struct AppPickupsChartView: View {
                     }
                     
                     Spacer()
-                    
-                    Button(action: {
-                        refreshData()
-                    }) {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.headline)
-                            .foregroundColor(.purple)
-                    }
-                    .buttonStyle(PlainButtonStyle())
                 }
                 
                 if appPickupsData.allApps.isEmpty {

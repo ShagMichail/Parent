@@ -9,8 +9,7 @@ import SwiftUI
 
 // Экран для ребенка
 struct ChildDashboardView: View {
-//    let user: FamilyMember
-    @EnvironmentObject var familyManager: FamilyManager
+    @EnvironmentObject var locationManager: LocationManager
     
     var body: some View {
         NavigationView {
@@ -19,7 +18,6 @@ struct ChildDashboardView: View {
                     .font(.system(size: 60))
                     .foregroundColor(.blue)
                 
-//                Text("Привет, \(user.name)!")
                 Text("Привет, Ваня!")
                     .font(.title2)
                     .fontWeight(.bold)
@@ -30,6 +28,12 @@ struct ChildDashboardView: View {
             }
             .padding()
             .navigationTitle("Мой аккаунт")
+            .onAppear {
+                // Автозапуск для ребенка
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+//                    locationManager.startTracking()
+                }
+            }
         }
     }
 }

@@ -8,8 +8,7 @@
 import SwiftUI
 
 struct ChildMainView: View {
-    @EnvironmentObject var familyManager: FamilyManager
-    @State private var remainingTime: TimeInterval = 2 * 3600 // 2 часа по умолчанию
+    @State private var remainingTime: TimeInterval = 2 * 3600
     
     var body: some View {
         NavigationView {
@@ -19,9 +18,9 @@ struct ChildMainView: View {
                         .font(.system(size: 80))
                         .foregroundColor(.blue)
                     
-                    Text(familyManager.currentUser?.name ?? "Ребенок")
-                        .font(.title2)
-                        .fontWeight(.bold)
+//                    Text(familyManager.currentUser?.name ?? "Ребенок")
+//                        .font(.title2)
+//                        .fontWeight(.bold)
                     
                     Text("Детский режим")
                         .font(.body)
@@ -66,18 +65,12 @@ struct ChildMainView: View {
                 }
                 .buttonStyle(SecondaryButtonStyle())
                 .padding()
-                
-//                Button("Выйти") {
-//                    familyManager.logout()
-//                }
-//                .foregroundColor(.red)
             }
             .navigationTitle("Мой аккаунт")
         }
     }
     
     private func requestAdditionalTime() {
-        // Логика запроса дополнительного времени у родителя
         print("Запрос дополнительного времени")
     }
     

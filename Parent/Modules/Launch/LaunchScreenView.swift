@@ -13,7 +13,6 @@ struct LaunchScreenView: View {
             Color(.systemBackground)
                 .ignoresSafeArea()
             
-            // Декоративные элементы фона
             Circle()
                 .fill(Color.blue.opacity(0.1))
                 .frame(width: 300)

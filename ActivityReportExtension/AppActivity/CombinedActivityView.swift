@@ -14,10 +14,7 @@ struct CombinedActivityView: View {
     @State private var isTotalActivityExpanded = false
     @State private var isAllAppsExpanded = false
     @State private var refreshID = UUID()
-    @State private var selectedTimeFrame = "Today"
-    
-    let timeFrames = ["Today", "This Week", "This Month"]
-    
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -32,42 +29,6 @@ struct CombinedActivityView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
-                    
-                    Spacer()
-                    
-                    Menu {
-                        ForEach(timeFrames, id: \.self) { frame in
-                            Button(frame) {
-                                selectedTimeFrame = frame
-                                refreshData()
-                            }
-                        }
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text(selectedTimeFrame)
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                            
-                            Image(systemName: "chevron.down")
-                                .font(.caption)
-                        }
-                        .foregroundColor(.blue)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.blue.opacity(0.1))
-                        )
-                    }
-                    
-                    Button(action: {
-                        refreshData()
-                    }) {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.headline)
-                            .foregroundColor(.blue)
-                    }
-                    .buttonStyle(PlainButtonStyle())
                 }
                 
                 if appUsageData.allApps.isEmpty {
@@ -320,26 +281,26 @@ struct CombinedActivityView: View {
     
     private func getUsageIcon(for duration: TimeInterval) -> String {
         switch duration {
-        case 0..<300: // Меньше 5 минут
+        case 0..<300:
             return "timer"
-        case 300..<1800: // 5-30 минут
+        case 300..<1800:
             return "clock.fill"
-        case 1800..<3600: // 30-60 минут
+        case 1800..<3600:
             return "desktopcomputer"
-        default: // Больше часа
+        default:
             return "clock.badge.checkmark.fill"
         }
     }
     
     private func getUsageColor(for duration: TimeInterval) -> Color {
         switch duration {
-        case 0..<300: // Меньше 5 минут
+        case 0..<300:
             return .green
-        case 300..<1800: // 5-30 минут
+        case 300..<1800:
             return .blue
-        case 1800..<3600: // 30-60 минут
+        case 1800..<3600:
             return .orange
-        default: // Больше часа
+        default:
             return .red
         }
     }

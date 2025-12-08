@@ -1,52 +1,105 @@
+////
+////  DeviceActivityMonitorExtension.swift
+////  ActivityMonitorExtension
+////
+////  Created by Михаил Шаговитов on 03.12.2025.
+////
 //
-//  DeviceActivityMonitorExtension.swift
-//  ActivityMonitorExtension
+//import DeviceActivity
+//import ManagedSettings
+//import CloudKit
+//import os.log
 //
-//  Created by Михаил Шаговитов on 26.11.2025.
+//class DeviceActivityMonitorExtension: DeviceActivityMonitor {
+//    let store = ManagedSettingsStore()
+//    let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "ActivityMonitor")
+//    
+//    // Безопасный доступ к общему хранилищу
+//    var sharedUserDefaults: UserDefaults? {
+//        UserDefaults(suiteName: "group.com.laborato.test.Parent") // Убедитесь, что ID группы верный
+//    }
 //
-
-// ActivityMonitorExtension.swift
-import DeviceActivity
-import ManagedSettings
-import Foundation
-
-class ActivityMonitorExtension: DeviceActivityMonitor {
-    let store = ManagedSettingsStore()
-    
-    // Добавляем доступ к общему хранилищу App Group
-    let appGroupID = "group.com.laborato.test.Parent"
-    var sharedUserDefaults: UserDefaults? {
-        return UserDefaults(suiteName: appGroupID)
-    }
-
-    override func intervalDidStart(for activity: DeviceActivityName) {
-        super.intervalDidStart(for: activity)
-        
-        print("ActivityMonitorExtension: Интервал начался. Проверяю сохраненные правила.")
-        
-        // 1. ЗАГРУЖАЕМ ПРАВИЛО из общего хранилища, которое установило основное приложение.
-        let shouldBlock = sharedUserDefaults?.bool(forKey: "shouldBlockAllApps") ?? false
-        
-        print("ActivityMonitorExtension: Текущее правило 'Блокировать все' = \(shouldBlock)")
-        
-        // 2. ПРИМЕНЯЕМ ИЛИ СНИМАЕМ БЛОКИРОВКУ в зависимости от правила.
-        if shouldBlock {
-            // Этот код будет вызван в фоне, даже если ваше основное приложение закрыто.
-            store.shield.applicationCategories = .all()
-            print("ActivityMonitorExtension: Ограничения ПРИМЕНЕНЫ согласно правилу.")
-        } else {
-            store.shield.applicationCategories = nil
-            store.shield.webDomains = nil
-            print("ActivityMonitorExtension: Ограничения СНЯТЫ согласно правилу.")
-        }
-    }
-
-    override func intervalDidEnd(for activity: DeviceActivityName) {
-        super.intervalDidEnd(for: activity)
-        print("ActivityMonitorExtension: Интервал закончился. Снимаю все ограничения.")
-        // По окончании расписания (например, в полночь) можно снять все блокировки
-        store.shield.applicationCategories = nil
-        store.shield.webDomains = nil
-        sharedUserDefaults?.set(false, forKey: "shouldBlockAllApps") // Сбрасываем правило
-    }
-}
+//    /// Вызывается системой, когда начинается ЛЮБОЙ из отслеживаемых интервалов.
+//    override func intervalDidStart(for activity: DeviceActivityName) {
+//        super.intervalDidStart(for: activity)
+//        logger.info("☀️ Интервал для '\(activity.rawValue)' начался.")
+//        
+//        Task {
+//            // Выполняем проверку в любом случае
+//            await checkForNewCommandsAndApplySettings()
+//            
+//            // Если это была ПЛАНОВАЯ проверка, планируем следующую
+//            if activity == FREQUENT_CHECK_ACTIVITY_NAME {
+//                scheduleNextDeviceActivityCheck()
+//            }
+//            
+//            // Если это был запуск "по требованию", останавливаем его
+//            if activity == FORCE_CHECK_ACTIVITY_NAME {
+//                DeviceActivityCenter().stopMonitoring([activity])
+//                logger.info("⏹️ Одноразовый мониторинг 'force-check' остановлен.")
+//            }
+//        }
+//    }
+//
+//    /// Главная функция, которая делает всю работу в фоне.
+//    private func checkForNewCommandsAndApplySettings() async {
+//        // 1. Получаем ID ребенка из общего хранилища UserDefaults.
+//        guard let childID = sharedUserDefaults?.string(forKey: "myUserRecordID") else {
+//            logger.error("❌ CRITICAL: Не удалось получить ID ребенка из UserDefaults. Проверка невозможна.")
+//            return
+//        }
+//        
+//        do {
+//            // 2. Загружаем все необработанные команды с сервера.
+//            let commands = try await CloudKitManager.shared.fetchPendingCommands(for: childID)
+//            
+//            if commands.isEmpty {
+//                logger.info("📪 Новых команд нет. Применяю последнее известное состояние.")
+//                applyLastKnownState()
+//                return
+//            }
+//            
+//            // 3. Исполняем каждую команду.
+//            for command in commands {
+//                if let commandName = command["commandName"] as? String {
+//                    logger.info("🎬 Исполнение команды '\(commandName)'")
+//                    applyCommand(name: commandName)
+//                }
+//                
+//                // 4. Удаляем команду с сервера ПОСЛЕ ее исполнения.
+//                try await CloudKitManager.shared.publicDatabase.deleteRecord(withID: command.recordID)
+//                logger.info("✅ Команда \(command.recordID.recordName) удалена.")
+//            }
+//            
+//        } catch {
+//            logger.error("🚨 Ошибка при проверке/исполнении команд: \(error)")
+//        }
+//    }
+//    
+//    /// Применяет конкретное правило блокировки.
+//    private func applyCommand(name: String) {
+//        switch name {
+//        case "block_all_apps":
+//            store.shield.applicationCategories = .all()
+//            sharedUserDefaults?.set(true, forKey: "isBlocked") // Сохраняем последнее состояние
+//            
+//        case "unblock_all_apps":
+//            store.shield.applicationCategories = nil
+//            sharedUserDefaults?.set(false, forKey: "isBlocked") // Сохраняем последнее состояние
+//            
+//        default:
+//            break
+//        }
+//    }
+//    
+//    /// Применяет последнее сохраненное состояние (важно после перезагрузки).
+//    private func applyLastKnownState() {
+//        let isBlocked = sharedUserDefaults?.bool(forKey: "isBlocked") ?? false
+//        logger.info("🔄 Применение последнего известного состояния: isBlocked = \(isBlocked)")
+//        if isBlocked {
+//            store.shield.applicationCategories = .all()
+//        } else {
+//            store.shield.applicationCategories = nil
+//        }
+//    }
+//}

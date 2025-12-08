@@ -9,7 +9,7 @@ import SwiftUI
 import FamilyControls
 
 struct SelectAppsButton: View {
-    @EnvironmentObject var familyManager: FamilyManager
+//    @EnvironmentObject var familyManager: FamilyManager
     @State private var isPickerPresented = false
     @State private var selection = FamilyActivitySelection()
     
@@ -36,8 +36,8 @@ struct SelectAppsButton: View {
             .cornerRadius(12)
         }
         .familyActivityPicker(isPresented: $isPickerPresented, selection: $selection)
-        .onChange(of: selection) { oldSelection, newSelection in
-            familyManager.setBlockedItems(from: newSelection)
-        }
+//        .onChange(of: selection) { oldSelection, newSelection in
+//            familyManager.setBlockedItems(from: newSelection)
+//        }
     }
 }

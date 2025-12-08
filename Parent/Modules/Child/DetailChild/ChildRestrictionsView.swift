@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ChildRestrictionsView: View {
     let child: FamilyMember
-    @EnvironmentObject var parentManager: FamilyManager
+//    @EnvironmentObject var parentManager: FamilyManager
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {

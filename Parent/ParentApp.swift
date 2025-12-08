@@ -10,24 +10,27 @@ import SwiftUI
 @main
 struct ParentApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @StateObject private var authManager = AuthenticationManager.shared
-    @StateObject private var familyManager = FamilyManager.shared
-    @StateObject private var cloudKitManager = CloudKitManager.shared
+    @StateObject var cloudKitManager: CloudKitManager
+    @StateObject var stateManager: AppStateManager
+    @StateObject var authService: AuthenticationService
+    
+    init() {
+        print("🚀 ParentApp init: Создаем сервисы...")
+        let authServiceInstance = AuthenticationService()
+        let cloudKitManager = CloudKitManager()
+        let stateManagerInstance = AppStateManager(authService: authServiceInstance, cloudKitManager: cloudKitManager)
+        _authService = StateObject(wrappedValue: authServiceInstance)
+        _cloudKitManager = StateObject(wrappedValue: cloudKitManager)
+        _stateManager = StateObject(wrappedValue: stateManagerInstance)
+    }
+      
     
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(authManager)
-                .environmentObject(familyManager)
+                .environmentObject(stateManager)
+                .environmentObject(authService)
                 .environmentObject(cloudKitManager)
-                .onAppear {
-                    initializeApp()
-                }
         }
-    }
-    
-    private func initializeApp() {
-        print("🚀 Инициализация приложения...")
-//        authManager.checkAuthorization()
     }
 }
