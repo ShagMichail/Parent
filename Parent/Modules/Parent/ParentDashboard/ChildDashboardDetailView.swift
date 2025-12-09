@@ -6,9 +6,17 @@
 //
 
 import SwiftUI
+import DeviceActivity
 
 struct ChildDashboardDetailView: View {
     @ObservedObject var viewModel: ParentDashboardViewModel
+    @State private var navigateToFocus = false
+    @State private var filter = DeviceActivityFilter(
+        segment: .hourly(during: DateInterval(start: Calendar.current.startOfDay(for: Date()), end: Date())),
+        users: .children,
+        devices: .init([.iPhone])
+    )
+    @State private var context = DeviceActivityReport.Context(rawValue: "App Top Usage")
     
     private var actionColumns: [GridItem] {
         let screenWidth = UIScreen.main.bounds.width
@@ -20,6 +28,8 @@ struct ChildDashboardDetailView: View {
             GridItem(.fixed(columnWidth), spacing: spacing)
         ]
     }
+    
+    @State private var showNavigationBar = true
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -33,23 +43,34 @@ struct ChildDashboardDetailView: View {
                     statusColor: .green
                 )
             )
-            
-            // Топ приложений
-            TopAppsView(
-                models: [
-                    TopAppsViewModel(
-                        icon: "person",
-                        nameApps: "Telegram",
-                        time: "1 ч 22 мин"
+
+            // тут нельзя сделать динамический размер, поэтому делаем отчет жестко для 2 приложений и выставляем высоту через frame
+            ZStack {
+                DeviceActivityReport(context, filter: filter)
+                    .frame(height: 150)
+                    .shadow(
+                        color: Color.black.opacity(0.08),
+                        radius: 8,
+                        x: 0,
+                        y: 4
                     )
-                    ,
-                    TopAppsViewModel(
-                        icon: "person",
-                        nameApps: "Telegram",
-                        time: "1 ч 22 мин"
-                    )
-                ]
-            )
+                .frame(height: 150)
+                .shadow(
+                    color: Color.black.opacity(0.08),
+                    radius: 8,
+                    x: 0,
+                    y: 4
+                )
+                
+                Color.white.opacity(0.01)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        print("Tap intercepted")
+                    }
+            }
+            .onAppear {
+                updateReport()
+            }
             
             // Действия
             Text("Действия")
@@ -59,23 +80,57 @@ struct ChildDashboardDetailView: View {
             LazyVGrid(columns: actionColumns, spacing: 16) {
                 ActionCard(
                     model: ActionCardModel(
-                        title: viewModel.isSelectedChildBlocked ? "Разблокировать" : "Блокировать",
+                        title: "Блокировать",
                         icon: "lock-command",
                         status: viewModel.isSelectedChildBlocked ? "Вкл." : "Выкл.",
                         action: {
                     viewModel.toggleBlock()
                 }))
-                .disabled(viewModel.isCommandInProgressForSelectedChild)
+                .disabled(viewModel.isLoadingInitialState || viewModel.isCommandInProgressForSelectedChild)
                 .opacity(viewModel.isCommandInProgressForSelectedChild ? 0.6 : 1.0)
                 // Анимация применяется ЗДЕСЬ, а не в ViewModel
                 .animation(.easeInOut(duration: 0.3), value: viewModel.isCommandInProgressForSelectedChild)
                 .animation(.easeInOut(duration: 0.3), value: viewModel.isSelectedChildBlocked)
                 
-                ActionCard(model: ActionCardModel(title: "Фокусировать", icon: "focus-command", status: "Выкл.", action: {}))
+                ActionCard(model: ActionCardModel(title: "Фокусировать", icon: "focus-command", status: "Выкл.", action: {
+                    navigateToFocus = true
+                }))
                 ActionCard(model: ActionCardModel(title: "Приложения", icon: "apps-command", showsArrow: true, action: {}))
                 ActionCard(model: ActionCardModel(title: "Сайты", icon: "web-command", showsArrow: true, action: {}))
             }
         }
         .padding(.horizontal, 20)
+        .background(
+            NavigationLink(
+                destination: FocusSettingsView(), // Куда идем
+                isActive: $navigateToFocus        // Когда идем
+            ) {
+                EmptyView()
+            }
+                .hidden() // Гарантируем, что она не занимает место
+        )
+        .toolbar(showNavigationBar ? .visible : .hidden)
+        .onTapGesture {
+            withAnimation {
+                showNavigationBar.toggle()
+            }
+        }
+    }
+    
+    private func updateReport() {
+        print("🔄 Обновляем отчет...")
+        // Мы создаем АБСОЛЮТНО НОВЫЙ фильтр.
+        // Ключевое здесь — Date() в параметре end. Оно берет текущее время.
+        // SwiftUI видит, что структура изменилась, и перерисовывает отчет.
+        let newFilter = DeviceActivityFilter(
+            segment: .hourly(during: DateInterval(start: Calendar.current.startOfDay(for: Date()), end: Date())),
+            users: .children,
+            devices: .init([.iPhone])
+        )
+        
+        // Присваиваем с анимацией (опционально)
+        withAnimation {
+            self.filter = newFilter
+        }
     }
 }

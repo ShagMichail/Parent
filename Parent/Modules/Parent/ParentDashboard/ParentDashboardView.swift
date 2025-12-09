@@ -15,6 +15,7 @@ struct ParentDashboardView: View {
     @StateObject private var viewModel: ParentDashboardViewModel
     @State private var isAddingChild = false
     @State private var showDivider = false
+    @State private var reportRefreshID = UUID()
     
     init(stateManager: AppStateManager) {
         // Мы не можем получить доступ к authManager напрямую в `init`,
@@ -29,7 +30,7 @@ struct ParentDashboardView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 NavigationBar(
                     model: NavigationBarModel(
@@ -57,6 +58,7 @@ struct ParentDashboardView: View {
                             ChildDashboardDetailView(viewModel: viewModel)
                             // Добавляем transition для плавной смены
                                 .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                                .id(reportRefreshID) 
                         } else {
                             // Показываем, если детей нет
                             ContentUnavailableView("Добавьте ребенка", systemImage: "person.3.fill", description: Text("Нажмите на '+' чтобы добавить первого ребенка."))
@@ -69,6 +71,13 @@ struct ParentDashboardView: View {
                     // Здесь ваш экран добавления ребенка
                     AddChildView()
                 }
+                .refreshable {
+                        // Когда тянем вниз:
+                        // 1. Обновляем данные с сервера
+                        viewModel.refreshChildStatus()
+                        // 2. Обновляем отчет (меняем ID)
+                        reportRefreshID = UUID()
+                    }
             }
         }
         .id(viewModel.selectedChild?.id) // Ключевой трюк для обновления

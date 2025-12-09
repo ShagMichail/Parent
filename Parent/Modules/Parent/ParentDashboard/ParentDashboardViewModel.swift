@@ -18,6 +18,7 @@ class ParentDashboardViewModel: ObservableObject {
         didSet {
             if let child = selectedChild {
                 setupSubscription(for: child)
+                refreshChildStatus()
             }
         }
     }
@@ -28,7 +29,11 @@ class ParentDashboardViewModel: ObservableObject {
     // Индикатор загрузки для UI (спиннер на кнопке)
     @Published var isCommandInProgressForSelectedChild = false
     
+    @Published var isLoadingInitialState = false
+    
     private var cancellables = Set<AnyCancellable>()
+    
+    private let blockStatusCacheKey = "cached_block_statuses"
     
     var isSelectedChildBlocked: Bool {
         guard let child = selectedChild else { return false }
@@ -38,7 +43,7 @@ class ParentDashboardViewModel: ObservableObject {
     init(stateManager: AppStateManager, cloudKitManager: CloudKitManager) {
         self.stateManager = stateManager
         self.cloudKitManager = cloudKitManager
-        
+        loadCachedStatuses()
         // Синхронизация списка детей
         stateManager.$children
             .sink { [weak self] updatedChildren in
@@ -55,6 +60,54 @@ class ParentDashboardViewModel: ObservableObject {
                 self?.handleCommandUpdate(notification)
             }
             .store(in: &cancellables)
+    }
+    
+    /// Загружает последнюю команду и выставляет UI
+    func refreshChildStatus() {
+        
+        guard let child = selectedChild else { return }
+        isLoadingInitialState = true
+        
+        Task {
+            do {
+                if let lastRecord = try await cloudKitManager.fetchLatestCommand(for: child.recordID) {
+                    
+                    let commandName = lastRecord["commandName"] as? String ?? ""
+                    let statusRaw = lastRecord["status"] as? String ?? ""
+                    
+                    // Обновляем UI в главном потоке
+                    await MainActor.run {
+                        // 1. Определяем статус блокировки на основе имени ПОСЛЕДНЕЙ команды
+                        if commandName == "block_all" {
+                            self.blockStatuses[child.recordID] = true
+                        } else {
+                            self.blockStatuses[child.recordID] = false
+                        }
+                        
+                        // 2. Если статус pending, значит процесс еще идет -> крутим спиннер
+                        if statusRaw == CommandStatus.pending.rawValue {
+                            self.isCommandInProgressForSelectedChild = true
+                        } else {
+                            self.isCommandInProgressForSelectedChild = false
+                        }
+                    }
+                } else {
+                    // Если команд нет вообще, считаем, что ребенок разблокирован
+                    await MainActor.run {
+                        self.blockStatuses[child.recordID] = false
+                        self.isCommandInProgressForSelectedChild = false
+                    }
+                }
+            } catch {
+                print("Error fetching child status: \(error)")
+            }
+            
+            self.saveCachedStatuses()
+            
+            await MainActor.run {
+                self.isLoadingInitialState = false
+            }
+        }
     }
     
     /// Основное действие по кнопке
@@ -98,8 +151,9 @@ class ParentDashboardViewModel: ObservableObject {
         guard let userInfo = notification.userInfo,
               let statusRaw = userInfo["status"] as? String,
               let commandName = userInfo["commandName"] as? String,
-              let childID = userInfo["childID"] as? String,
-              let recordID = userInfo["recordID"] as? CKRecord.ID
+              let childID = userInfo["childID"] as? String
+//                ,
+//              let recordID = userInfo["recordID"] as? CKRecord.ID
         else { return }
 
         // Проверяем, касается ли это текущего выбранного ребенка
@@ -115,11 +169,26 @@ class ParentDashboardViewModel: ObservableObject {
                 } else if commandName == "unblock_all" {
                     blockStatuses[childID] = false
                 }
-                
-                Task {
-                    await cloudKitManager.deleteCommand(recordID: recordID)
-                }
+                self.saveCachedStatuses()
+//                Task {
+//                    await cloudKitManager.deleteCommand(recordID: recordID)
+//                }
             }
+        }
+    }
+    
+    // 1. Метод для загрузки кеша (вызываем в init)
+    private func loadCachedStatuses() {
+        if let data = UserDefaults.standard.data(forKey: blockStatusCacheKey),
+           let cachedStatuses = try? JSONDecoder().decode([String: Bool].self, from: data) {
+            self.blockStatuses = cachedStatuses
+        }
+    }
+    
+    // 2. Метод для сохранения кеша (вызываем при получении данных)
+    private func saveCachedStatuses() {
+        if let data = try? JSONEncoder().encode(blockStatuses) {
+            UserDefaults.standard.set(data, forKey: blockStatusCacheKey)
         }
     }
 }

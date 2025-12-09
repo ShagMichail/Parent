@@ -42,6 +42,7 @@ struct MainTabView: View {
                     Label("Настройки", image: "setting-tab")
                 }
                 .tag(Tab.settings)
+                .toolbar(.hidden, for: .tabBar)
         }
         // Задаем основной цвет для иконок таб бара
         .accentColor(.accent)

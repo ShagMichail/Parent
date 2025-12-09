@@ -1,105 +1,91 @@
-////
-////  DeviceActivityMonitorExtension.swift
-////  ActivityMonitorExtension
-////
-////  Created by Михаил Шаговитов on 03.12.2025.
-////
 //
-//import DeviceActivity
-//import ManagedSettings
-//import CloudKit
-//import os.log
+//  DeviceActivityMonitorExtension.swift
+//  ActivityMonitorExtension
 //
-//class DeviceActivityMonitorExtension: DeviceActivityMonitor {
-//    let store = ManagedSettingsStore()
-//    let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "ActivityMonitor")
-//    
-//    // Безопасный доступ к общему хранилищу
-//    var sharedUserDefaults: UserDefaults? {
-//        UserDefaults(suiteName: "group.com.laborato.test.Parent") // Убедитесь, что ID группы верный
-//    }
+//  Created by Михаил Шаговитов on 03.12.2025.
 //
-//    /// Вызывается системой, когда начинается ЛЮБОЙ из отслеживаемых интервалов.
-//    override func intervalDidStart(for activity: DeviceActivityName) {
-//        super.intervalDidStart(for: activity)
-//        logger.info("☀️ Интервал для '\(activity.rawValue)' начался.")
-//        
-//        Task {
-//            // Выполняем проверку в любом случае
-//            await checkForNewCommandsAndApplySettings()
-//            
-//            // Если это была ПЛАНОВАЯ проверка, планируем следующую
-//            if activity == FREQUENT_CHECK_ACTIVITY_NAME {
-//                scheduleNextDeviceActivityCheck()
-//            }
-//            
-//            // Если это был запуск "по требованию", останавливаем его
-//            if activity == FORCE_CHECK_ACTIVITY_NAME {
-//                DeviceActivityCenter().stopMonitoring([activity])
-//                logger.info("⏹️ Одноразовый мониторинг 'force-check' остановлен.")
-//            }
-//        }
-//    }
-//
-//    /// Главная функция, которая делает всю работу в фоне.
-//    private func checkForNewCommandsAndApplySettings() async {
-//        // 1. Получаем ID ребенка из общего хранилища UserDefaults.
-//        guard let childID = sharedUserDefaults?.string(forKey: "myUserRecordID") else {
-//            logger.error("❌ CRITICAL: Не удалось получить ID ребенка из UserDefaults. Проверка невозможна.")
-//            return
-//        }
-//        
-//        do {
-//            // 2. Загружаем все необработанные команды с сервера.
-//            let commands = try await CloudKitManager.shared.fetchPendingCommands(for: childID)
-//            
-//            if commands.isEmpty {
-//                logger.info("📪 Новых команд нет. Применяю последнее известное состояние.")
-//                applyLastKnownState()
-//                return
-//            }
-//            
-//            // 3. Исполняем каждую команду.
-//            for command in commands {
-//                if let commandName = command["commandName"] as? String {
-//                    logger.info("🎬 Исполнение команды '\(commandName)'")
-//                    applyCommand(name: commandName)
-//                }
-//                
-//                // 4. Удаляем команду с сервера ПОСЛЕ ее исполнения.
-//                try await CloudKitManager.shared.publicDatabase.deleteRecord(withID: command.recordID)
-//                logger.info("✅ Команда \(command.recordID.recordName) удалена.")
-//            }
-//            
-//        } catch {
-//            logger.error("🚨 Ошибка при проверке/исполнении команд: \(error)")
-//        }
-//    }
-//    
-//    /// Применяет конкретное правило блокировки.
-//    private func applyCommand(name: String) {
-//        switch name {
-//        case "block_all_apps":
-//            store.shield.applicationCategories = .all()
-//            sharedUserDefaults?.set(true, forKey: "isBlocked") // Сохраняем последнее состояние
-//            
-//        case "unblock_all_apps":
-//            store.shield.applicationCategories = nil
-//            sharedUserDefaults?.set(false, forKey: "isBlocked") // Сохраняем последнее состояние
-//            
-//        default:
-//            break
-//        }
-//    }
-//    
-//    /// Применяет последнее сохраненное состояние (важно после перезагрузки).
-//    private func applyLastKnownState() {
-//        let isBlocked = sharedUserDefaults?.bool(forKey: "isBlocked") ?? false
-//        logger.info("🔄 Применение последнего известного состояния: isBlocked = \(isBlocked)")
-//        if isBlocked {
-//            store.shield.applicationCategories = .all()
-//        } else {
-//            store.shield.applicationCategories = nil
-//        }
-//    }
-//}
+
+import DeviceActivity
+import ManagedSettings
+import CloudKit
+import FamilyControls
+
+// Убедись, что этот класс наследуется от DeviceActivityMonitor
+class DeviceActivityMonitorExtension: DeviceActivityMonitor {
+    
+    let store = ManagedSettingsStore()
+    let database = CKContainer(identifier: "iCloud.com.laborato.Parent").publicCloudDatabase // ⚠️ ВСТАВЬ СВОЙ ID КОНТЕЙНЕРА
+    let appGroup = "group.com.laborato.test.Parent" // ⚠️ ВСТАВЬ СВОЮ ГРУППУ
+    
+    // Этот метод вызывается, когда начинается расписание мониторинга
+    // (например, при перезагрузке телефона или старте приложения)
+    override func intervalDidStart(for activity: DeviceActivityName) {
+        super.intervalDidStart(for: activity)
+        print("MONITOR: Интервал начался. Проверяем команды...")
+        
+        checkCloudKitForPendingCommands()
+    }
+    
+    // Этот метод вызывается периодически системой (не гарантировано по времени, но происходит)
+    override func eventDidReachThreshold(_ event: DeviceActivityEvent.Name, activity: DeviceActivityName) {
+        super.eventDidReachThreshold(event, activity: activity)
+        // Тоже можно проверить команды
+        checkCloudKitForPendingCommands()
+    }
+    
+    private func checkCloudKitForPendingCommands() {
+        // 1. Получаем ID ребенка из общей памяти
+        guard let defaults = UserDefaults(suiteName: appGroup),
+              let childID = defaults.string(forKey: "myChildRecordID") else {
+            print("MONITOR: Child ID не найден в UserDefaults")
+            return
+        }
+        
+        // 2. Ищем команды со статусом "pending"
+        let predicate = NSPredicate(format: "targetChildID == %@ AND status == %@", childID, "pending")
+        let query = CKQuery(recordType: "Command", predicate: predicate)
+        
+        // Сортируем, берем последнюю
+        query.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
+        
+        let operation = CKQueryOperation(query: query)
+        operation.resultsLimit = 1
+        
+        operation.recordMatchedBlock = { recordID, result in
+            switch result {
+            case .success(let record):
+                self.handleRecord(record)
+            case .failure(let error):
+                print("MONITOR: Ошибка получения записи: \(error)")
+            }
+        }
+        
+        database.add(operation)
+    }
+    
+    private func handleRecord(_ record: CKRecord) {
+        guard let commandName = record["commandName"] as? String else { return }
+        print("MONITOR: Найдена команда \(commandName)")
+        
+        // 3. Выполняем блокировку (ManagedSettings работает в расширении!)
+        // Важно: ManagedSettingsStore применяет настройки к устройству, даже если само приложение мертво.
+        if commandName == "block_all" {
+            store.shield.applicationCategories = .all()
+            // store.shield.webDomains = .all()
+        } else if commandName == "unblock_all" {
+            store.shield.applicationCategories = nil
+            store.shield.webDomains = nil
+        }
+        
+        // 4. Обновляем статус в CloudKit
+        record["status"] = "executed"
+        
+        let modifyOp = CKModifyRecordsOperation(recordsToSave: [record], recordIDsToDelete: nil)
+        modifyOp.savePolicy = .changedKeys
+        modifyOp.modifyRecordsResultBlock = { result in
+             print("MONITOR: Статус обновлен на executed")
+        }
+        
+        database.add(modifyOp)
+    }
+}

@@ -10,6 +10,7 @@ import SwiftUI
 import Combine
 import FamilyControls
 import ManagedSettings
+import DeviceActivity
 
 @MainActor
 class AppStateManager: ObservableObject {
@@ -44,7 +45,7 @@ class AppStateManager: ObservableObject {
                 self?.handleScreenTimeAuthStatus(status)
             }
             .store(in: &cancellables)
-            
+        
         // Слушаем изменения в AuthenticationService (если пользователь разлогинился)
         authService.$isAuthenticated
             .receive(on: DispatchQueue.main)
@@ -93,24 +94,24 @@ class AppStateManager: ObservableObject {
         }
     }
     
-    private func setupChildSession() async {
-        print("👶 Настройка сессии ребенка...")
-        
-        // Нам нужен RecordID ребенка.
-        // Если он есть в AuthService - берем оттуда, если нет - запрашиваем.
-        guard let childID = await cloudKitManager.fetchUserRecordID() else {
-            print("🚨 Ошибка: Не удалось получить ID ребенка для подписки")
-            return
-        }
-        
-        do {
-            // Вызываем тот самый метод, который ты написал в CloudKitManager
-            try await cloudKitManager.subscribeToCommands(for: childID)
-            print("✅ Ребенок успешно подписан на команды!")
-        } catch {
-            print("🚨 Ошибка подписки на команды: \(error)")
-        }
-    }
+//    private func setupChildSession() async {
+//        print("👶 Настройка сессии ребенка...")
+//        
+//        // Нам нужен RecordID ребенка.
+//        // Если он есть в AuthService - берем оттуда, если нет - запрашиваем.
+//        guard let childID = await cloudKitManager.fetchUserRecordID() else {
+//            print("🚨 Ошибка: Не удалось получить ID ребенка для подписки")
+//            return
+//        }
+//        
+//        do {
+//            // Вызываем тот самый метод, который ты написал в CloudKitManager
+//            try await cloudKitManager.subscribeToCommands(for: childID)
+//            print("✅ Ребенок успешно подписан на команды!")
+//        } catch {
+//            print("🚨 Ошибка подписки на команды: \(error)")
+//        }
+//    }
     
     
     /// Логика выбора экрана на основе данных
@@ -186,11 +187,11 @@ class AppStateManager: ObservableObject {
     }
     
     /// Ребенок завершил спаривание
-//    func didCompletePairing() {
-//        self.isPaired = true
-//        saveLocalState()
-//        appState = .childDashboard
-//    }
+    //    func didCompletePairing() {
+    //        self.isPaired = true
+    //        saveLocalState()
+    //        appState = .childDashboard
+    //    }
     
     /// Обработка изменения прав ScreenTime (системный коллбэк)
     private func handleScreenTimeAuthStatus(_ status: AuthorizationStatus) {
@@ -256,6 +257,42 @@ class AppStateManager: ObservableObject {
             // Успех обработается в handleScreenTimeAuthStatus
         } catch {
             print("Auth request failed: \(error)")
+        }
+    }
+}
+
+extension AppStateManager {
+    private func setupChildSession() async {
+        print("👶 Настройка сессии ребенка...")
+        
+        guard let childID = await cloudKitManager.fetchUserRecordID() else { return }
+        
+        // 1. СОХРАНЯЕМ ID В APP GROUP (Чтобы расширение его увидело)
+        if let defaults = UserDefaults(suiteName: "group.com.laborato.test.Parent") { // ⚠️ ТВОЯ ГРУППА
+            defaults.set(childID, forKey: "myChildRecordID")
+        }
+        
+        // 2. ПОДПИСКА НА ПУШИ (Как и раньше)
+        try? await cloudKitManager.subscribeToCommands(for: childID)
+        
+        // 3. ЗАПУСК MONITOR EXTENSION (НОВОЕ!)
+        startDeviceActivityMonitoring()
+    }
+    
+    private func startDeviceActivityMonitoring() {
+        let center = DeviceActivityCenter()
+        let activityName = DeviceActivityName("dailyMonitor")
+        let schedule = DeviceActivitySchedule(
+            intervalStart: DateComponents(hour: 0, minute: 0), // Начало дня
+            intervalEnd: DateComponents(hour: 23, minute: 59), // Конец дня
+            repeats: true
+        )
+        
+        do {
+            try center.startMonitoring(activityName, during: schedule)
+            print("✅ Device Monitor запущен. Расширение будет следить за устройством.")
+        } catch {
+            print("🚨 Ошибка запуска монитора: \(error)")
         }
     }
 }

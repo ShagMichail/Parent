@@ -25,6 +25,10 @@ struct ActivityReportExtension: DeviceActivityReportExtension {
         AppPickupsReport { appPickupsData in
             AppPickupsChartView(appPickupsData: appPickupsData)
         }
+        
+        TopAppsCardReport { apps in
+            TopAppsCardView(apps: apps)
+        }
     }
 }
 

@@ -7,6 +7,7 @@
 
 import Foundation
 import DeviceActivity
+import ManagedSettings
 
 struct CombinedActivityData {
     let totalActivity: String
@@ -97,4 +98,11 @@ struct CategoryData: Identifiable {
     let id = UUID()
     let name: String
     let duration: TimeInterval
+}
+
+struct AppReportModel: Identifiable {
+    let id: String
+    let name: String
+    let duration: TimeInterval
+    let token: ApplicationToken? // Важно для иконки
 }

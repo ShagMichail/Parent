@@ -9,7 +9,6 @@ import SwiftUI
 
 struct NavigationBar: View {
     let model: NavigationBarModel
-//    let showDivider: Bool
     
     var body: some View {
         VStack(spacing: 0) {
@@ -25,6 +24,7 @@ struct NavigationBar: View {
                             Image(systemName: "chevron.backward")
                                 .font(.headline)
                                 .foregroundColor(Color.blackText)
+                                .frame(width: 24, height: 24)
                         }
                     }
                     
@@ -66,15 +66,14 @@ struct NavigationBar: View {
                             )
                         }
                     }
+                } else {
+                    Button(action: {}) {
+                        Color.clear
+                            .frame(width: 24, height: 24)
+                    }
                 }
             }
             .frame(height: 70)
-//            if showDivider {
-//                Rectangle()
-//                    .fill(Color.gray.opacity(0.2))
-//                    .frame(height: 1)
-//                    .transition(.opacity)
-//            }
         }
         .padding(.horizontal, 20)
         .background(
@@ -83,7 +82,7 @@ struct NavigationBar: View {
         )
     }
 }
-//
+
 //#Preview {
 //    NavigationBar(
 //        model: NavigationBarModel(

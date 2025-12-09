@@ -1061,6 +1061,25 @@ class CloudKitManager: ObservableObject {
     }
 }
 
+extension CloudKitManager {
+    /// Получает самую последнюю команду для ребенка (чтобы понять текущий статус)
+    func fetchLatestCommand(for childID: String) async throws -> CKRecord? {
+        let predicate = NSPredicate(format: "targetChildID == %@", childID)
+        
+        // Сортируем по дате создания (сначала новые)
+        let sortDescriptor = NSSortDescriptor(key: "createdAt", ascending: false)
+        
+        let query = CKQuery(recordType: "Command", predicate: predicate)
+        query.sortDescriptors = [sortDescriptor]
+        
+        // Запрашиваем только 1 запись (самую свежую)
+        let (matchResults, _) = try await publicDatabase.records(matching: query, resultsLimit: 1)
+        
+        // Возвращаем первую найденную запись или nil
+        return try matchResults.first?.1.get()
+    }
+}
+
 // Добавьте это расширение для удобства
 //extension Notification.Name {
 //    static let invitationAcceptedByChild = Notification.Name("invitationAcceptedByChild")
