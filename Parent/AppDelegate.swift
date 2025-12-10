@@ -325,6 +325,20 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             return
         }
         
+        if notification.subscriptionID?.starts(with: "focus-schedules-") == true {
+            print("🔔 [Child] Пришло обновление расписания!")
+            
+            // Запускаем Background Task для надежности
+            let bgTask = application.beginBackgroundTask { }
+            
+            Task {
+                await FocusScheduleManager.shared.syncFromCloudKit()
+                application.endBackgroundTask(bgTask)
+                completionHandler(.newData)
+            }
+            return
+        }
+        
         completionHandler(.noData)
     }
     

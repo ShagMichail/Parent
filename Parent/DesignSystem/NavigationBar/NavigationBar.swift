@@ -66,6 +66,13 @@ struct NavigationBar: View {
                             )
                         }
                     }
+                } else if model.hasConfirm ?? false {
+                    Button(action: model.onConfirmTap) {
+                        Image("chevron-up")
+                            .font(.headline)
+                            .foregroundColor(Color.blackText)
+                            .frame(width: 24, height: 24)
+                    }
                 } else {
                     Button(action: {}) {
                         Color.clear

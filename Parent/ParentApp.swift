@@ -13,6 +13,7 @@ struct ParentApp: App {
     @StateObject var cloudKitManager: CloudKitManager
     @StateObject var stateManager: AppStateManager
     @StateObject var authService: AuthenticationService
+    @StateObject var parentViewModel: ParentDashboardViewModel
     
     init() {
         print("🚀 ParentApp init: Создаем сервисы...")
@@ -22,6 +23,10 @@ struct ParentApp: App {
         _authService = StateObject(wrappedValue: authServiceInstance)
         _cloudKitManager = StateObject(wrappedValue: cloudKitManager)
         _stateManager = StateObject(wrappedValue: stateManagerInstance)
+        _parentViewModel = StateObject(wrappedValue: ParentDashboardViewModel(
+                    stateManager: stateManagerInstance,
+                    cloudKitManager: CloudKitManager.shared
+                ))
     }
       
     
@@ -31,6 +36,7 @@ struct ParentApp: App {
                 .environmentObject(stateManager)
                 .environmentObject(authService)
                 .environmentObject(cloudKitManager)
+                .environmentObject(parentViewModel)
         }
     }
 }

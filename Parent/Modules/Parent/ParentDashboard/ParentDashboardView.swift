@@ -12,22 +12,26 @@ import DeviceActivity
 struct ParentDashboardView: View {
 //    @EnvironmentObject var stateManager: AppStateManager
     @EnvironmentObject var cloudKitManager: CloudKitManager
-    @StateObject private var viewModel: ParentDashboardViewModel
+//    @StateObject private var viewModel: ParentDashboardViewModel
     @State private var isAddingChild = false
     @State private var showDivider = false
     @State private var reportRefreshID = UUID()
+    @EnvironmentObject var viewModel: ParentDashboardViewModel
+    @Binding var showBlockOverlay: Bool
+        var animation: Namespace.ID
+        
     
-    init(stateManager: AppStateManager) {
-        // Мы не можем получить доступ к authManager напрямую в `init`,
-        // поэтому используем временное решение.
-        // В более крупных проектах это делается через DI-контейнер.
-        // В данном случае, так как authManager синглтон, это безопасно.
-        _viewModel = StateObject(wrappedValue:
-                                    ParentDashboardViewModel(
-                                        stateManager: stateManager,
-                                        cloudKitManager: CloudKitManager.shared
-                                    ))
-    }
+//    init(stateManager: AppStateManager) {
+//        // Мы не можем получить доступ к authManager напрямую в `init`,
+//        // поэтому используем временное решение.
+//        // В более крупных проектах это делается через DI-контейнер.
+//        // В данном случае, так как authManager синглтон, это безопасно.
+//        _viewModel = StateObject(wrappedValue:
+//                                    ParentDashboardViewModel(
+//                                        stateManager: stateManager,
+//                                        cloudKitManager: CloudKitManager.shared
+//                                    ))
+//    }
 
     var body: some View {
         NavigationStack {
@@ -38,7 +42,8 @@ struct ParentDashboardView: View {
                         hasNotification: true,
                         hasNewNotification: true,
                         onBackTap: {},
-                        onNotificationTap: {}
+                        onNotificationTap: {},
+                        onConfirmTap: {}
                     )
                 )
                 ScrollView {
@@ -55,7 +60,7 @@ struct ParentDashboardView: View {
                         
                         // Основной контент для выбранного ребенка
                         if let selectedChild = viewModel.selectedChild {
-                            ChildDashboardDetailView(viewModel: viewModel)
+                            ChildDashboardDetailView(showBlockOverlay: $showBlockOverlay, animation: animation)
                             // Добавляем transition для плавной смены
                                 .transition(.opacity.combined(with: .scale(scale: 0.95)))
                                 .id(reportRefreshID) 
@@ -79,6 +84,8 @@ struct ParentDashboardView: View {
                         reportRefreshID = UUID()
                     }
             }
+            .navigationBarHidden(true)
+//            .toolbar(.visible, for: .tabBar)
         }
         .id(viewModel.selectedChild?.id) // Ключевой трюк для обновления
     }

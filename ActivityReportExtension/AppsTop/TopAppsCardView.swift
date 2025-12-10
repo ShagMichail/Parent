@@ -19,6 +19,7 @@ struct TopAppsCardView: View {
                 .foregroundColor(Color(red: 0.122, green: 0.161, blue: 0.216)) // тут цвет
             
             VStack(spacing: 16) {
+                
                 ForEach(apps) { model in
                     HStack(spacing: 15) {
                         if let token = model.token {

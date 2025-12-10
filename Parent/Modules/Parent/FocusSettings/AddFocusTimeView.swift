@@ -16,7 +16,6 @@ struct AddFocusTimeView: View {
     let mode: FocusTimeMode
     let scheduleToEdit: FocusSchedule?
     let onSave: (FocusSchedule) -> Void
-//    let onCancel: () -> Void
     
     @Environment(\.dismiss) private var dismiss
     
@@ -65,10 +64,14 @@ struct AddFocusTimeView: View {
                         case .edit: return "Редактировать время фокусировки"
                         }
                     }(),
+                    hasConfirm: true,
                     onBackTap: {
                         dismiss()
                     },
-                    onNotificationTap: {}
+                    onNotificationTap: {},
+                    onConfirmTap: {
+                        saveSchedule()
+                    }
                 )
             )
             
@@ -76,58 +79,52 @@ struct AddFocusTimeView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     
                     // Секция времени
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("ВРЕМЯ")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                            .padding(.horizontal, 4)
+                    VStack(alignment: .leading) {
                         
                         VStack(spacing: 0) {
                             TimeRow(title: "Начало", time: $startTime)
-                                .padding(.vertical, 16)
-                                .padding(.horizontal, 16)
+                                .padding(.top, 20)
+                                .padding(.bottom, 15)
+                                .padding(.horizontal, 10)
                             
                             Divider()
-                                .padding(.leading, 16)
+                                .padding(.horizontal, 10)
                             
                             TimeRow(title: "Конец", time: $endTime)
-                                .padding(.vertical, 16)
-                                .padding(.horizontal, 16)
+                                .padding(.bottom, 20)
+                                .padding(.top, 15)
+                                .padding(.horizontal, 10)
                         }
                         .background(
-                            RoundedRectangle(cornerRadius: 12)
+                            RoundedRectangle(cornerRadius: 20)
                                 .fill(Color.white)
                         )
                         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
                     }
                     
                     // Секция повторения
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("ПОВТОР")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                            .padding(.horizontal, 4)
-                        
+                    VStack(alignment: .leading) {
                         // Кнопка выбора дней
                         Button(action: { showingDaysSheet = true }) {
                             HStack {
-                                VStack(alignment: .leading, spacing: 4) {
+                                
                                     Text("Дни недели")
-                                        .foregroundColor(.primary)
+                                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                                        .foregroundColor(.blackText)
+                                    Spacer()
+                                HStack(spacing: 6) {
                                     Text(formatSelectedDays())
-                                        .font(.caption)
-                                        .foregroundColor(.blue)
+                                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                                        .foregroundColor(.strokeTextField)
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(.strokeTextField)
                                 }
-                                
-                                Spacer()
-                                
-                                Image(systemName: "chevron.right")
-                                    .foregroundColor(.gray)
                             }
-                            .padding(.vertical, 16)
-                            .padding(.horizontal, 16)
+                            .padding(.vertical, 20)
+                            .padding(.horizontal, 10)
                             .background(
-                                RoundedRectangle(cornerRadius: 12)
+                                RoundedRectangle(cornerRadius: 20)
                                     .fill(Color.white)
                             )
                             .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
@@ -157,25 +154,20 @@ struct AddFocusTimeView: View {
                     
                     // Переключатель активности
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("СТАТУС")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                            .padding(.horizontal, 4)
-                        
                         HStack {
                             Text("Активно")
-                                .foregroundColor(.primary)
+                                .foregroundColor(.blackText)
                             
                             Spacer()
                             
                             Toggle("", isOn: $isEnabled)
                                 .labelsHidden()
-                                .toggleStyle(SwitchToggleStyle(tint: .focus))
+                                .toggleStyle(KnobColorToggleStyle(activeColor: .accent))
                         }
-                        .padding(.vertical, 16)
-                        .padding(.horizontal, 16)
+                        .padding(.vertical, 20)
+                        .padding(.horizontal, 10)
                         .background(
-                            RoundedRectangle(cornerRadius: 12)
+                            RoundedRectangle(cornerRadius: 20)
                                 .fill(Color.white)
                         )
                         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
@@ -184,29 +176,6 @@ struct AddFocusTimeView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 20)
             }
-            
-            // Кнопка сохранения
-            Button(action: saveSchedule) {
-                Group {
-                    switch mode {
-                    case .add:
-                        Text("Добавить")
-                    case .edit:
-                        Text("Сохранить изменения")
-                    }
-                }
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(selectedDays.isEmpty ? Color.gray : Color.focus)
-                )
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
-            .disabled(selectedDays.isEmpty)
         }
         .background(Color.roleBackround.ignoresSafeArea())
         .navigationBarHidden(true)
@@ -263,7 +232,6 @@ struct AddFocusTimeView: View {
         }
         
         onSave(schedule)
-        dismiss()
     }
 }
 
@@ -279,11 +247,12 @@ struct TimeRow: View {
         }) {
             HStack {
                 Text(title)
-                    .foregroundColor(.primary)
+                    .font(.system(size: 16, weight: .regular, design: .rounded))
+                    .foregroundColor(.blackText)
                 Spacer()
                 Text(time, style: .time)
-                    .font(.system(.body, design: .monospaced))
-                    .foregroundColor(.blue)
+                    .font(.system(size: 16, weight: .regular, design: .rounded))
+                    .foregroundColor(.strokeTextField)
             }
         }
         .sheet(isPresented: $showingTimePicker) {
@@ -372,8 +341,8 @@ struct PresetButton: View {
                 .font(.system(size: 14, weight: .medium))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
-                .background(isActive ? Color.blue.opacity(0.2) : Color.gray.opacity(0.1))
-                .foregroundColor(isActive ? .blue : .primary)
+                .background(isActive ? .accent : Color.gray.opacity(0.1))
+                .foregroundColor(isActive ? .white : .blackText)
                 .cornerRadius(8)
         }
     }
