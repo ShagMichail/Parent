@@ -145,7 +145,7 @@ struct AISummaryView: View {
             .background(Color.roleBackround.ignoresSafeArea())
             .background(
                 NavigationLink(
-                    destination: AppsActivityReportView(childName: viewModel.selectedChild?.name ?? ""),
+                    destination: AppsActivityReportView(),
                     isActive: $navigateToFocus
                 ) { EmptyView() }.hidden()
             )
