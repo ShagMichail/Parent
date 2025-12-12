@@ -21,13 +21,15 @@ struct ChildCardView: View {
                     .font(.system(size: 16, weight: .regular, design: .rounded))
                     .foregroundColor(.blackText)
                 
-                HStack(spacing: 4) {
-                    Image("battery-charging")
-                        .frame(width: 24, height: 24)
-                        .foregroundColor(.red)
-                    Text("54%")
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundColor(.blackText)
+                if model.showBatteryLevel {
+                    HStack(spacing: 4) {
+                        Image("battery-charging")
+                            .frame(width: 24, height: 24)
+                            .foregroundColor(model.batteryLevelColor ?? .green)
+                        Text((model.batteryLevel ?? "100")+"%")
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .foregroundColor(.blackText)
+                    }
                 }
             }
         }

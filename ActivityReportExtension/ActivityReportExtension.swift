@@ -11,23 +11,31 @@ import SwiftUI
 @main
 struct ActivityReportExtension: DeviceActivityReportExtension {
     var body: some DeviceActivityReportScene {
-        AppUsageReport { combinedData in
-            AppUsageChartView(
-                appUsageData: combinedData.appUsageData,
-                totalActivity: combinedData.totalActivity
-            )
+//        AppUsageReport { combinedData in
+//            AppUsageChartView(
+//                appUsageData: combinedData.appUsageData,
+//                totalActivity: combinedData.totalActivity
+//            )
+//        }
+        
+        AppUsageReport { model in
+            AppUsageView(viewModel: model)
         }
         
-        AppNotificationsReport { appNotificationsData in
-            AppNotificationsChartView(appNotificationsData: appNotificationsData)
-        }
-        
-        AppPickupsReport { appPickupsData in
-            AppPickupsChartView(appPickupsData: appPickupsData)
-        }
+//        AppNotificationsReport { appNotificationsData in
+//            AppNotificationsChartView(appNotificationsData: appNotificationsData)
+//        }
+//        
+//        AppPickupsReport { appPickupsData in
+//            AppPickupsChartView(appPickupsData: appPickupsData)
+//        }
         
         TopAppsCardReport { apps in
             TopAppsCardView(apps: apps)
+        }
+        
+        HourlyChartReport { model in
+            HourlyChartView(viewModel: model)
         }
     }
 }

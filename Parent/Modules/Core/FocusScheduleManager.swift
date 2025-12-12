@@ -33,6 +33,15 @@ class FocusScheduleManager: ObservableObject {
     // ⚠️ ВАЖНО: Убедись, что Group ID совпадает в Extension
     private let groupDefaults = UserDefaults(suiteName: "group.com.laborato.test.Parent")
     
+    private var isChildDevice: Bool {
+        // Ключ должен совпадать с тем, что в AppStateManager ("app_user_role")
+        guard let data = UserDefaults.standard.data(forKey: "app_user_role"),
+              let role = try? JSONDecoder().decode(UserRole.self, from: data) else {
+            return false
+        }
+        return role == .child
+    }
+    
     init() {
         // При запуске загружаем сохраненные расписания
         loadSchedules()
@@ -97,6 +106,7 @@ class FocusScheduleManager: ObservableObject {
     
     /// Запуск мониторинга для конкретного расписания
     private func startMonitoring(for schedule: FocusSchedule) {
+        guard isChildDevice else { return }
         let activityName = DeviceActivityName.focusSchedule(schedule.id)
         let scheduleConfig = DeviceActivitySchedule(
             intervalStart: parseTime(schedule.startTime),
@@ -114,6 +124,7 @@ class FocusScheduleManager: ObservableObject {
     
     /// Остановка мониторинга
     private func stopMonitoring(for schedule: FocusSchedule) {
+        guard isChildDevice else { return }
         let activityName = DeviceActivityName.focusSchedule(schedule.id)
         center.stopMonitoring([activityName])
         print("🛑 Мониторинг ОСТАНОВЛЕН для ID: \(schedule.id)")
@@ -140,6 +151,8 @@ class FocusScheduleManager: ObservableObject {
     
     /// Проверка для мгновенной реакции при включении тогла
     private func checkIfShouldBlockImmediately(schedule: FocusSchedule) {
+        // Если это родитель, выходим сразу
+        guard isChildDevice else { return }
         // Твоя модель УЖЕ умеет это делать! Используем её метод.
         if schedule.isActiveNow() {
             print("⚡️ Тогл включен внутри активного интервала: Мгновенная блокировка!")
@@ -182,6 +195,15 @@ class FocusScheduleManager: ObservableObject {
     private func syncWithDeviceActivity() {
         print("⚙️ Синхронизация всех активностей с системой...")
         saveSchedulesToDefaults() // На всякий случай обновляем Extension
+        
+        // 🛑 ГЛАВНОЕ ИСПРАВЛЕНИЕ:
+        // Если это не ребенок, мы НЕ трогаем DeviceActivityCenter
+        guard isChildDevice else {
+            print("👨‍👩‍👧 Устройство Родителя: Пропускаем запуск мониторинга ScreenTime.")
+            return
+        }
+        
+        print("⚙️ Синхронизация всех активностей с системой...")
         
         for schedule in schedules {
             if schedule.isEnabled {

@@ -19,10 +19,10 @@ struct RemoteAppUsageReportView: View {
                     Text("Нет данных об использовании приложений")
                         .foregroundColor(.secondary)
                 } else {
-                    CombinedActivityView(
-                        appUsageData: appUsageData,
-                        totalActivity: totalActivity
-                    )
+//                    CombinedActivityView(
+//                        appUsageData: appUsageData,
+//                        totalActivity: totalActivity
+//                    )
                 }
             }
         }

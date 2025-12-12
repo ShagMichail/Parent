@@ -279,6 +279,7 @@ extension AppStateManager {
         
         // 3. ЗАПУСК MONITOR EXTENSION (НОВОЕ!)
         startDeviceActivityMonitoring()
+        await FocusScheduleManager.shared.syncFromCloudKit()
     }
     
     private func startDeviceActivityMonitoring() {

@@ -7,48 +7,6 @@
 
 import SwiftUI
 
-//struct MainTabView: View {
-//    @EnvironmentObject var stateManager: AppStateManager
-//    @State private var selectedTab: Tab = .children
-//    
-//    var body: some View {
-//        // TabView - основа нашей навигации
-//        TabView(selection: $selectedTab) {
-//            
-//            // --- ВКЛАДКА 1: Локация ---
-//            Text("Локация")
-//                .tabItem {
-//                    Label("Локация", image: "location-tab")
-//                }
-//                .tag(Tab.location)
-//            
-//            // --- ВКЛАДКА 2: Сводка ---
-//            Text("Экран AI-Сводки")
-//                .tabItem {
-//                    Label("AI-Сводка", image: "shield-tick-tab")
-//                }
-//                .tag(Tab.summary)
-//            
-//            // --- ВКЛАДКА 3: Дети (старый экран) ---
-//            ParentDashboardView(stateManager: stateManager)
-//                .tabItem {
-//                    Label("Дети", image: "profile-user-tab")
-//                }
-//                .tag(Tab.children)
-//            
-//            // --- ВКЛАДКА 4: Настройки ---
-//            Text("Экран Настроек")
-//                .tabItem {
-//                    Label("Настройки", image: "setting-tab")
-//                }
-//                .tag(Tab.settings)
-//                .toolbar(.hidden, for: .tabBar)
-//        }
-//        // Задаем основной цвет для иконок таб бара
-//        .accentColor(.accent)
-//    }
-//}
-
 // Enum для управления вкладками
 private enum Tab {
     case location, summary, children, settings
@@ -58,11 +16,48 @@ struct MainTabView: View {
     // Получаем ViewModel, чтобы знать статус блокировки и вызывать методы
     @EnvironmentObject var viewModel: ParentDashboardViewModel
     
-    @State private var selectedTab: Tab = .children
+    @State private var selectedTab: Tab = .summary
     
     // --- ГЛАВНЫЕ СОСТОЯНИЯ (ЖИВУТ ЗДЕСЬ) ---
     @State private var showBlockOverlay = false // Управляет показом оверлея
     @Namespace private var animation            // Магия перемещения карточки
+    
+    init() {
+        // 1. Создаем объект настроек
+        let appearance = UITabBarAppearance()
+        
+        // 2. Делаем фон непрозрачным и белым
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .white
+        
+        // 3. Настраиваем Тень (полоску сверху)
+        // В iOS нативный TabBar поддерживает "Shadow Image" (обычно это тонкая линия)
+        // Чтобы сделать её похожей на тень, делаем светло-серый цвет
+        appearance.shadowImage = nil // Сбрасываем картинку
+        appearance.shadowColor = UIColor.black.withAlphaComponent(0.1) // Цвет линии/тени
+        
+        // 4. Настраиваем иконки и текст
+        let itemAppearance = UITabBarItemAppearance()
+        
+        // Неактивное состояние (Серый)
+        itemAppearance.normal.iconColor = UIColor.gray
+        itemAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.gray]
+        
+        // Активное состояние (Ваш акцентный цвет, например фиолетовый)
+        // Если у вас есть Color.accent, используйте UIColor(named: "AccentColor")
+        let activeColor = UIColor(named: "accent") // Ваш фиолетовый
+        itemAppearance.selected.iconColor = activeColor
+        itemAppearance.selected.titleTextAttributes = [.foregroundColor: activeColor ?? .accent]
+        
+        // Применяем настройки к иконкам
+        appearance.stackedLayoutAppearance = itemAppearance
+        appearance.inlineLayoutAppearance = itemAppearance
+        appearance.compactInlineLayoutAppearance = itemAppearance
+        
+        // 5. Применяем настройки глобально
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
+    }
     
     var body: some View {
         ZStack {
@@ -74,7 +69,7 @@ struct MainTabView: View {
                     .tabItem { Label("Локация", image: "location-tab") }
                     .tag(Tab.location)
                 
-                Text("Сводка")
+                AISummaryView()
                     .tabItem { Label("AI-Сводка", image: "shield-tick-tab") }
                     .tag(Tab.summary)
                 

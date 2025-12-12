@@ -89,8 +89,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				ActivityReportModels.swift,
-				AppActivity/AppUsageChartView.swift,
-				AppActivity/CombinedActivityView.swift,
 				AppActivity/StatView.swift,
 				Notifications/AppNotificationsChartView.swift,
 			);

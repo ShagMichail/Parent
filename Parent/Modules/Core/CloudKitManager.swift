@@ -61,7 +61,7 @@ class CloudKitManager: ObservableObject {
         print("✅ CloudKitManager: Родитель создал приглашение с кодом \(invitationCode).")
         return invitationCode
     }
-
+    
     /// ВЫЗЫВАЕТСЯ РЕБЕНКОМ для принятия приглашения.
     func acceptInvitationByChild(withCode code: String, childName: String) async throws -> String {
         let predicate = NSPredicate(format: "invitationCode == %@", code)
@@ -72,7 +72,7 @@ class CloudKitManager: ObservableObject {
         guard let record = try matchResults.first?.1.get() else {
             throw NSError(domain: "CloudKitManager", code: 404, userInfo: [NSLocalizedDescriptionKey: "Код не найден или недействителен"])
         }
-
+        
         guard let parentID = record["parentUserRecordID"] as? String else {
             throw NSError(domain: "CloudKitManager", code: 500, userInfo: [NSLocalizedDescriptionKey: "Запись повреждена (нет ID родителя)"])
         }
@@ -88,7 +88,7 @@ class CloudKitManager: ObservableObject {
         print("✅ CloudKitManager: Ребенок \(childName) принял приглашение от родителя \(parentID)")
         return parentID
     }
-
+    
     /// ВЫЗЫВАЕТСЯ РОДИТЕЛЕМ для подписки на принятие приглашения.
     func subscribeToInvitationAcceptance(invitationCode: String) async throws {
         let subscriptionID = "invitation-accepted-\(invitationCode)"
@@ -312,5 +312,78 @@ extension CloudKitManager {
         }
         
         return schedules
+    }
+}
+
+extension CloudKitManager {
+    
+    // MARK: - Device Status (Separate Record Type)
+    
+    /// ОТПРАВКА (Вызывается с устройства ребенка)
+    func sendDeviceStatus(_ status: ChildDeviceStatus) async throws {
+        // 1. Получаем ID текущего пользователя (Ребенка)
+        guard let myRecordIDString = await fetchUserRecordID() else { return }
+        
+        // 2. Генерируем ID для записи статуса на основе ID ребенка.
+        // Это гарантирует, что у одного ребенка всегда будет только ОДНА запись статуса,
+        // которую мы будем перезаписывать (Upsert).
+        let statusRecordID = CKRecord.ID(recordName: "status_\(myRecordIDString)")
+        
+        // 3. Создаем запись с типом "DeviceStatus"
+        let record = CKRecord(recordType: "DeviceStatus", recordID: statusRecordID)
+        
+        // 4. Заполняем поля
+        record["location"] = status.location
+        record["batteryLevel"] = status.batteryLevel
+        record["batteryState"] = status.batteryState
+        record["lastSeen"] = status.timestamp
+        // Добавляем ссылку на ребенка (для порядка в базе), хотя ищем мы по ID
+        record["userRef"] = CKRecord.Reference(recordID: CKRecord.ID(recordName: myRecordIDString), action: .deleteSelf)
+        
+        // 5. Сохраняем (Upsert - Обновить или Создать)
+        // Используем .allKeys, чтобы полностью перезаписать состояние новой информацией
+        let modifyOp = CKModifyRecordsOperation(recordsToSave: [record], recordIDsToDelete: nil)
+        modifyOp.savePolicy = .allKeys
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            modifyOp.modifyRecordsResultBlock = { result in
+                switch result {
+                case .success:
+                    print("📡 CloudKit: DeviceStatus обновлен (отдельная таблица)")
+                    continuation.resume()
+                case .failure(let error):
+                    print("❌ Ошибка отправки DeviceStatus: \(error)")
+                    continuation.resume(throwing: error)
+                }
+            }
+            publicDatabase.add(modifyOp)
+        }
+    }
+    
+    /// ПОЛУЧЕНИЕ (Вызывается с устройства родителя)
+    func fetchDeviceStatus(for childID: String) async throws -> (batteryLevel: Float, batteryState: String, lastSeen: Date, location: CLLocation?)? {
+        
+        // 1. Мы знаем ID ребенка, значит знаем и ID его статуса
+        let statusRecordID = CKRecord.ID(recordName: "status_\(childID)")
+        
+        do {
+            // 2. Пытаемся скачать конкретную запись
+            let record = try await publicDatabase.record(for: statusRecordID)
+            
+            guard let level = record["batteryLevel"] as? Double,
+                  let state = record["batteryState"] as? String,
+                  let lastSeen = record["lastSeen"] as? Date else {
+                return nil
+            }
+            
+            let location = record["location"] as? CLLocation
+            
+            return (Float(level), state, lastSeen, location)
+            
+        } catch {
+            // Если записи нет (ребенок еще ни разу не отправлял статус)
+            print("⚠️ Статус для ребенка \(childID) не найден: \(error.localizedDescription)")
+            return nil
+        }
     }
 }
