@@ -1,20 +1,20 @@
 //
-//  PairingSuccessView.swift
+//  SplashScreenSecondView.swift
 //  Parent
 //
-//  Created by Михаил Шаговитов on 04.12.2025.
+//  Created by Michail Shagovitov on 15.12.2025.
 //
 
 import SwiftUI
 
-struct PairingSuccessView: View {
+struct SplashScreenSecondView: View {
     @EnvironmentObject var stateManager: AppStateManager
     let newChild: Child
     
     var body: some View {
         VStack {
-            Text("Аккаунт ребёнка соединён")
-                .font(.system(size: 24, weight: .semibold, design: .rounded))
+            Text("Добро пожаловать!")
+                .font(.system(size: 36, weight: .medium, design: .rounded))
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.horizontal, 20)
 
@@ -43,7 +43,7 @@ struct PairingSuccessView: View {
                     isEnabled: true,
                     action: {
                         Task {
-                            await parentScreen()
+                            await roleScreen()
                         }
                     }
                 )
@@ -53,18 +53,12 @@ struct PairingSuccessView: View {
         }
         .padding(.top, 80)
         .padding(.bottom, 92)
-        .background(Color.roleBackround.ignoresSafeArea())
+        .background(Color.accent.ignoresSafeArea())
         .ignoresSafeArea(.container, edges: .bottom)
         .navigationBarBackButtonHidden(true)
 }
 
-    private func parentScreen() async {
-        stateManager.didAddChild(newChild)
+    private func roleScreen() async {
+
     }
 }
-
-//#Preview {
-//    PairingSuccessView(childName: "Иван", onContinue: {
-//
-//    })
-//}

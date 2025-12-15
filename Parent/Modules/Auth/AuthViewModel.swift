@@ -61,6 +61,7 @@ class AuthViewModel: ObservableObject {
                 }
                 
                 await stateManager.initializeApp()
+//                stateManager.parentDidAuthenticate()
             } catch {
                 await MainActor.run {
                     serverError = error.localizedDescription

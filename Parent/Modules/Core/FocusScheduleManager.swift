@@ -213,4 +213,30 @@ class FocusScheduleManager: ObservableObject {
             }
         }
     }
+    
+    @MainActor
+    func syncWithDeviceActivityFromCache() {
+        loadSchedules()
+        
+        syncWithDeviceActivity()
+        
+        // --- ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА ---
+        // Yе должно ли какое-то из расписаний быть активным ПРЯМО СЕЙЧАС
+        var shouldBeBlockedNow = false
+        for schedule in schedules {
+            if schedule.isActiveNow() {
+                shouldBeBlockedNow = true
+                break
+            }
+        }
+        
+        if shouldBeBlockedNow {
+            print("⚡️ [Manager] Синхронизация показала, что блокировка должна быть активна сейчас. Включаем.")
+            store.shield.applicationCategories = .all()
+        } else {
+            // Опционально: если ни одно расписание не активно, можно снять блокировку
+            // print("[Manager] Ни одно расписание не активно. Снимаем блокировку.")
+            // store.shield.applicationCategories = nil
+        }
+    }
 }

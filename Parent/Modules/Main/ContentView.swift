@@ -21,7 +21,6 @@ struct ContentView: View {
                         await stateManager.initializeApp()
                     }
                     .onAppear {
-                        // Ждем пока определится состояние или таймаут
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                             withAnimation {
                                 showingSplash = false
@@ -37,25 +36,22 @@ struct ContentView: View {
     private var mainContentView: some View {
         switch stateManager.appState {
         case .authRequired:
-            AuthView() // Внутри после входа вызывать authService.login(...) -> затем stateManager.initializeApp()
+            AuthView()
             
         case .roleSelection:
             RoleSelectionView()
-            // Внутри: stateManager.setRole(.parent) -> stateManager.requestAuthorization()
             
         case .parentAddChild:
             AddChildView()
-            // Внутри после сохранения: stateManager.didAddChild(newChild)
             
         case .childPairing:
             ChildPairingView()
-            // Внутри после QR: stateManager.didCompletePairing()
             
         case .parentDashboard:
-            MainTabView() // Главный экран родителя
+            MainTabView()
             
         case .childDashboard:
-            ChildDashboardView() // Главный экран ребенка
+            ChildDashboardView()
             
         case .accessDenied:
             AccessDeniedView()

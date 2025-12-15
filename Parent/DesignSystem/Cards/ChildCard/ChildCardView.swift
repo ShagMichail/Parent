@@ -26,7 +26,7 @@ struct ChildCardView: View {
                         Image("battery-charging")
                             .frame(width: 24, height: 24)
                             .foregroundColor(model.batteryLevelColor ?? .green)
-                        Text((model.batteryLevel ?? "100")+"%")
+                        Text((model.batteryLevel ?? "100"))
                             .font(.system(size: 12, weight: .medium, design: .rounded))
                             .foregroundColor(.blackText)
                     }
