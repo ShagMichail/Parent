@@ -82,19 +82,19 @@ struct AuthFormView: View {
             .padding(.top, 35)
             
             SecureAuthTextField(
-                title: "Пароль",
-                placeholder: mode == .register ? "Придумайте пароль" : "Введите пароль",
                 viewModel: viewModel,
                 text: $viewModel.credentials.password,
+                title: "Пароль",
+                placeholder: mode == .register ? "Придумайте пароль" : "Введите пароль",
                 validationField: (mode == .register) ? .password : .none
             )
             
             if mode == .register {
                 SecureAuthTextField(
-                    title: "Повторите пароль",
-                    placeholder: "Повторите пароль",
                     viewModel: viewModel,
                     text: $viewModel.credentials.confirmPassword,
+                    title: "Повторите пароль",
+                    placeholder: "Повторите пароль",
                     validationField: .confirmPassword
                 )
             }

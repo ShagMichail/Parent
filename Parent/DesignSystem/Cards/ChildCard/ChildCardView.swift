@@ -25,7 +25,7 @@ struct ChildCardView: View {
                     HStack(spacing: 4) {
                         Image("battery-charging")
                             .frame(width: 24, height: 24)
-                            .foregroundColor(model.batteryLevelColor ?? .green)
+                            .foregroundColor(model.batteryLevelColor ?? .chartStart)
                         Text((model.batteryLevel ?? "100"))
                             .font(.system(size: 12, weight: .medium, design: .rounded))
                             .foregroundColor(.blackText)

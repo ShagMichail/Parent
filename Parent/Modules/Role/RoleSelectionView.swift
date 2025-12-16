@@ -10,6 +10,7 @@ import SwiftUI
 struct RoleSelectionView: View {
     @EnvironmentObject var stateManager: AppStateManager
     @State private var selectedRole: UserRole? = nil
+    @State private var isLoading = false
     
     var body: some View {
         VStack(spacing: 25) {
@@ -46,33 +47,45 @@ struct RoleSelectionView: View {
             
             Spacer()
             
-            ContinueButton(
-                model: ContinueButtonModel(
-                    title: "Продолжить",
-                    isEnabled: selectedRole != nil,
-                    action: {
-                        guard let role = selectedRole else { return }
-                        
-                        if role == .parent {
+            if isLoading {
+                ProgressView()
+                    .frame(height: 50)
+            } else {
+                ContinueButton(
+                    model: ContinueButtonModel(
+                        title: "Продолжить",
+                        isEnabled: selectedRole != nil,
+                        action: {
                             Task {
-                                stateManager.setRole(.parent)
-                                await stateManager.requestAuthorization()
-                            }
-                        } else {
-                            Task {
-                                stateManager.setRole(.child)
-                                await stateManager.requestAuthorization()
+                                await handleContinue()
                             }
                         }
-                    }
+                    )
                 )
-            )
-            .frame(height: 50)
+                .frame(height: 50)
+            }
         }
         .padding(.bottom, 92)
         .padding(.top, 80)
         .padding(.horizontal, 20)
         .background(Color.roleBackround.ignoresSafeArea())
         .ignoresSafeArea(.container, edges: .bottom)
+    }
+    
+    private func handleContinue() async {
+        guard let role = selectedRole else { return }
+        
+        isLoading = true
+        
+        stateManager.setRole(role)
+        
+        await stateManager.requestAuthorization()
+        
+        if role == .parent {
+            stateManager.appState = .authRequired
+        } else {
+            stateManager.appState = .childPairing
+        }
+        isLoading = false
     }
 }

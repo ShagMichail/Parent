@@ -14,7 +14,7 @@ import DeviceActivity
 
 @MainActor
 class AppStateManager: ObservableObject {
-    @Published var appState: AppState = .authRequired
+    @Published var appState: AppState = .roleSelection
     @Published var userRole: UserRole = .unknown
     @Published var children: [Child] = []
     @Published var isPaired: Bool = false
@@ -43,9 +43,13 @@ class AppStateManager: ObservableObject {
         authService.$isAuthenticated
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isAuth in
-                if !isAuth {
-                    self?.resetLocalState()
-                    self?.appState = .authRequired
+                guard let self = self else { return }
+                
+                // Если мы родитель и нас разлогинили
+                if !isAuth && self.userRole == .parent {
+                    print("👨‍👩‍👧 Сессия родителя невалидна. Переход на экран авторизации.")
+                    // Мы НЕ сбрасываем роль. Просто просим войти заново.
+                    self.appState = .authRequired
                 }
             }
             .store(in: &cancellables)
@@ -58,22 +62,25 @@ class AppStateManager: ObservableObject {
     func initializeApp() async {
         print("📱 StateManager: Инициализация приложения...")
         
-        // 1. Проверяем токен через AuthService
-        let isSessionValid = await authService.checkSession()
-        
-        guard isSessionValid else {
-            appState = .authRequired
-            return
-        }
-        
-        // 2. Если авторизованы, загружаем локальные настройки (роль, дети)
+        // 1. Загружаем сохраненное состояние
         loadLocalState()
-        
-        if userRole == .child && isPaired {
-            appState = .childDashboard
-            await setupChildSession()
-        } else {
+
+        // 2. Если роль уже сохранена ранее, пытаемся восстановить сессию
+        if userRole == .parent {
+            let isSessionValid = await authService.checkSession()
+            if isSessionValid {
+                // Если сессия валидна, делаем то же самое, что и при логине
+                parentDidAuthenticate()
+            } else {
+                appState = .authRequired
+            }
+        } else if userRole == .child {
+            // Для ребенка просто идем по обычной логике (проверка isPaired)
             determineNavigationPath()
+        } else {
+            // 3. Если роль не сохранена (userRole == .unknown) - это первый запуск.
+            // Оставляем appState как .roleSelection.
+            appState = .roleSelection
         }
     }
     
@@ -147,11 +154,21 @@ class AppStateManager: ObservableObject {
     // Обработка изменения прав ScreenTime (системный коллбэк)
     private func handleScreenTimeAuthStatus(_ status: AuthorizationStatus) {
         print("🛡 ScreenTime Status changed: \(status)")
+        
+        // 🛑 ГЛАВНОЕ ИЗМЕНЕНИЕ 🛑
+        // Если мы сейчас на экране выбора роли, НЕ НУЖНО перехватывать управление.
+        // Пусть RoleSelectionView сама решит, куда идти после запроса.
+        if appState == .roleSelection {
+            print("Находимся на RoleSelection, игнорируем автоматическую навигацию.")
+            return
+        }
+        
         if appState == .authRequired { return }
         
         if status == .denied {
             appState = .accessDenied
         } else if status == .approved {
+            // Вызываем навигацию только если мы НЕ в процессе первоначальной настройки.
             determineNavigationPath()
         }
     }
@@ -247,6 +264,34 @@ extension AppStateManager {
             print("✅ Device Monitor запущен. Расширение будет следить за устройством.")
         } catch {
             print("🚨 Ошибка запуска монитора: \(error)")
+        }
+    }
+    
+    func parentDidAuthenticate() {
+        // Запускаем асинхронную задачу для загрузки данных
+        Task {
+            do {
+                print("👨‍👩‍👧 Родитель вошел. Загружаем список детей из CloudKit...")
+                let existingChildren = try await cloudKitManager.fetchExistingChildren()
+                
+                // Обновляем наш локальный стейт и сохраняем в UserDefaults
+                self.children = existingChildren
+                self.saveLocalState()
+                
+                print("✅ Найдено \(existingChildren.count) детей. Переход на соответствующий экран.")
+                
+                // Теперь принимаем решение о навигации
+                if existingChildren.isEmpty {
+                    self.appState = .parentAddChild
+                } else {
+                    self.appState = .parentDashboard
+                }
+                
+            } catch {
+                print("⚠️ Не удалось загрузить детей из CloudKit: \(error). Отправляем на добавление ребенка.")
+                // Если произошла ошибка, лучше отправить на экран добавления
+                self.appState = .parentAddChild
+            }
         }
     }
 }

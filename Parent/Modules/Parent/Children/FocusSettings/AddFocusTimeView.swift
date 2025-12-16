@@ -7,11 +7,6 @@
 
 import SwiftUI
 
-enum FocusTimeMode {
-    case add
-    case edit(FocusSchedule)
-}
-
 struct AddFocusTimeView: View {
     let mode: FocusTimeMode
     let scheduleToEdit: FocusSchedule?

@@ -137,8 +137,7 @@
 			membershipExceptions = (
 				Modules/Models/Child.swift,
 				Modules/Models/ChildLocation.swift,
-				Modules/Models/CommandStatus.swift,
-				Modules/Models/MemberType.swift,
+				Modules/Models/Enums/MemberType.swift,
 			);
 			target = FC8124CE2EE02EBB0085AD05 /* ActivityMonitorExtension */;
 		};

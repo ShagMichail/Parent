@@ -5,18 +5,19 @@
 //  Created by Михаил Шаговитов on 10.11.2025.
 //
 
-enum UserRole: String, Codable {
+enum UserRole: String, Codable, Identifiable {
     case parent
     case child
     case unknown
-}
-
-extension UserRole: Identifiable {
+    
     var id: String { self.rawValue }
 }
 
+//extension UserRole: Identifiable {
+//    var id: String { self.rawValue }
+//}
+
 enum AppState {
-//    case splash             // Загрузочный экран
     case authRequired       // Экран входа/регистрации
     case roleSelection      // Выбор роли (Родитель/Ребенок)
     case parentAddChild     // Родитель: Добавление первого ребенка

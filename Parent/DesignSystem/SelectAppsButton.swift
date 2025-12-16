@@ -9,7 +9,6 @@ import SwiftUI
 import FamilyControls
 
 struct SelectAppsButton: View {
-//    @EnvironmentObject var familyManager: FamilyManager
     @State private var isPickerPresented = false
     @State private var selection = FamilyActivitySelection()
     

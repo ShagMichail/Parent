@@ -102,8 +102,6 @@ struct FocusSchedule: Identifiable, Codable {
 
 // Расширение для работы с CloudKit
 extension FocusSchedule {
-    
-    // Преобразование: CKRecord -> FocusSchedule
     init?(record: CKRecord) {
         guard let start = record["startTime"] as? Date,
               let end = record["endTime"] as? Date,
@@ -114,65 +112,34 @@ extension FocusSchedule {
         self.endTime = end
         self.isEnabled = enabled == 1
         
-        // Декодируем массив чисел [1, 2, 3] обратно в [Weekday]
         if let rawDays = record["daysOfWeek"] as? [Int] {
             self.daysOfWeek = rawDays.compactMap { Weekday(rawValue: $0) }
         } else {
             self.daysOfWeek = []
         }
-        
-        // Если нужно сохранить ID записи для обновления/удаления (рекомендуется добавить это свойство в struct)
+
          self.recordID = record.recordID.recordName
     }
-    
-    // Преобразование: FocusSchedule -> CKRecord
-//    func toRecord(childID: String) -> CKRecord {
-//        // Используем UUID как ID записи
-//        let recordID = CKRecord.ID(recordName: self.id.uuidString)
-//        let record = CKRecord(recordType: "FocusSchedule", recordID: recordID)
-//        
-//        record["startTime"] = self.startTime as CKRecordValue
-//        record["endTime"] = self.endTime as CKRecordValue
-//        
-//        // Сохраняем дни как массив чисел [Int]
-//        let rawDays = self.daysOfWeek.map { $0.rawValue }
-//        record["daysOfWeek"] = rawDays as CKRecordValue
-//        
-//        record["isEnabled"] = (self.isEnabled ? 1 : 0) as CKRecordValue
-//        record["targetChildID"] = childID as CKRecordValue
-//        
-//        return record
-//    }
     
     func toRecord(childID: String) -> CKRecord {
         let recordID = CKRecord.ID(recordName: self.id.uuidString)
         let record = CKRecord(recordType: "FocusSchedule", recordID: recordID)
         
-        // Основные данные
         record["startTime"] = self.startTime as CKRecordValue
         record["endTime"] = self.endTime as CKRecordValue
         record["isEnabled"] = (self.isEnabled ? 1 : 0) as CKRecordValue
         record["targetChildID"] = childID as CKRecordValue
         
-        // Конвертируем время в строки для push-уведомлений
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
         record["startTimeString"] = formatter.string(from: self.startTime) as CKRecordValue
         record["endTimeString"] = formatter.string(from: self.endTime) as CKRecordValue
         let rawDays = self.daysOfWeek.map { $0.rawValue }
         record["daysOfWeek"] = rawDays as CKRecordValue
-        // --- ✅ НОВЫЙ КОД ДЛЯ ДНЕЙ НЕДЕЛИ ---
-        // 1. Преобразуем [Weekday] в [Int]: [monday, friday] -> [2, 6]
-//        let rawDaysString = self.daysOfWeek.map { $0.rawValue }
-        // 2. Преобразуем [Int] в [String]: [2, 6] -> ["2", "6"]
         let stringDays = rawDays.map { String($0) }
-        // 3. Объединяем в одну строку: ["2", "6"] -> "2,6"
         let daysString = stringDays.joined(separator: ",")
         
         record["daysOfWeekString"] = daysString as CKRecordValue
-        
-        // Старое поле можно закомментировать или удалить
-        // record["daysOfWeek"] = rawDays as CKRecordValue
         
         return record
     }

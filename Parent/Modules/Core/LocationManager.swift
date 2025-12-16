@@ -101,6 +101,21 @@ class LocationManager: NSObject, ObservableObject {
         locationManager.requestAlwaysAuthorization()
     }
     
+    func forceSendStatus() {
+        print("📍 Получен запрос на принудительную отправку статуса.")
+        
+        // Используем последнюю известную локацию, которая уже есть у менеджера.
+        // `locationManager.location` хранит самое свежее значение.
+        guard let location = locationManager.location else {
+            print("⚠️ Невозможно принудительно отправить статус: последняя локация неизвестна.")
+            return
+        }
+        
+        // Вызываем вашу существующую функцию сбора и отправки
+        collectAndSendStatus(location: location)
+    }
+    
+    
     // MARK: - Private Logic
     
     private func addToHistory(_ location: CLLocation) {

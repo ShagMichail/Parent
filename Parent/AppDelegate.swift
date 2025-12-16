@@ -67,12 +67,14 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             if let queryNotification = notification as? CKQueryNotification,
                let recordFields = queryNotification.recordFields {
                 
+                //                let recordName = recordFields["Name"] as? String ?? ""
                 let childID = recordFields["childUserRecordID"] as? String ?? ""
                 let childName = recordFields["childName"] as? String ?? ""
                 
                 NotificationCenter.default.post(
                     name: .invitationAcceptedByChild,
                     object: nil,
+                    //                    userInfo: ["childUserRecordID": childID, "childName": childName, "recordName": recordName]
                     userInfo: ["childUserRecordID": childID, "childName": childName]
                 )
             }
@@ -82,6 +84,37 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         
         // 2. ЛОГИКА ПРИНЯТИЯ КОМАНД
         if notification.subscriptionID?.starts(with: "commands-for-user-") == true {
+            
+            // Это может быть тихий пуш, который не обрабатывается в NSE.
+            // Давайте разберем его здесь.
+            if let ckInfo = userInfo["ck"] as? [String: Any],
+               let query = ckInfo["qry"] as? [String: Any],
+               let fields = query["af"] as? [String: Any],
+               let commandName = fields["commandName"] as? String {
+                
+                // Проверяем, пришел ли наш "пинг"
+                if commandName == "request_location_update" {
+                    print("PING  recibido! Запускаем принудительное обновление локации.")
+                    
+                    // Запускаем фоновую задачу, чтобы система дала нам время
+                    var bgTaskID: UIBackgroundTaskIdentifier = .invalid
+                    bgTaskID = application.beginBackgroundTask(withName: "ForceLocationUpdate") {
+                        application.endBackgroundTask(bgTaskID)
+                        bgTaskID = .invalid
+                    }
+                    
+                    // Вызываем наш новый метод в LocationManager
+                    LocationManager.shared.forceSendStatus()
+                    
+                    // Завершаем задачу
+                    completionHandler(.newData)
+                    if bgTaskID != .invalid {
+                        application.endBackgroundTask(bgTaskID)
+                    }
+                    return // Выходим, чтобы не обрабатывать дальше
+                }
+            }
+            
             print("🔔 AppDelegate: Команда обработана расширением.")
             
             NotificationCenter.default.post(name: NSNotification.Name("RefreshUI"), object: nil)
@@ -116,7 +149,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             completionHandler(.newData)
             return
         }
-
+        
         // 4. ОБНОВЛЕНИЕ РАСПИСАНИЙ
         if notification.subscriptionID?.starts(with: "focus-schedules-") == true {
             print("🔔 [AppDelegate] Получен пуш на обновление расписания. Запускаем синхронизацию...")

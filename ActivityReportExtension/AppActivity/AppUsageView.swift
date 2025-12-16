@@ -367,9 +367,15 @@ struct AppUsageView: View {
                     }
                 }
                 if viewModel.apps.isEmpty {
-                    Text("Нет данных")
-                        .padding()
-                        .foregroundColor(.gray)
+                    HStack {
+                        Text("Нет данных")
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.leading)
+                            .padding(.vertical, 20)
+                            .padding(.horizontal, 10)
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity)
                 }
             }
             .background(Color.white)
@@ -386,7 +392,8 @@ struct AppUsageView: View {
         let yesterday = viewModel.yesterdayTotalDuration
         
         if yesterday == 0 {
-            Text("Нет данных за вчера").foregroundColor(.gray)
+            Text("Нет данных за вчера")
+                .foregroundColor(.gray)
         } else {
             let diff = today - yesterday
             let percent = Int(abs((diff / yesterday) * 100))

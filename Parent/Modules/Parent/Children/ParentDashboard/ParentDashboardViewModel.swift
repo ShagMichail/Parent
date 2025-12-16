@@ -11,8 +11,6 @@ import CloudKit
 
 @MainActor
 class ParentDashboardViewModel: ObservableObject {
-    private var stateManager: AppStateManager
-    private var cloudKitManager: CloudKitManager
     @Published var children: [Child] = []
     @Published var selectedChild: Child? {
         didSet {
@@ -22,20 +20,17 @@ class ParentDashboardViewModel: ObservableObject {
             }
         }
     }
-    
-    // Храним статус блокировки локально для UI
     @Published var blockStatuses: [String: Bool] = [:]
-    // Храним: [ChildID : Есть ли активные расписания]
     @Published var focusStatuses: [String: Bool] = [:]
-    
+    @Published var childStreetNames: [String: String] = [:]
     @Published var batteryStatuses: [String: (level: Float, state: String)] = [:]
-    
-    // Индикатор загрузки для UI (спиннер на кнопке)
+    @Published var onlineStatuses: [String: OnlineStatus] = [:]
     @Published var isCommandInProgressForSelectedChild = false
     @Published var isLoadingInitialState = false
     
     private var cancellables = Set<AnyCancellable>()
-    
+    private var stateManager: AppStateManager
+    private var cloudKitManager: CloudKitManager
     private let blockStatusCacheKey = "cached_block_statuses"
     private let focusStatusCacheKey = "cached_focus_statuses"
     
@@ -43,7 +38,6 @@ class ParentDashboardViewModel: ObservableObject {
         guard let child = selectedChild else { return false }
         return blockStatuses[child.recordID, default: false]
     }
-    
     var isFocusActiveForSelectedChild: Bool {
         guard let child = selectedChild else { return false }
         return focusStatuses[child.recordID, default: false]
@@ -63,13 +57,16 @@ class ParentDashboardViewModel: ObservableObject {
             }
             .store(in: &cancellables)
         
-        // Слушаем уведомления от AppDelegate (когда приходит пуш от CloudKit)
+        // Слушаем уведомления от AppDelegate
         NotificationCenter.default.publisher(for: .commandUpdated)
             .sink { [weak self] notification in
                 self?.handleCommandUpdate(notification)
             }
             .store(in: &cancellables)
     }
+    
+    
+    // MARK: - Public Method
     
     /// Загружает последнюю команду и выставляет UI
     func refreshChildStatus() {
@@ -112,7 +109,7 @@ class ParentDashboardViewModel: ObservableObject {
             }
             
             await checkFocusStatus(for: child)
-            await updateBatteryForChild(child)
+            await updateChildDetails(for: child)
             
             self.saveCachedStatuses()
             
@@ -122,49 +119,127 @@ class ParentDashboardViewModel: ObservableObject {
         }
     }
     
-    // Новый метод получения батареи
-    private func updateBatteryForChild(_ child: Child) async {
-        do {
-            // Теперь метод возвращает кортеж из 4 элементов
-            if let status = try await cloudKitManager.fetchDeviceStatus(for: child.recordID) {
-                await MainActor.run {
-                    // Обновляем батарею
-                    self.batteryStatuses[child.recordID] = (status.batteryLevel, status.batteryState)
-                    
-                    // Тут же можно сохранить локацию, если у вас есть для этого свойство
-                    // self.childLocations[child.recordID] = status.location
-                }
-            }
-        } catch {
-            print("Error fetching battery: \(error)")
-        }
+    func getStreetName(for childID: String) -> String {
+        // Возвращаем название улицы или текст-заглушку, пока данные грузятся
+        return childStreetNames[childID, default: "Обновление локации..."]
     }
     
-    // Хелпер для View (получение цвета)
     func getBatteryColor(for childID: String) -> Color {
         guard let status = batteryStatuses[childID] else { return .gray }
         
         if status.state == "charging" || status.state == "full" {
-            return .green
+            return .chartStart
         }
         
-        if status.level <= 0.2 { return .red }
-        if status.level <= 0.5 { return .orange }
-        return .green
+        if status.level <= 0.2 { return .warningStart }
+        if status.level <= 0.5 { return .questionStart }
+        return .chartStart
     }
     
-    // Хелпер для текста
     func getBatteryText(for childID: String) -> String {
         guard let status = batteryStatuses[childID] else { return "--%" }
         return "\(Int(status.level * 100))"
     }
     
+    /// Основное действие по кнопке
+    func toggleBlock() {
+        guard let child = selectedChild else { return }
+        guard !isCommandInProgressForSelectedChild else { return }
+        
+        isCommandInProgressForSelectedChild = true
+        
+        let currentStatus = isSelectedChildBlocked
+        let commandName = currentStatus ? "unblock_all" : "block_all"
+        
+        Task {
+            do {
+                try await cloudKitManager.sendCommand(name: commandName, to: child.recordID)
+            } catch {
+                print("Error sending command: \(error)")
+                isCommandInProgressForSelectedChild = false
+            }
+        }
+    }
+    
+    func getOnlineStatus(for childID: String) -> (text: String, color: Color) {
+        let status = onlineStatuses[childID, default: .unknown]
+        return (status.text, status.color)
+    }
+    
+    
+    // MARK: - Private Method
+    
+    // Mетод получения батареи и локации
+    private func updateChildDetails(for child: Child) async {
+        do {
+            guard let status = try await cloudKitManager.fetchDeviceStatus(for: child.recordID) else {
+                await MainActor.run {
+                    self.childStreetNames[child.recordID] = "Местоположение неизвестно"
+                }
+                await MainActor.run {
+                    self.onlineStatuses[child.recordID] = .unknown
+                }
+                return
+            }
+            
+            let onlineStatus = determineOnlineStatus(from: status.lastSeen)
+            
+            await MainActor.run {
+                self.batteryStatuses[child.recordID] = (status.batteryLevel, status.batteryState)
+                self.onlineStatuses[child.recordID] = onlineStatus
+            }
+            
+            guard let location = status.location else {
+                await MainActor.run {
+                    self.childStreetNames[child.recordID] = "Координаты не определены"
+                }
+                return
+            }
+            
+            let geocoder = CLGeocoder()
+            
+            do {
+                if let placemark = try await geocoder.reverseGeocodeLocation(location).first {
+                    let addressString = self.formatAddress(from: placemark)
+                    await MainActor.run {
+                        self.childStreetNames[child.recordID] = addressString
+                        print("📍 Адрес для \(child.name): \(addressString)")
+                    }
+                }
+            } catch {
+                print("❌ Ошибка геокодирования: \(error.localizedDescription)")
+                await MainActor.run {
+                    self.childStreetNames[child.recordID] = "Не удалось определить адрес"
+                }
+            }
+            
+        } catch {
+            print("❌ Ошибка загрузки статуса для \(child.name): \(error)")
+            await MainActor.run { self.onlineStatuses[child.recordID] = .offline }
+        }
+    }
+    
+    private func determineOnlineStatus(from lastSeen: Date) -> OnlineStatus {
+        let timeSinceLastSeen = Date().timeIntervalSince(lastSeen)
+        
+        // Если прошло меньше 5 минут (300 секунд)
+        if timeSinceLastSeen < 300 {
+            return .online
+        }
+        // Если прошло меньше часа (3600 секунд)
+        else if timeSinceLastSeen < 3600 {
+            return .recent(lastSeen: lastSeen)
+        }
+        // Если прошло больше часа
+        else {
+            return .offline
+        }
+    }
+    
     private func checkFocusStatus(for child: Child) async {
         do {
-            // Запрашиваем расписания из CloudKit
             let schedules = try await cloudKitManager.fetchSchedules(for: child.recordID)
             
-            // Логика: Если есть хотя бы одно расписание, у которого isEnabled == true -> статус "Вкл"
             let hasActiveSchedule = schedules.contains { $0.isEnabled }
             
             await MainActor.run {
@@ -172,32 +247,6 @@ class ParentDashboardViewModel: ObservableObject {
             }
         } catch {
             print("Error fetching focus schedules: \(error)")
-        }
-    }
-    
-    /// Основное действие по кнопке
-    func toggleBlock() {
-        guard let child = selectedChild else { return }
-        guard !isCommandInProgressForSelectedChild else { return } // Защита от дабл-клика
-        
-        isCommandInProgressForSelectedChild = true
-        
-        let currentStatus = isSelectedChildBlocked
-        let commandName = currentStatus ? "unblock_all" : "block_all" // Инвертируем действие
-        
-        Task {
-            do {
-                // 1. Отправляем команду
-                try await cloudKitManager.sendCommand(name: commandName, to: child.recordID)
-                
-                // В реальном приложении мы ждем пуш-уведомления об успехе,
-                // но для UX можно оптимистично обновить UI или ждать (зависит от требований)
-                // Пока оставим спиннер крутиться, пока не придет ответ.
-                
-            } catch {
-                print("Error sending command: \(error)")
-                isCommandInProgressForSelectedChild = false
-            }
         }
     }
     
@@ -223,10 +272,7 @@ class ParentDashboardViewModel: ObservableObject {
         if let selected = selectedChild, selected.recordID == childID {
             
             if statusRaw == CommandStatus.executed.rawValue {
-                // Команда выполнена успешно!
                 isCommandInProgressForSelectedChild = false
-                
-                // Обновляем локальный стейт блокировки
                 if commandName == "block_all" {
                     blockStatuses[childID] = true
                 } else if commandName == "unblock_all" {
@@ -237,7 +283,6 @@ class ParentDashboardViewModel: ObservableObject {
         }
     }
     
-    // 1. Метод для загрузки кеша (вызываем в init)
     private func loadCachedStatuses() {
         if let data = UserDefaults.standard.data(forKey: blockStatusCacheKey),
            let cachedStatuses = try? JSONDecoder().decode([String: Bool].self, from: data) {
@@ -250,7 +295,6 @@ class ParentDashboardViewModel: ObservableObject {
         }
     }
     
-    // 2. Метод для сохранения кеша (вызываем при получении данных)
     private func saveCachedStatuses() {
         if let data = try? JSONEncoder().encode(blockStatuses) {
             UserDefaults.standard.set(data, forKey: blockStatusCacheKey)
@@ -259,5 +303,26 @@ class ParentDashboardViewModel: ObservableObject {
         if let focusData = try? JSONEncoder().encode(focusStatuses) {
             UserDefaults.standard.set(focusData, forKey: focusStatusCacheKey)
         }
+    }
+    
+    private func formatAddress(from placemark: CLPlacemark) -> String {
+        var addressParts: [String] = []
+        
+        // `thoroughfare` - это улица
+        if let street = placemark.thoroughfare {
+            addressParts.append(street)
+            // `subThoroughfare` - это номер дома
+            if let houseNumber = placemark.subThoroughfare {
+                addressParts.append(houseNumber)
+            }
+        } else if let poi = placemark.name {
+            // Если улицы нет (например, это парк или ТЦ), используем название места
+            addressParts.append(poi)
+        } else {
+            // Если совсем ничего нет, возвращаем город
+            return placemark.locality ?? "Неизвестное место"
+        }
+        
+        return addressParts.joined(separator: ", ")
     }
 }

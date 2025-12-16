@@ -38,7 +38,7 @@ struct ChildSelectorView: View {
                     ChildCardView(
                         model: ChildCardViewModel(
                             child: child,
-                            isSelected: child.id == selectedChild?.id,
+                            isSelected: child.recordID == selectedChild?.recordID,
                             showBatteryLevel: showBatteryLevel,
                             batteryLevel: viewModel.getBatteryText(for: child.recordID),
                             batteryLevelColor: viewModel.getBatteryColor(for: child.recordID)

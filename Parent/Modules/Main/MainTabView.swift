@@ -15,8 +15,10 @@ private enum Tab {
 struct MainTabView: View {
     // Получаем ViewModel, чтобы знать статус блокировки и вызывать методы
     @EnvironmentObject var viewModel: ParentDashboardViewModel
+    @EnvironmentObject var stateManager: AppStateManager
+    @EnvironmentObject var cloudKitManager: CloudKitManager
     
-    @State private var selectedTab: Tab = .summary
+    @State private var selectedTab: Tab = .location
     
     // --- ГЛАВНЫЕ СОСТОЯНИЯ (ЖИВУТ ЗДЕСЬ) ---
     @State private var showBlockOverlay = false // Управляет показом оверлея
@@ -65,7 +67,7 @@ struct MainTabView: View {
             // СЛОЙ 1: ПРИЛОЖЕНИЕ (ТАБЫ)
             // ===================================
             TabView(selection: $selectedTab) {
-                Text("Локация")
+                LocationView(stateManager: stateManager, cloudKitManager: cloudKitManager)
                     .tabItem { Label("Локация", image: "location-tab") }
                     .tag(Tab.location)
                 

@@ -11,15 +11,10 @@ import DeviceActivity
 struct ChildDashboardDetailView: View {
     @EnvironmentObject var viewModel: ParentDashboardViewModel
     
-    // Принимаем от родителя
     @Binding var showBlockOverlay: Bool
-    var animation: Namespace.ID
     
-    // Навигация (локальная)
     @State private var navigateToFocus = false
     @State var showNavigationBar: Bool = true
-    
-    // Отчет
     @State private var filter = DeviceActivityFilter(
         segment: .hourly(during: DateInterval(start: Calendar.current.startOfDay(for: Date()), end: Date())),
         users: .children,
@@ -34,15 +29,18 @@ struct ChildDashboardDetailView: View {
         return [GridItem(.fixed(columnWidth), spacing: spacing), GridItem(.fixed(columnWidth), spacing: spacing)]
     }
     
+    var animation: Namespace.ID
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
+            let childStatus = viewModel.getOnlineStatus(for: viewModel.selectedChild?.recordID ?? "")
             InfoCard(
                 model: InfoCardModel(
                     title: "Местоположение",
                     icon: "current-location",
-                    location: "ул. Механизатора д. 13",
-                    status: "Онлайн",
-                    statusColor: .green
+                    location: viewModel.getStreetName(for: viewModel.selectedChild?.recordID ?? ""),
+                    status: childStatus.text,
+                    statusColor: childStatus.color
                 )
             )
             

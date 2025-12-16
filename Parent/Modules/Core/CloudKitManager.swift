@@ -11,17 +11,12 @@ import Combine
 import UIKit
 import CoreLocation
 
-enum CommandStatus: String {
-    case pending
-    case executed
-    case failed
-}
-
 class CloudKitManager: ObservableObject {
     static let shared = CloudKitManager()
     
     private let container = CKContainer.default()
-var publicDatabase: CKDatabase { container.publicCloudDatabase }
+    
+    var publicDatabase: CKDatabase { container.publicCloudDatabase }
     
     
     // MARK: - Public Method
@@ -99,7 +94,14 @@ var publicDatabase: CKDatabase { container.publicCloudDatabase }
         notificationInfo.desiredKeys = ["childUserRecordID", "childName"]
         
         subscription.notificationInfo = notificationInfo
-        try await publicDatabase.save(subscription)
+        
+        do {
+            print("▶️ [Parent] Пытаемся сохранить подписку...")
+            try await publicDatabase.save(subscription)
+            print("✅ [Parent] Подписка на принятие приглашения успешно создана.")
+        } catch {
+            print("🛑 [Parent] КРИТИЧЕСКАЯ ОШИБКА: Не удалось сохранить подписку на приглашение: \(error)")
+        }
     }
 
     /// ВЫЗЫВАЕТСЯ РОДИТЕЛЕМ для отправки команды.
@@ -107,12 +109,17 @@ var publicDatabase: CKDatabase { container.publicCloudDatabase }
         let record = CKRecord(recordType: "Command")
         record["commandName"] = name as CKRecordValue
         record["targetChildID"] = childID as CKRecordValue
-        record["status"] = CommandStatus.pending.rawValue as CKRecordValue // Ставим статус "ожидание"
+        record["status"] = CommandStatus.pending.rawValue as CKRecordValue
         record["createdAt"] = Date() as CKRecordValue
         
-        // Сохраняем
-        try await publicDatabase.save(record)
-        print("✅ Command '\(name)' sent to \(childID) with status .pending")
+        do {
+            print("▶️ [Parent] Пытаемся сохранить команду...")
+            try await publicDatabase.save(record)
+            print("✅ [Parent] Команда успешно создана.")
+            print("✅ Command '\(name)' sent to \(childID) with status .pending")
+        } catch {
+            print("🛑 [Parent] КРИТИЧЕСКАЯ ОШИБКА: Не удалось сохранить команду: \(error)")
+        }
     }
     
     /// ВЫЗЫВАЕТСЯ РЕБЕНКОМ для подписки на команды.
@@ -135,7 +142,7 @@ var publicDatabase: CKDatabase { container.publicCloudDatabase }
         )
         
         let notificationInfo = CKSubscription.NotificationInfo()
-        notificationInfo.alertBody = "Обновление настроек..."
+        notificationInfo.alertBody = "Обновление настроек и сбор информации"
         notificationInfo.shouldSendMutableContent = true
         notificationInfo.shouldSendContentAvailable = true
         notificationInfo.desiredKeys = ["commandName"]
@@ -158,7 +165,7 @@ var publicDatabase: CKDatabase { container.publicCloudDatabase }
         }
     }
     
-    /// 3. Очистка выполненных команд (вызывается родителем после успеха)
+    /// Очистка выполненных команд (вызывается родителем после успеха)
     func deleteCommand(recordID: CKRecord.ID) async {
         do {
             try await publicDatabase.deleteRecord(withID: recordID)
@@ -172,7 +179,6 @@ var publicDatabase: CKDatabase { container.publicCloudDatabase }
     func subscribeToCommandUpdates(for childID: String) async throws {
         let subscriptionID = "command-updates-\(childID)"
         
-        // 1. Удаляем старую подписку (на всякий случай, чтобы не дублировать)
         do {
             try await publicDatabase.deleteSubscription(withID: subscriptionID)
             print("✅ [Parent] Подписка удалена command-updates")
@@ -180,11 +186,8 @@ var publicDatabase: CKDatabase { container.publicCloudDatabase }
             print("🛑 ОШИБКА УДАЛЕНИЯ ПОДПИСКИ: \(error)")
         }
         
-        // 2. Слушаем команды только для конкретного ребенка
         let predicate = NSPredicate(format: "targetChildID == %@", childID)
         
-        // 3. Важно: options = .firesOnRecordUpdate
-        // Мы хотим знать, когда РЕБЕНОК изменит статус (pending -> executed)
         let subscription = CKQuerySubscription(
             recordType: "Command",
             predicate: predicate,
@@ -195,23 +198,32 @@ var publicDatabase: CKDatabase { container.publicCloudDatabase }
         let notificationInfo = CKSubscription.NotificationInfo()
         notificationInfo.shouldSendContentAvailable = true
         
-        // Сразу просим вернуть нам статус и ID записи, чтобы не делать лишний запрос
         notificationInfo.desiredKeys = ["status", "commandName", "targetChildID"]
         
         subscription.notificationInfo = notificationInfo
         
-        try await publicDatabase.save(subscription)
-        print("✅ [Parent] Подписались на обновления команд ребенка: \(childID)")
+        do {
+            print("▶️ [Parent] Пытаемся сохранить команду...")
+            try await publicDatabase.save(subscription)
+            print("✅ [Parent] Подписались на обновления команд ребенка: \(childID)")
+        } catch {
+            print("🛑 [Parent] КРИТИЧЕСКАЯ ОШИБКА: Не удалось сохранить подписку на обновления команд ребенка: \(error)")
+        }
     }
     
-    /// 4. РЕБЕНОК выполняет команду и обновляет статус
+    /// РЕБЕНОК выполняет команду и обновляет статус
     func updateCommandStatus(recordID: CKRecord.ID, status: CommandStatus) async throws {
         // Сначала получаем свежую запись (CloudKit требует этого для update)
         let record = try await publicDatabase.record(for: recordID)
         record["status"] = status.rawValue as CKRecordValue
         
-        try await publicDatabase.save(record)
-        print("✅ Child updated command status to: \(status.rawValue)")
+        do {
+            print("▶️ [Child] Пытаемся обновить статус команды...")
+            try await publicDatabase.save(record)
+            print("✅ Child updated command status to: \(status.rawValue)")
+        } catch {
+            print("🛑 [Child] КРИТИЧЕСКАЯ ОШИБКА: Не удалось обновить статус команды: \(error)")
+        }
     }
     
     // Вспомогательный метод для получения конкретной команды (если пришел пуш без данных)
@@ -225,25 +237,21 @@ extension CloudKitManager {
     func fetchLatestCommand(for childID: String) async throws -> CKRecord? {
         let predicate = NSPredicate(format: "targetChildID == %@", childID)
         
-        // Сортируем по дате создания (сначала новые)
         let sortDescriptor = NSSortDescriptor(key: "createdAt", ascending: false)
         
         let query = CKQuery(recordType: "Command", predicate: predicate)
         query.sortDescriptors = [sortDescriptor]
         
-        // Запрашиваем только 1 запись (самую свежую)
         let (matchResults, _) = try await publicDatabase.records(matching: query, resultsLimit: 1)
         
-        // Возвращаем первую найденную запись или nil
         return try matchResults.first?.1.get()
     }
 }
 
 extension CloudKitManager {
-    /// 1. РОДИТЕЛЬ сохраняет или обновляет расписание
+    /// РОДИТЕЛЬ сохраняет или обновляет расписание
     func saveFocusSchedule(_ schedule: FocusSchedule, for childID: String) async throws {
         let record = schedule.toRecord(childID: childID)
-        // .allKeys сохраняет перезаписывая все поля (Update)
         let modifyOp = CKModifyRecordsOperation(recordsToSave: [record], recordIDsToDelete: nil)
         modifyOp.savePolicy = .changedKeys
         
@@ -261,14 +269,14 @@ extension CloudKitManager {
         }
     }
     
-    /// 2. РОДИТЕЛЬ удаляет расписание
+    /// РОДИТЕЛЬ удаляет расписание
     func deleteFocusSchedule(_ schedule: FocusSchedule) async throws {
         let recordID = CKRecord.ID(recordName: schedule.recordID ?? schedule.id.uuidString)
         try await publicDatabase.deleteRecord(withID: recordID)
         print("🗑 CloudKit: Расписание удалено")
     }
     
-    /// 3. РЕБЕНОК подписывается на изменения расписания (вызвать 1 раз при входе)
+    /// РЕБЕНОК подписывается на изменения расписания (вызвать 1 раз при входе)
     func subscribeToScheduleChanges(for childID: String) async throws {
         let subscriptionID = "focus-schedules-\(childID)"
         do {
@@ -305,7 +313,7 @@ extension CloudKitManager {
         }
     }
     
-    /// 4. РЕБЕНОК скачивает все свои актуальные расписания
+    /// РЕБЕНОК скачивает все свои актуальные расписания
     func fetchSchedules(for childID: String) async throws -> [FocusSchedule] {
         let predicate = NSPredicate(format: "targetChildID == %@", childID)
         let query = CKQuery(recordType: "FocusSchedule", predicate: predicate)
@@ -326,55 +334,106 @@ extension CloudKitManager {
     func sendDeviceStatus(_ status: ChildDeviceStatus) async throws {
         guard let myRecordIDString = await fetchUserRecordID() else { return }
         
-        let statusRecordID = CKRecord.ID(recordName: "status_\(myRecordIDString)")
-        
-        let record = CKRecord(recordType: "DeviceStatus", recordID: statusRecordID)
+        let record = CKRecord(recordType: "DeviceStatus")
         
         record["location"] = status.location
         record["batteryLevel"] = status.batteryLevel
         record["batteryState"] = status.batteryState
-        record["lastSeen"] = status.timestamp
-        record["userRef"] = CKRecord.Reference(recordID: CKRecord.ID(recordName: myRecordIDString), action: .deleteSelf)
+        record["timestamp"] = status.timestamp
         
-        let modifyOp = CKModifyRecordsOperation(recordsToSave: [record], recordIDsToDelete: nil)
-        modifyOp.savePolicy = .allKeys
+        let userRecordID = CKRecord.ID(recordName: myRecordIDString)
+        record["userRef"] = CKRecord.Reference(recordID: userRecordID, action: .none)
         
-        return try await withCheckedThrowingContinuation { continuation in
-            modifyOp.modifyRecordsResultBlock = { result in
-                switch result {
-                case .success:
-                    print("📡 CloudKit: DeviceStatus обновлен (отдельная таблица)")
-                    continuation.resume()
-                case .failure(let error):
-                    print("❌ Ошибка отправки DeviceStatus: \(error)")
-                    continuation.resume(throwing: error)
+        try await publicDatabase.save(record)
+        print("📡 CloudKit: Новая точка DeviceStatus сохранена.")
+    }
+    
+    /// ПОЛУЧЕНИЕ (Вызывается с устройства родителя)
+    func fetchLocationHistory(for childID: String, limit: Int = 100) async throws -> [CLLocation] {
+        let childRecordID = CKRecord.ID(recordName: childID)
+        let reference = CKRecord.Reference(recordID: childRecordID, action: .none)
+        
+        let predicate = NSPredicate(format: "userRef == %@", reference)
+        
+        let sortDescriptor = NSSortDescriptor(key: "timestamp", ascending: false)
+        
+        let query = CKQuery(recordType: "DeviceStatus", predicate: predicate)
+        query.sortDescriptors = [sortDescriptor]
+        
+        let (matchResults, _) = try await publicDatabase.records(matching: query, resultsLimit: limit)
+        
+        let locations: [CLLocation] = matchResults.compactMap { _, result in
+            guard let record = try? result.get(),
+                  let location = record["location"] as? CLLocation else {
+                return nil
+            }
+            return location
+        }
+        
+        return locations
+    }
+}
+
+extension CloudKitManager {
+    func fetchExistingChildren() async throws -> [Child] {
+        guard let parentID = await fetchUserRecordID() else { return [] }
+        
+        let predicate = NSPredicate(format: "parentUserRecordID == %@ AND childUserRecordID != %@", parentID, "nil")
+        let query = CKQuery(recordType: "Invitation", predicate: predicate)
+        
+        let (matchResults, _) = try await publicDatabase.records(matching: query)
+        
+        var children: [Child] = []
+        
+        for (_, result) in matchResults {
+            if let record = try? result.get() {
+                if let childID = record["childUserRecordID"] as? String,
+                   let name = record["childName"] as? String {
+                    
+                    children.append(Child(id: UUID(uuidString: childID) ?? UUID(), name: name, recordID: childID))
                 }
             }
-            publicDatabase.add(modifyOp)
         }
+        
+        print("👨‍👩‍👧 CloudKit: Найдено \(children.count) существующих детей.")
+        return children
     }
     
     /// ПОЛУЧЕНИЕ (Вызывается с устройства родителя)
     func fetchDeviceStatus(for childID: String) async throws -> (batteryLevel: Float, batteryState: String, lastSeen: Date, location: CLLocation?)? {
         
-        let statusRecordID = CKRecord.ID(recordName: "status_\(childID)")
+        let childRecordID = CKRecord.ID(recordName: childID)
+        let reference = CKRecord.Reference(recordID: childRecordID, action: .none)
+        
+        let predicate = NSPredicate(format: "userRef == %@", reference)
+        
+        let sortDescriptor = NSSortDescriptor(key: "timestamp", ascending: false)
+        
+        let query = CKQuery(recordType: "DeviceStatus", predicate: predicate)
+        query.sortDescriptors = [sortDescriptor]
         
         do {
-            let record = try await publicDatabase.record(for: statusRecordID)
+            let (matchResults, _) = try await publicDatabase.records(matching: query, resultsLimit: 1)
+            
+            guard let record = try matchResults.first?.1.get() else {
+                print("ℹ️ Статус для ребенка \(childID) пока не найден.")
+                return nil
+            }
             
             guard let level = record["batteryLevel"] as? Double,
                   let state = record["batteryState"] as? String,
-                  let lastSeen = record["lastSeen"] as? Date else {
+                  let timestamp = record["timestamp"] as? Date else { // Используем 'timestamp'
+                print("⚠️ Запись статуса для \(childID) повреждена.")
                 return nil
             }
             
             let location = record["location"] as? CLLocation
             
-            return (Float(level), state, lastSeen, location)
+            return (Float(level), state, timestamp, location)
             
         } catch {
-            print("⚠️ Статус для ребенка \(childID) не найден: \(error.localizedDescription)")
-            return nil
+            print("❌ Ошибка при поиске статуса для ребенка \(childID): \(error.localizedDescription)")
+            throw error
         }
     }
 }

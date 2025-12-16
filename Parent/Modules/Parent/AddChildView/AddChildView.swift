@@ -11,13 +11,13 @@ struct AddChildView: View {
     @EnvironmentObject var stateManager: AppStateManager
     @Environment(\.dismiss) var dismiss
     
-    enum ViewState {
-        case generatingCode, waitingForChild, success(Child)
-    }
-    
     @State private var state: ViewState = .generatingCode
     @State private var invitationCode: String?
     @State private var errorMessage: String?
+    
+    enum ViewState {
+        case generatingCode, waitingForChild, success(Child)
+    }
     
     var body: some View {
         VStack(spacing: 30) {
@@ -67,7 +67,7 @@ struct AddChildView: View {
             return
         }
         
-        let newChild = Child(id: UUID(), name: childName, recordID: childID)
+        let newChild = Child(id: UUID(uuidString: childID) ?? UUID(), name: childName, recordID: childID)
         self.state = .success(newChild)
     }
 }

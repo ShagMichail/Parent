@@ -40,7 +40,7 @@ class AuthenticationService: ObservableObject {
             return true
         } else {
             print("AuthService: Токен невалиден.")
-            await logout()
+            logout()
             return false
         }
     }
@@ -59,7 +59,7 @@ class AuthenticationService: ObservableObject {
         UserDefaults.standard.removeObject(forKey: authTokenStorageKey)
         self.authToken = nil
         self.isAuthenticated = false
-        print("AuthService: Пользователь вышел.")
+        print("AuthService: Пользователь вышел (только сессия).")
     }
     
     private func loadAuthToken() {
