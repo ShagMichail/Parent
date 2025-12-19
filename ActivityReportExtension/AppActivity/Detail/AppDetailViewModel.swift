@@ -41,31 +41,31 @@ class AppDetailViewModel: ObservableObject {
     }
     
     /// Загружает начальный статус (блокировку и лимит)
-//    func loadInitialStatus() {
-//        // Проверяем, заблокировано ли приложение в данный момент
-//        self.isBlocked = store.shield.applications?.contains(detail.token) ?? false
-//        
-//        // Загружаем информацию о существующем лимите
-//        loadCurrentLimit()
-//    }
+    //    func loadInitialStatus() {
+    //        // Проверяем, заблокировано ли приложение в данный момент
+    //        self.isBlocked = store.shield.applications?.contains(detail.token) ?? false
+    //
+    //        // Загружаем информацию о существующем лимите
+    //        loadCurrentLimit()
+    //    }
     
     /// Переключает блокировку для этого приложения
-//    func toggleBlock() {
-//        isProcessing = true
-//        
-//        if isBlocked {
-//            store.shield.applications?.remove(detail.token)
-//        } else {
-//            if store.shield.applications == nil {
-//                store.shield.applications = [detail.token]
-//            } else {
-//                store.shield.applications?.insert(detail.token)
-//            }
-//        }
-//        
-//        self.isBlocked.toggle()
-//        isProcessing = false
-//    }
+    //    func toggleBlock() {
+    //        isProcessing = true
+    //
+    //        if isBlocked {
+    //            store.shield.applications?.remove(detail.token)
+    //        } else {
+    //            if store.shield.applications == nil {
+    //                store.shield.applications = [detail.token]
+    //            } else {
+    //                store.shield.applications?.insert(detail.token)
+    //            }
+    //        }
+    //
+    //        self.isBlocked.toggle()
+    //        isProcessing = false
+    //    }
     
     
     /// Устанавливает дневной лимит использования
@@ -81,9 +81,9 @@ class AppDetailViewModel: ObservableObject {
             let schedule = dailySchedule()
             let eventName = DeviceActivityEvent.Name("limit.threshold.\(String(describing: detail.application.bundleIdentifier))")
             let event = DeviceActivityEvent(
-                        applications: [detail.token],
-                        threshold: .init(second: Int(duration))
-                    )
+                applications: [detail.token],
+                threshold: .init(second: Int(duration))
+            )
             do {
                 try center.startMonitoring(activityName, during: schedule, events: [eventName: event])
                 print("✅ Установлен лимит \(duration) сек для \(String(describing: detail.application.bundleIdentifier))")
@@ -144,52 +144,53 @@ class AppDetailViewModel: ObservableObject {
         return formatter.string(from: duration) ?? ""
     }
     
-//    func toggleBlockViaCloudKit() {
-//        guard let childID = childRecordID else {
-//            print("❌ Ошибка: не найден ID ребенка в AppGroup UserDefaults.")
-//            return
-//        }
-//        
-//        isProcessing = true
-//        let newBlockStatus = !isBlocked
-//        let commandName = newBlockStatus ? "block_app_token" : "unblock_app_token"
-////        let payload: [String: Any] = ["token": detail.token]
-//        do {
-//            // 1. Кодируем сам ApplicationToken в Data с помощью JSONEncoder
-//            let tokenData = try JSONEncoder().encode(detail.token)
-//            
-//            // 2. Кладем в payload уже готовые данные (Data)
-//            let payload: [String: Any] = ["tokenData": tokenData]
-//            Task {
-//                do {
-//                    // ✅ ИЗМЕНЕНИЕ 2: Вызываем локальную функцию отправки
-//                    try await sendCommand(name: commandName, to: childID, payload: payload)
-//                    self.isBlocked = newBlockStatus
-//                } catch {
-//                    print("❌ Ошибка отправки команды из расширения: \(error)")
-//                }
-//                self.isProcessing = false
-//            }
-//        } catch {
-//            print("❌ Ошибка кодирования токена: \(error)")
-//            isProcessing = false
-//        }
-//    }
-//    
-//    private func sendCommand(name: String, to childID: String, payload: [String: Any]? = nil) async throws {
-//        let record = CKRecord(recordType: "Command")
-//        record["commandName"] = name as CKRecordValue
-//        record["targetChildID"] = childID as CKRecordValue
-//        record["status"] = "pending" as CKRecordValue
-//        record["createdAt"] = Date() as CKRecordValue
-//        
-//        if let payload = payload {
-//            // `payload` - это уже словарь `[String: Any]`, где под ключом "tokenData" лежат данные типа Data.
-//            // NSKeyedArchiver УМЕЕТ работать со словарями, содержащими базовые типы и Data.
-//            let data = try NSKeyedArchiver.archivedData(withRootObject: payload, requiringSecureCoding: false)
-//            record["payload"] = data as CKRecordValue
-//        }
-//        try await database.save(record)
-//        print("✅ Command '\(name)' sent from extension to \(childID)")
-//    }
-//}
+    //    func toggleBlockViaCloudKit() {
+    //        guard let childID = childRecordID else {
+    //            print("❌ Ошибка: не найден ID ребенка в AppGroup UserDefaults.")
+    //            return
+    //        }
+    //
+    //        isProcessing = true
+    //        let newBlockStatus = !isBlocked
+    //        let commandName = newBlockStatus ? "block_app_token" : "unblock_app_token"
+    ////        let payload: [String: Any] = ["token": detail.token]
+    //        do {
+    //            // 1. Кодируем сам ApplicationToken в Data с помощью JSONEncoder
+    //            let tokenData = try JSONEncoder().encode(detail.token)
+    //
+    //            // 2. Кладем в payload уже готовые данные (Data)
+    //            let payload: [String: Any] = ["tokenData": tokenData]
+    //            Task {
+    //                do {
+    //                    // ✅ ИЗМЕНЕНИЕ 2: Вызываем локальную функцию отправки
+    //                    try await sendCommand(name: commandName, to: childID, payload: payload)
+    //                    self.isBlocked = newBlockStatus
+    //                } catch {
+    //                    print("❌ Ошибка отправки команды из расширения: \(error)")
+    //                }
+    //                self.isProcessing = false
+    //            }
+    //        } catch {
+    //            print("❌ Ошибка кодирования токена: \(error)")
+    //            isProcessing = false
+    //        }
+    //    }
+    //
+    //    private func sendCommand(name: String, to childID: String, payload: [String: Any]? = nil) async throws {
+    //        let record = CKRecord(recordType: "Command")
+    //        record["commandName"] = name as CKRecordValue
+    //        record["targetChildID"] = childID as CKRecordValue
+    //        record["status"] = "pending" as CKRecordValue
+    //        record["createdAt"] = Date() as CKRecordValue
+    //
+    //        if let payload = payload {
+    //            // `payload` - это уже словарь `[String: Any]`, где под ключом "tokenData" лежат данные типа Data.
+    //            // NSKeyedArchiver УМЕЕТ работать со словарями, содержащими базовые типы и Data.
+    //            let data = try NSKeyedArchiver.archivedData(withRootObject: payload, requiringSecureCoding: false)
+    //            record["payload"] = data as CKRecordValue
+    //        }
+    //        try await database.save(record)
+    //        print("✅ Command '\(name)' sent from extension to \(childID)")
+    //    }
+    //}
+}

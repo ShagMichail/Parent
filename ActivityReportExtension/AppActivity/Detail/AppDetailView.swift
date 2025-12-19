@@ -74,7 +74,7 @@ struct AppDetailView: View {
                 
                 AppInfoCardView(detail: detail)
                 
-                AppInfoButtonsView(viewModel: viewModel)
+//                AppInfoButtonsView(viewModel: viewModel)
             }
             .padding(.bottom, 20)
         }
