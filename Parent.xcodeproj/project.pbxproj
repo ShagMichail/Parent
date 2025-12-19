@@ -113,7 +113,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				ActivityReportModels.swift,
-				AppActivity/StatView.swift,
 				Notifications/AppNotificationsChartView.swift,
 			);
 			target = FC8A8A112EC1499C009A90EF /* Parent */;

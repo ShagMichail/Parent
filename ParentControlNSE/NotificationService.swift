@@ -25,80 +25,126 @@ class NotificationService: UNNotificationServiceExtension {
         
         guard let bestAttemptContent = bestAttemptContent else { return }
         let userInfo = request.content.userInfo
-
-        // --- ЕДИНАЯ ТОЧКА РАЗБОРА PUSH-УВЕДОМЛЕНИЯ ---
+        
+        // 1. Разбираем структуру CloudKit
         guard let ckInfo = userInfo["ck"] as? [String: Any],
               let query = ckInfo["qry"] as? [String: Any],
               let recordIDString = query["rid"] as? String else {
             contentHandler(bestAttemptContent)
             return
         }
-
+        
         let apsFields = query["af"] as? [String: Any]
-
-        // --- ВЕТКА 1: ОБРАБОТКА МГНОВЕННОЙ КОМАНДЫ ---
+        
+        // --- ВЕТКА 1: КОМАНДЫ (Блокировка / Разблокировка / Локация) ---
         if let fields = apsFields, let commandName = fields["commandName"] as? String {
             
-            print("NSE: Получена мгновенная команда: \(commandName)")
+            print("NSE: Получена команда: \(commandName)")
             
             if commandName == "block_all" {
                 store.shield.applicationCategories = .all()
+//                store.shield.webDomains = .all() // Если нужно блокировать и веб
                 bestAttemptContent.body = "Устройство заблокировано родителем"
-            } else if commandName == "unblock_all" {
+                // Обновляем статус на executed
+                updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
+                return
+            }
+            else if commandName == "unblock_all" {
                 store.shield.applicationCategories = nil
                 store.shield.webDomains = nil
                 bestAttemptContent.body = "Устройство разблокировано"
+                // Обновляем статус на executed
+                updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
+                return
             }
-            updateCloudKitStatus(recordName: recordIDString) {
+            else if commandName == "request_location_update" {
+                // ВАЖНО: Мы НЕ запускаем LocationManager здесь.
+                // Мы просто меняем текст пуша, чтобы ребенок не пугался (или делаем его пустым).
+                // Саму локацию обработает AppDelegate.
+                bestAttemptContent.body = "Обновление геолокации..."
+                // Статус не обновляем здесь, это сделает AppDelegate после отправки координат
                 contentHandler(bestAttemptContent)
+                return
             }
-            return
+            else if commandName == "block_app_token" || commandName == "unblock_app_token" {
+                
+                // 1. Извлекаем payload
+                guard let payloadData = fields["payload"] as? Data,
+                      let payload = try? NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(payloadData) as? [String: Any],
+                      let token = payload["token"] as? ApplicationToken else {
+                    // Если нет токена, ничего не делаем
+                    updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
+                    return
+                }
+                
+                // 2. Применяем правило
+                if commandName == "block_app_token" {
+                    if store.shield.applications == nil { store.shield.applications = [token] }
+                    else { store.shield.applications?.insert(token) }
+                    bestAttemptContent.body = "Приложение заблокировано"
+                    print("✅ NSE: Приложение \(token) заблокировано по токену.")
+                    
+                } else { // unblock_app_token
+                    store.shield.applications?.remove(token)
+                    bestAttemptContent.body = "Приложение разблокировано"
+                    print("✅ NSE: Приложение \(token) разблокировано по токену.")
+                }
+                
+                // 3. Отправляем отчет об успехе
+                updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
+                return
+            }
         }
         
-        // --- ВЕТКА 2: ОБРАБОТКА РАСПИСАНИЯ ---
-        if let fields = apsFields {
+        // --- ВЕТКА 2: РАСПИСАНИЯ ---
+        if let fields = apsFields, let _ = fields["startTimeString"] {
+            // Это расписание (создание или обновление)
             if let newSchedule = createSchedule(from: fields, recordID: recordIDString) {
                 updateSchedulesCache(with: newSchedule)
                 bestAttemptContent.title = "Расписание обновлено"
-                bestAttemptContent.body = "Правила для времени '\(newSchedule.timeString)' были изменены."
+                bestAttemptContent.body = "Настройки времени изменены родителем."
             }
         } else {
+            // Это удаление расписания (полей нет, но пуш пришел)
             removeScheduleFromCache(withID: recordIDString)
             bestAttemptContent.title = "Расписание удалено"
-            bestAttemptContent.body = "Одно из правил фокусировки было удалено родителем."
+            bestAttemptContent.body = "Ограничение времени снято."
         }
+        
         contentHandler(bestAttemptContent)
     }
     
-    // Функция обновления статуса в CloudKit из Расширения
+    // Функция обновления статуса в CloudKit из Расширения    
     private func updateCloudKitStatus(recordName: String, completion: @escaping () -> Void) {
         let recordID = CKRecord.ID(recordName: recordName)
         
-        database.fetch(withRecordID: recordID) { record, error in
-            guard let record = record, error == nil else {
-                print("NSE Error fetching record: \(String(describing: error))")
-                completion()
-                return
+        // 1. Создаем "пустую" запись, зная только ID
+        let record = CKRecord(recordType: "Command", recordID: recordID)
+        
+        // 2. Меняем только то поле, которое нужно
+        record["status"] = "executed"
+        
+        // 3. Используем операцию модификации
+        let modifyOp = CKModifyRecordsOperation(recordsToSave: [record], recordIDsToDelete: nil)
+        
+        // ВАЖНО: .changedKeys обновляет только те поля, которые мы задали (status),
+        // не затирая остальные данные на сервере.
+        modifyOp.savePolicy = .changedKeys
+        
+        // Настройка качества обслуживания (UserInteractive - высший приоритет)
+        modifyOp.qualityOfService = .userInteractive
+        
+        modifyOp.modifyRecordsResultBlock = { result in
+            switch result {
+            case .success:
+                print("✅ NSE: Статус обновлен (Fast Mode)")
+            case .failure(let error):
+                print("❌ NSE: Ошибка обновления: \(error.localizedDescription)")
             }
-            
-            // Меняем статус
-            record["status"] = "executed"
-            
-            // Сохраняем
-            let modifyOp = CKModifyRecordsOperation(recordsToSave: [record], recordIDsToDelete: nil)
-            modifyOp.savePolicy = .changedKeys
-            modifyOp.modifyRecordsResultBlock = { result in
-                switch result {
-                case .success:
-                    print("NSE: Статус успешно обновлен на executed")
-                case .failure(let error):
-                    print("NSE Error saving record: \(error)")
-                }
-                completion()
-            }
-            
-            self.database.add(modifyOp)
+            completion()
         }
+        
+        self.database.add(modifyOp)
     }
     
     override func serviceExtensionTimeWillExpire() {
@@ -151,7 +197,7 @@ class NotificationService: UNNotificationServiceExtension {
         return newSchedule
     }
     // Вставьте этот код в ваш класс NotificationService.swift
-
+    
     /// Обновляет или добавляет расписание в кэш в AppGroup UserDefaults.
     /// - Parameter newSchedule: Расписание, которое нужно сохранить.
     private func updateSchedulesCache(with newSchedule: FocusSchedule) {

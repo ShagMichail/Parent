@@ -10,12 +10,14 @@ import DeviceActivity
 
 struct AppsActivityReportView: View {
     @Environment(\.dismiss) var dismiss
-    @State private var selectedTab = 0
+    @State private var selectedTab = 1
     @State private var context = DeviceActivityReport.Context(rawValue: "App Usage Activity")
+    
+    @State private var isLoading = true
     
     @State private var filter = DeviceActivityFilter(
         segment: .hourly(during: DateInterval(
-            start: Calendar.current.date(byAdding: .day, value: -1, to: Calendar.current.startOfDay(for: Date()))!,
+            start: Calendar.current.date(byAdding: .day, value: -6, to: Calendar.current.startOfDay(for: Date()))!,
             end: Date()
         )),
         users: .children,
@@ -40,12 +42,24 @@ struct AppsActivityReportView: View {
                 .padding(.vertical, 16)
                 .background(.roleBackround)
             
-            DeviceActivityReport(context, filter: filter)
-                .navigationBarBackButtonHidden(true)
-                .ignoresSafeArea(edges: .bottom)
+            ZStack {
+                ReportLoadingView()
+                
+                DeviceActivityReport(context, filter: filter)
+                    .opacity(isLoading ? 0 : 1)
+            }
+            .navigationBarBackButtonHidden(true)
+            .ignoresSafeArea(edges: .bottom)
         }
-        .onChange(of: selectedTab) { newValue in
+        .onChange(of: selectedTab) { _, newValue in
             updateFilter(for: newValue)
+        }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                withAnimation {
+                    isLoading = false
+                }
+            }
         }
     }
     

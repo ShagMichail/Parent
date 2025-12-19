@@ -18,7 +18,7 @@ struct MainTabView: View {
     @EnvironmentObject var stateManager: AppStateManager
     @EnvironmentObject var cloudKitManager: CloudKitManager
     
-    @State private var selectedTab: Tab = .location
+    @State private var selectedTab: Tab = .summary
     
     // --- ГЛАВНЫЕ СОСТОЯНИЯ (ЖИВУТ ЗДЕСЬ) ---
     @State private var showBlockOverlay = false // Управляет показом оверлея

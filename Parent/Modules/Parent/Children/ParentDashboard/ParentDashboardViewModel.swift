@@ -17,6 +17,7 @@ class ParentDashboardViewModel: ObservableObject {
             if let child = selectedChild {
                 setupSubscription(for: child)
                 refreshChildStatus()
+                saveSelectedChildID()
             }
         }
     }
@@ -76,7 +77,7 @@ class ParentDashboardViewModel: ObservableObject {
         
         Task {
             do {
-                if let lastRecord = try await cloudKitManager.fetchLatestCommand(for: child.recordID) {
+                if let lastRecord = try await cloudKitManager.fetchLatestBlockCommand(for: child.recordID) {
                     
                     let commandName = lastRecord["commandName"] as? String ?? ""
                     let statusRaw = lastRecord["status"] as? String ?? ""
@@ -324,5 +325,11 @@ class ParentDashboardViewModel: ObservableObject {
         }
         
         return addressParts.joined(separator: ", ")
+    }
+    
+    private func saveSelectedChildID() {
+        if let defaults = UserDefaults(suiteName: "group.com.laborato.test.Parent") {
+            defaults.set(selectedChild?.recordID, forKey: "currentlySelectedChildID")
+        }
     }
 }

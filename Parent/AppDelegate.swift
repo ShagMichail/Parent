@@ -84,43 +84,47 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         
         // 2. ЛОГИКА ПРИНЯТИЯ КОМАНД
         if notification.subscriptionID?.starts(with: "commands-for-user-") == true {
-            
-            // Это может быть тихий пуш, который не обрабатывается в NSE.
-            // Давайте разберем его здесь.
             if let ckInfo = userInfo["ck"] as? [String: Any],
                let query = ckInfo["qry"] as? [String: Any],
                let fields = query["af"] as? [String: Any],
                let commandName = fields["commandName"] as? String {
                 
-                // Проверяем, пришел ли наш "пинг"
+                // 📍 ЛОВИМ ТОЛЬКО ЛОКАЦИЮ
                 if commandName == "request_location_update" {
-                    print("PING  recibido! Запускаем принудительное обновление локации.")
+                    print("📍 AppDelegate: Пришел запрос локации! Запускаем Background Task.")
                     
-                    // Запускаем фоновую задачу, чтобы система дала нам время
+                    // Просим у системы время на работу
                     var bgTaskID: UIBackgroundTaskIdentifier = .invalid
                     bgTaskID = application.beginBackgroundTask(withName: "ForceLocationUpdate") {
+                        // Если время вышло
                         application.endBackgroundTask(bgTaskID)
                         bgTaskID = .invalid
                     }
                     
-                    // Вызываем наш новый метод в LocationManager
+                    // Запускаем обновление координат
                     LocationManager.shared.forceSendStatus()
                     
-                    // Завершаем задачу
+                    // Даем системе понять, что мы обработали данные
                     completionHandler(.newData)
-                    if bgTaskID != .invalid {
-                        application.endBackgroundTask(bgTaskID)
+                    
+                    // Завершаем задачу чуть позже (даем пару секунд на отправку)
+                    DispatchQueue.global().asyncAfter(deadline: .now() + 10) {
+                        if bgTaskID != .invalid {
+                            application.endBackgroundTask(bgTaskID)
+                            bgTaskID = .invalid
+                        }
                     }
-                    return // Выходим, чтобы не обрабатывать дальше
+                    return
+                }
+                
+                // 🛑 БЛОКИРОВКИ ИГНОРИРУЕМ
+                if commandName == "block_all" || commandName == "unblock_all" {
+                    print("🔔 AppDelegate: Блокировку пропустили (ее делает NSE). Просто обновляем UI.")
+                    NotificationCenter.default.post(name: NSNotification.Name("RefreshUI"), object: nil)
+                    completionHandler(.noData)
+                    return
                 }
             }
-            
-            print("🔔 AppDelegate: Команда обработана расширением.")
-            
-            NotificationCenter.default.post(name: NSNotification.Name("RefreshUI"), object: nil)
-            
-            completionHandler(.newData)
-            return
         }
         
         // 3. ОБНОВЛЕНИЯ СТАТУСА (ДЛЯ РОДИТЕЛЯ)
@@ -177,5 +181,5 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
 extension Notification.Name {
     static let invitationAcceptedByChild = Notification.Name("invitationAcceptedByChild")
-    static let commandUpdated = Notification.Name("CommandStatusUpdated") // Новое уведомление
+    static let commandUpdated = Notification.Name("CommandStatusUpdated")
 }

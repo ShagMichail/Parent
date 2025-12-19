@@ -14,6 +14,8 @@ struct LocationView: View {
     @State private var cameraPosition: MapCameraPosition = .automatic
     @State private var isListExpanded: Bool = false
     @State private var isChangingCameraProgrammatically = false
+    @State private var isFirstUseMapCameraChange = false
+    @State private var isFirstUseCamera = true
     
     init(stateManager: AppStateManager, cloudKitManager: CloudKitManager) {
         _viewModel = StateObject(wrappedValue: LocationViewModel(
@@ -46,7 +48,11 @@ struct LocationView: View {
                 .mapStyle(.standard(elevation: .flat))
                 .ignoresSafeArea()
                 .onMapCameraChange(frequency: .onEnd) { context in
-                    if isChangingCameraProgrammatically {
+                    // КОСТЫЛЬ!!! - сделано для быстроты - ИСПРАВИТЬ
+                    if isChangingCameraProgrammatically && isFirstUseMapCameraChange {
+                        isFirstUseMapCameraChange = false
+                        return
+                    } else if isChangingCameraProgrammatically {
                         isChangingCameraProgrammatically = false
                         return
                     }
@@ -135,6 +141,10 @@ struct LocationView: View {
             return
         }
         isChangingCameraProgrammatically = true
+        if isFirstUseCamera {
+            isFirstUseCamera = false
+            isFirstUseMapCameraChange = true
+        }
         withAnimation(.easeInOut(duration: 0.5)) {
             cameraPosition = .camera(
                 MapCamera(centerCoordinate: coordinate, distance: 3000)
@@ -155,11 +165,6 @@ struct FloatingActionButton: View {
                     .font(.title3)
                     .foregroundColor(.primary)
                     .frame(width: 24, height: 24)
-//                Circle()
-//                    .fill(Color.red)
-//                    .frame(width: 8, height: 8)
-//                    .offset(x: 8, y: -8)
-                
             }
             .frame(width: 50, height: 50)
             .background(

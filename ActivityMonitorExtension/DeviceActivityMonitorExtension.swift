@@ -37,6 +37,20 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         }
     }
     
+    override func eventDidReachThreshold(_ event: DeviceActivityEvent.Name, activity: DeviceActivityName) {
+        super.eventDidReachThreshold(event, activity: activity)
+        
+        if activity.rawValue.starts(with: "limit.") {
+            print("⏳ Лимит времени для приложения исчерпан!")
+            
+            let center = DeviceActivityCenter()
+            let events = center.events(for: activity)
+            if let appEvent = events[event] {
+                store.shield.applications = appEvent.applications
+            }
+        }
+    }
+    
     override func intervalDidEnd(for activity: DeviceActivityName) {
         super.intervalDidEnd(for: activity)
         
@@ -44,6 +58,12 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
             print("🔓 MONITOR: Расписание закончилось")
             store.shield.applicationCategories = nil
             store.shield.webDomains = nil
+        }
+        
+        if activity.rawValue.starts(with: "limit.") {
+            print("✅ Лимит сброшен (наступил новый день).")
+            // Просто убираем все блокировки, чтобы они не висели вечно
+            store.shield.applications = nil
         }
     }
     

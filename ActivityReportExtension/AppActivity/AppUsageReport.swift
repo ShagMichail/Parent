@@ -23,6 +23,15 @@ struct AppUsageReport: DeviceActivityReportScene {
     
     func makeConfiguration(representing data: DeviceActivityResults<DeviceActivityData>) async -> ActivityReportViewModel {
         
+        var detailedDailyAppsDict: [ApplicationToken: [Date: TimeInterval]] = [:]
+        // [Токен: [Час: Длительность]] (только за сегодня)
+        var detailedHourlyAppsDict: [ApplicationToken: [Int: TimeInterval]] = [:]
+        // [Токен: BundleIdentifier]
+        var applications: [ApplicationToken: Application] = [:]
+        // [Токен: Категория]
+        var appCategories: [ApplicationToken: ActivityCategory] = [:]
+
+        
         var hourlyData = (0..<24).map { HourlyActivityModel(hour: $0, duration: 0) }
         var dailyDataDict: [String: TimeInterval] = [:]
         var appsDict: [ApplicationToken: TimeInterval] = [:]
@@ -35,22 +44,25 @@ struct AppUsageReport: DeviceActivityReportScene {
         let yesterdayStart = calendar.date(byAdding: .day, value: -1, to: calendar.startOfDay(for: now))!
         
         var hasDataOlderThanYesterday = false
+        var showWeeklyReport = false
         
         for await deviceActivity in data {
             for await segment in deviceActivity.activitySegments {
                 let start = segment.dateInterval.start
                 let duration = segment.totalActivityDuration
                 
-                // --- ОПРЕДЕЛЯЕМ РЕЖИМ ---
+//                // --- ОПРЕДЕЛЯЕМ РЕЖИМ ---
                 if start < yesterdayStart {
                     hasDataOlderThanYesterday = true
                 }
-                
                 // --- СБОР ОБЩИХ СУММ ---
                 if calendar.isDateInToday(start) {
                     todayTotal += duration
                 } else if calendar.isDateInYesterday(start) {
                     yesterdayTotal += duration
+                } else {
+                    // Если есть данные старше чем за вчера, мы точно в режиме "Неделя"
+                    showWeeklyReport = true
                 }
                 
                 // --- 1. ДАННЫЕ ДЛЯ ГРАФИКА ДНЯ (Заполняем только данными за СЕГОДНЯ) ---
@@ -81,16 +93,20 @@ struct AppUsageReport: DeviceActivityReportScene {
                 dailyDataDict[dateKey, default: 0] += duration
                 
                 // --- 3. ПРИЛОЖЕНИЯ ---
-                // Приложения суммируем только если это "Неделя", или если "День" (только за сегодня)
-                // Но чтобы упростить, суммируем всё, а фильтруем в уме.
-                // Для точности в режиме "День" лучше показывать приложения только за сегодня:
-                let isToday = calendar.isDateInToday(start)
-                if hasDataOlderThanYesterday || isToday {
-                     for await category in segment.categories {
-                        for await app in category.applications {
-                            let token = app.application.token
-                            if let token = token, app.totalActivityDuration > 0 {
-                                appsDict[token, default: 0] += app.totalActivityDuration
+                for await category in segment.categories {
+                    for await app in category.applications {
+                        if let token = app.application.token, app.totalActivityDuration > 0 {
+                            // Сохраняем метаданные
+                            if applications[token] == nil { applications[token] = app.application }
+                            if appCategories[token] == nil { appCategories[token] = category.category }
+                            
+                            // Собираем дневную статистику
+                            detailedDailyAppsDict[token, default: [:]][dayStart, default: 0] += app.totalActivityDuration
+                            
+                            // Собираем почасовую статистику (только за сегодня)
+                            if calendar.isDateInToday(start) {
+                                let hour = calendar.component(.hour, from: start)
+                                detailedHourlyAppsDict[token, default: [:]][hour, default: 0] += app.totalActivityDuration
                             }
                         }
                     }
@@ -109,16 +125,46 @@ struct AppUsageReport: DeviceActivityReportScene {
                 }
             }
         }
-        
-        let sortedApps = appsDict.map { AppUsageItem(token: $0.key, duration: $0.value) }
-            .sorted { $0.duration > $1.duration }
+
+        let sortedAppDetails = detailedDailyAppsDict.map { token, dailyData -> AppUsageDetail in
+            var totalDuration = dailyData.reduce(0) { $0 + $1.value }
+            
+            if !showWeeklyReport {
+                let todayStart = calendar.startOfDay(for: now)
+                totalDuration = dailyData[todayStart] ?? 0
+            } else {
+                // Если в режиме "Неделя", суммируем за все дни
+                totalDuration = dailyData.reduce(0) { $0 + $1.value }
+            }
+            
+            // Преобразуем почасовой словарь в массив
+            let hourlyDict = detailedHourlyAppsDict[token] ?? [:]
+            var hourlyArray = Array(repeating: 0.0, count: 24)
+            for (hour, duration) in hourlyDict {
+                if hour >= 0 && hour < 24 {
+                    hourlyArray[hour] = duration
+                }
+            }
+            
+            return AppUsageDetail(
+                token: token,
+                totalDuration: totalDuration,
+                dailyUsage: dailyData,
+                hourlyUsage: hourlyArray,
+                application: applications[token]!,
+                category: appCategories[token]!
+            )
+        }
+            .filter { $0.totalDuration > 0 }
+            .sorted { $0.totalDuration > $1.totalDuration }
         
         return ActivityReportViewModel(
             hourlyData: hourlyData,
             dailyData: dailyData,
-            apps: sortedApps,
+            apps: sortedAppDetails,
             totalDuration: hasDataOlderThanYesterday ? (todayTotal + yesterdayTotal) : todayTotal,
-            yesterdayTotalDuration: yesterdayTotal
+            yesterdayTotalDuration: yesterdayTotal,
+            isWeekView: showWeeklyReport
         )
     }
 }

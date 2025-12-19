@@ -31,6 +31,12 @@ class LocationViewModel: ObservableObject {
         self.stateManager = stateManager
         self.cloudKitManager = cloudKitManager
         setupBindings()
+        
+        NotificationCenter.default.publisher(for: .commandUpdated)
+            .sink { [weak self] notification in
+                self?.handleCommandUpdate(notification)
+            }
+            .store(in: &cancellables)
     }
     
     // MARK: - Public Methods
@@ -77,9 +83,6 @@ class LocationViewModel: ObservableObject {
             } catch {
                 print("❌ Ошибка отправки 'ping' команды: \(error)")
             }
-            
-            // В любом случае убираем индикатор загрузки
-            isPinging[child.recordID] = false
         }
     }
     
@@ -105,6 +108,24 @@ class LocationViewModel: ObservableObject {
     }
     
     // MARK: - Private Methods
+    
+    private func handleCommandUpdate(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let statusRaw = userInfo["status"] as? String,
+              let commandName = userInfo["commandName"] as? String,
+              let childID = userInfo["childID"] as? String
+        else { return }
+
+        // Проверяем, касается ли это текущего выбранного ребенка
+        if let selected = selectedChild, selected.recordID == childID {
+            
+            if statusRaw == CommandStatus.executed.rawValue {
+                if commandName == "request_location_update" {
+                    isPinging[childID] = false
+                }
+            }
+        }
+    }
     
     private func setupBindings() {
         // Подписка на список детей

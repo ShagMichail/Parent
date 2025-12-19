@@ -105,12 +105,16 @@ class CloudKitManager: ObservableObject {
     }
 
     /// ВЫЗЫВАЕТСЯ РОДИТЕЛЕМ для отправки команды.
-    func sendCommand(name: String, to childID: String) async throws {
+    func sendCommand(name: String, to childID: String, payload: [String: Any]? = nil) async throws {
         let record = CKRecord(recordType: "Command")
         record["commandName"] = name as CKRecordValue
         record["targetChildID"] = childID as CKRecordValue
         record["status"] = CommandStatus.pending.rawValue as CKRecordValue
         record["createdAt"] = Date() as CKRecordValue
+        
+        if let payload = payload {
+            record["payload"] = try NSKeyedArchiver.archivedData(withRootObject: payload, requiringSecureCoding: false) as CKRecordValue
+        }
         
         do {
             print("▶️ [Parent] Пытаемся сохранить команду...")
@@ -145,7 +149,7 @@ class CloudKitManager: ObservableObject {
         notificationInfo.alertBody = "Обновление настроек и сбор информации"
         notificationInfo.shouldSendMutableContent = true
         notificationInfo.shouldSendContentAvailable = true
-        notificationInfo.desiredKeys = ["commandName"]
+        notificationInfo.desiredKeys = ["commandName", "payload"]
         
         subscription.notificationInfo = notificationInfo
         
@@ -242,6 +246,26 @@ extension CloudKitManager {
         let query = CKQuery(recordType: "Command", predicate: predicate)
         query.sortDescriptors = [sortDescriptor]
         
+        let (matchResults, _) = try await publicDatabase.records(matching: query, resultsLimit: 1)
+        
+        return try matchResults.first?.1.get()
+    }
+    
+    func fetchLatestBlockCommand(for childID: String) async throws -> CKRecord? {
+        // Ищем записи, где childID совпадает И (имя = block_all ИЛИ имя = unblock_all)
+        let predicate = NSPredicate(
+            format: "targetChildID == %@ AND commandName IN %@",
+            childID,
+            ["block_all", "unblock_all"]
+        )
+        
+        // Сортируем: самые новые сверху
+        let sortDescriptor = NSSortDescriptor(key: "createdAt", ascending: false)
+        
+        let query = CKQuery(recordType: "Command", predicate: predicate)
+        query.sortDescriptors = [sortDescriptor]
+        
+        // Берем только одну (самую свежую)
         let (matchResults, _) = try await publicDatabase.records(matching: query, resultsLimit: 1)
         
         return try matchResults.first?.1.get()
@@ -344,8 +368,62 @@ extension CloudKitManager {
         let userRecordID = CKRecord.ID(recordName: myRecordIDString)
         record["userRef"] = CKRecord.Reference(recordID: userRecordID, action: .none)
         
-        try await publicDatabase.save(record)
-        print("📡 CloudKit: Новая точка DeviceStatus сохранена.")
+        do {
+            print("▶️ [Child] Пытаемся сохранить статус...")
+            try await publicDatabase.save(record)
+            print("✅ [Child] Статус успешно сохранен.")
+            await markPendingLocationCommandAsExecuted()
+        } catch {
+            print("🛑 [Child] КРИТИЧЕСКАЯ ОШИБКА: Не удалось сохранить статус: \(error)")
+        }
+    }
+    
+    private func markPendingLocationCommandAsExecuted() async {
+        guard let childID = await fetchUserRecordID() else { return }
+        
+        // 1. Ищем команду: Для МЕНЯ (childID), имя = запрос локации, статус = ожидание
+        let predicate = NSPredicate(
+            format: "targetChildID == %@ AND commandName IN %@ AND status IN %@",
+            childID,
+            ["request_location_update"],
+            ["pending"]
+        )
+        
+        let query = CKQuery(recordType: "Command", predicate: predicate)
+        // Сортируем: старые первыми (чтобы закрыть самую давнюю) или новые первыми
+        query.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
+        
+        do {
+            // 2. Запрашиваем запись
+            let (matchResults, _) = try await publicDatabase.records(matching: query, resultsLimit: 1)
+            
+            // Если нашли висящую команду
+            if let record = try? matchResults.first?.1.get() {
+                print("📍 CloudKit: Найдена висящая команда локации. Закрываем...")
+                
+                // 3. Меняем статус
+                record["status"] = "executed"
+                
+                // 4. Сохраняем изменение
+                let modifyOp = CKModifyRecordsOperation(recordsToSave: [record], recordIDsToDelete: nil)
+                modifyOp.savePolicy = .changedKeys
+                
+                try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                    modifyOp.modifyRecordsResultBlock = { result in
+                        switch result {
+                        case .success:
+                            print("✅ CloudKit: Команда локации помечена как EXECUTED")
+                            continuation.resume()
+                        case .failure(let error):
+                            continuation.resume(throwing: error)
+                        }
+                    }
+                    publicDatabase.add(modifyOp)
+                }
+            }
+        } catch {
+            print("⚠️ Не удалось закрыть команду локации: \(error)")
+        }
     }
     
     /// ПОЛУЧЕНИЕ (Вызывается с устройства родителя)

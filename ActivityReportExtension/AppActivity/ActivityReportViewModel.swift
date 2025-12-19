@@ -33,13 +33,33 @@ struct DailyActivityModel: Identifiable {
     }
 }
 
-struct ActivityReportViewModel {
+struct ActivityReportViewModel: Equatable {
     let hourlyData: [HourlyActivityModel]
     let dailyData: [DailyActivityModel]
-    let apps: [AppUsageItem]
+    let apps: [AppUsageDetail]
     let totalDuration: TimeInterval
     let yesterdayTotalDuration: TimeInterval
-    var isWeekView: Bool {
-        return !dailyData.isEmpty
+    var isWeekView: Bool
+    //    {
+    //        return !dailyData.isEmpty
+    //    }
+    
+    static func == (lhs: ActivityReportViewModel, rhs: ActivityReportViewModel) -> Bool {
+        // Считаем ViewModel "равными", если у них совпадает режим (День/Неделя)
+        return lhs.isWeekView == rhs.isWeekView
     }
+}
+
+struct AppUsageDetail: Identifiable, Hashable {
+    let id = UUID()
+    let token: ApplicationToken
+    let totalDuration: TimeInterval
+    let dailyUsage: [Date: TimeInterval]
+    let hourlyUsage: [TimeInterval]
+    let application: Application
+    let category: ActivityCategory
+}
+
+enum ChartDetailType {
+    case daily, hourly
 }
