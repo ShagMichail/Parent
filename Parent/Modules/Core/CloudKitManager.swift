@@ -10,6 +10,7 @@ import CloudKit
 import Combine
 import UIKit
 import CoreLocation
+import ManagedSettings
 
 class CloudKitManager: ObservableObject {
     static let shared = CloudKitManager()
@@ -103,18 +104,19 @@ class CloudKitManager: ObservableObject {
             print("🛑 [Parent] КРИТИЧЕСКАЯ ОШИБКА: Не удалось сохранить подписку на приглашение: \(error)")
         }
     }
-
+    
     /// ВЫЗЫВАЕТСЯ РОДИТЕЛЕМ для отправки команды.
-    func sendCommand(name: String, to childID: String, payload: [String: Any]? = nil) async throws {
+//    func sendCommand(name: String, to childID: String, payload: [String: Any]? = nil) async throws {
+        func sendCommand(name: String, to childID: String) async throws {
         let record = CKRecord(recordType: "Command")
         record["commandName"] = name as CKRecordValue
         record["targetChildID"] = childID as CKRecordValue
         record["status"] = CommandStatus.pending.rawValue as CKRecordValue
         record["createdAt"] = Date() as CKRecordValue
         
-        if let payload = payload {
-            record["payload"] = try NSKeyedArchiver.archivedData(withRootObject: payload, requiringSecureCoding: false) as CKRecordValue
-        }
+//        if let payload = payload {
+//            record["payload"] = try NSKeyedArchiver.archivedData(withRootObject: payload, requiringSecureCoding: false) as CKRecordValue
+//        }
         
         do {
             print("▶️ [Parent] Пытаемся сохранить команду...")
@@ -149,7 +151,8 @@ class CloudKitManager: ObservableObject {
         notificationInfo.alertBody = "Обновление настроек и сбор информации"
         notificationInfo.shouldSendMutableContent = true
         notificationInfo.shouldSendContentAvailable = true
-        notificationInfo.desiredKeys = ["commandName", "payload"]
+//        notificationInfo.desiredKeys = ["commandName", "payload"]
+        notificationInfo.desiredKeys = ["commandName"]
         
         subscription.notificationInfo = notificationInfo
         
@@ -512,6 +515,345 @@ extension CloudKitManager {
         } catch {
             print("❌ Ошибка при поиске статуса для ребенка \(childID): \(error.localizedDescription)")
             throw error
+        }
+    }
+}
+
+extension CloudKitManager {
+    /// РОДИТЕЛЬ: Сохраняет массив отдельных лимитов
+    func saveAppLimits(_ limits: [AppLimit], for childID: String) async throws {
+        let predicate = NSPredicate(format: "targetChildID == %@", childID)
+        let query = CKQuery(recordType: "AppLimit", predicate: predicate)
+        let (matchResults, _) = try await publicDatabase.records(matching: query)
+        let serverRecordIDs = Set(matchResults.map { $0.0 })
+        
+        // --- Шаг 1: Превращаем наши UI-модели в записи CloudKit ---
+        let recordsToSave: [CKRecord] = limits.compactMap { limit in
+            let tokenData: Data
+            do {
+                tokenData = try JSONEncoder().encode(limit.token)
+            } catch {
+                print("⚠️ Не удалось закодировать токен. Пропускаем. Ошибка: \(error)")
+                return nil
+            }
+            
+            // ✅ ИСПРАВЛЕНИЕ 2: Используем хеш от Data как уникальный идентификатор
+            let tokenHash = tokenData.sha256
+            
+            // Формируем чистый и уникальный recordName
+            let recordName = "limit_\(childID)_\(tokenHash)"
+            let recordID = CKRecord.ID(recordName: recordName)
+            let record = CKRecord(recordType: "AppLimit", recordID: recordID)
+            
+            record["targetChildID"] = childID as CKRecordValue
+            record["appTokenData"] = tokenData as CKRecordValue
+            record["timeLimit"] = limit.time as CKRecordValue
+            
+            return record
+        }
+        let localRecordIDs = Set(recordsToSave.map { $0.recordID })
+        
+        // --- Шаг 3: Определяем, какие записи нужно удалить с сервера ---
+        // (Те, что есть на сервере, но которых нет в локальном списке)
+        let recordIDsToDelete = Array(serverRecordIDs.subtracting(localRecordIDs))
+        
+        // --- Шаг 4: Выполняем единую операцию ---
+        print("🔄 Синхронизация лимитов: Сохранить/Обновить - \(recordsToSave.count), Удалить - \(recordIDsToDelete.count)")
+        
+        // Если нечего менять, выходим
+        if recordsToSave.isEmpty && recordIDsToDelete.isEmpty {
+            print("ℹ️ Нет изменений для синхронизации.")
+            return
+        }
+
+        // --- Шаг 2: Используем операцию для сохранения/обновления всех записей разом ---
+        let modifyOperation = CKModifyRecordsOperation(recordsToSave: recordsToSave, recordIDsToDelete: recordIDsToDelete)
+        
+        // Эта политика критически важна: она создает запись, если ее нет,
+        // или полностью перезаписывает, если она уже существует.
+        modifyOperation.savePolicy = .allKeys
+        
+        print("☁️ Отправка в CloudKit: \(recordsToSave.count) лимитов...")
+
+        // --- Шаг 3: Выполняем операцию и ждем результата ---
+        return try await withCheckedThrowingContinuation { continuation in
+            modifyOperation.modifyRecordsResultBlock = { result in
+                switch result {
+                case .success:
+                    // Успешное завершение всей операции
+                    continuation.resume()
+                case .failure(let error):
+                    // Завершение операции с ошибкой
+                    continuation.resume(throwing: error)
+                }
+            }
+            
+            // Добавляем операцию в очередь для выполнения
+            publicDatabase.add(modifyOperation)
+        }
+    }
+    
+    /// РЕБЕНОК: Подписывается на создание, обновление и удаление лимитов
+    func subscribeToAppLimitsChanges(for childID: String) async throws {
+        let subscriptionID = "app-limits-updates-\(childID)"
+        
+        // Удаляем старую подписку, чтобы всегда иметь актуальную
+        try? await publicDatabase.deleteSubscription(withID: subscriptionID)
+        
+        // Предикат: слушать изменения только для записей, предназначенных этому ребенку
+//        let predicate = NSPredicate(format: "targetChildID == %@", childID)
+        let predicate = NSPredicate(format: "targetChildID == %@ AND signalType == 'limits'", childID)
+        let subscription = CKQuerySubscription(
+            recordType: "ConfigSignal", // Следим за типом записи AppLimit
+            predicate: predicate,
+            subscriptionID: subscriptionID,
+            // Реагируем на все возможные изменения
+            options: [.firesOnRecordUpdate]
+        )
+        
+        let notificationInfo = CKSubscription.NotificationInfo()
+        notificationInfo.alertBody = "Настройки лимитов были обновлены родителем."
+        // 2. Устанавливаем флаг, который заставит систему разбудить наше РАСШИРЕНИЕ
+        notificationInfo.shouldSendMutableContent = true
+        subscription.notificationInfo = notificationInfo
+        
+        try await publicDatabase.save(subscription)
+        print("✅ [Child] Успешно подписан на обновления лимитов.")
+    }
+    
+    // ✅ НОВАЯ ФУНКЦИЯ: Загружает все лимиты для ребенка
+    func fetchAppLimits(for childID: String) async throws -> [AppLimit] {
+        print("☁️ Загрузка существующих лимитов для ребенка: \(childID)...")
+        
+        let predicate = NSPredicate(format: "targetChildID == %@", childID)
+        let query = CKQuery(recordType: "AppLimit", predicate: predicate)
+        
+        let (matchResults, _) = try await publicDatabase.records(matching: query)
+        
+        // Превращаем записи CKRecord обратно в нашу модель AppLimit
+        let limits: [AppLimit] = try matchResults.compactMap { _, result in
+            let record = try result.get()
+            
+            guard let tokenData = record["appTokenData"] as? Data,
+                  let timeLimit = record["timeLimit"] as? TimeInterval,
+                  // Раскодируем токен из Data
+                  let token = try? JSONDecoder().decode(ApplicationToken.self, from: tokenData)
+            else {
+                print("⚠️ Пропускаем поврежденную запись лимита.")
+                return nil
+            }
+            
+            return AppLimit(token: token, time: timeLimit)
+        }
+        
+        print("✅ Загружено \(limits.count) лимитов.")
+        return limits
+    }
+}
+
+import Foundation
+import CryptoKit // Фреймворк Apple для криптографии
+
+extension Data {
+    /// Вычисляет хеш SHA256 и возвращает его в виде строки.
+    var sha256: String {
+        let hash = SHA256.hash(data: self)
+        return hash.compactMap { String(format: "%02x", $0) }.joined()
+    }
+}
+
+
+extension CloudKitManager {
+    /// РОДИТЕЛЬ: Сохраняет массив отдельных лимитов
+    func saveAppBlocks(_ limits: [AppBlock], for childID: String) async throws {
+        let predicate = NSPredicate(format: "targetChildID == %@", childID)
+        let query = CKQuery(recordType: "AppBlock", predicate: predicate)
+        let (matchResults, _) = try await publicDatabase.records(matching: query)
+        let serverRecordIDs = Set(matchResults.map { $0.0 })
+        
+        // --- Шаг 1: Превращаем наши UI-модели в записи CloudKit ---
+        let recordsToSave: [CKRecord] = limits.compactMap { limit in
+            let tokenData: Data
+            do {
+                tokenData = try JSONEncoder().encode(limit.token)
+            } catch {
+                print("⚠️ Не удалось закодировать токен. Пропускаем. Ошибка: \(error)")
+                return nil
+            }
+            
+            // ✅ ИСПРАВЛЕНИЕ 2: Используем хеш от Data как уникальный идентификатор
+            let tokenHash = tokenData.sha256
+            
+            // Формируем чистый и уникальный recordName
+            let recordName = "block_\(childID)_\(tokenHash)"
+            let recordID = CKRecord.ID(recordName: recordName)
+            let record = CKRecord(recordType: "AppBlock", recordID: recordID)
+            
+            record["targetChildID"] = childID as CKRecordValue
+            record["appTokenData"] = tokenData as CKRecordValue
+            
+            return record
+        }
+        let localRecordIDs = Set(recordsToSave.map { $0.recordID })
+        
+        // --- Шаг 3: Определяем, какие записи нужно удалить с сервера ---
+        // (Те, что есть на сервере, но которых нет в локальном списке)
+        let recordIDsToDelete = Array(serverRecordIDs.subtracting(localRecordIDs))
+        
+        // --- Шаг 4: Выполняем единую операцию ---
+        print("🔄 Синхронизация блокировок: Сохранить/Обновить - \(recordsToSave.count), Удалить - \(recordIDsToDelete.count)")
+        
+        // Если нечего менять, выходим
+        if recordsToSave.isEmpty && recordIDsToDelete.isEmpty {
+            print("ℹ️ Нет изменений для синхронизации.")
+            return
+        }
+
+        // --- Шаг 2: Используем операцию для сохранения/обновления всех записей разом ---
+        let modifyOperation = CKModifyRecordsOperation(recordsToSave: recordsToSave, recordIDsToDelete: recordIDsToDelete)
+        
+        // Эта политика критически важна: она создает запись, если ее нет,
+        // или полностью перезаписывает, если она уже существует.
+        modifyOperation.savePolicy = .allKeys
+        
+        print("☁️ Отправка в CloudKit: \(recordsToSave.count) блокирововк...")
+
+        // --- Шаг 3: Выполняем операцию и ждем результата ---
+        return try await withCheckedThrowingContinuation { continuation in
+            modifyOperation.modifyRecordsResultBlock = { result in
+                switch result {
+                case .success:
+                    // Успешное завершение всей операции
+                    continuation.resume()
+                case .failure(let error):
+                    // Завершение операции с ошибкой
+                    continuation.resume(throwing: error)
+                }
+            }
+            
+            // Добавляем операцию в очередь для выполнения
+            publicDatabase.add(modifyOperation)
+        }
+    }
+    
+    // Функция подписки на `AppLimit` остается концептуально такой же,
+    // просто меняется recordType на "AppLimit".
+    
+    /// РЕБЕНОК: Подписывается на создание, обновление и удаление лимитов
+    func subscribeToAppBlocksChanges(for childID: String) async throws {
+        let subscriptionID = "app-block-updates-\(childID)"
+        
+        // Удаляем старую подписку, чтобы всегда иметь актуальную
+        try? await publicDatabase.deleteSubscription(withID: subscriptionID)
+        
+        // Предикат: слушать изменения только для записей, предназначенных этому ребенку
+//        let predicate = NSPredicate(format: "targetChildID == %@", childID)
+        
+        let predicate = NSPredicate(format: "targetChildID == %@ AND signalType == 'blocks'", childID)
+        
+        let subscription = CKQuerySubscription(
+            recordType: "ConfigSignal", // Следим за типом записи AppLimit
+            predicate: predicate,
+            subscriptionID: subscriptionID,
+            // Реагируем на все возможные изменения
+            options: [.firesOnRecordUpdate]
+        )
+        
+        let notificationInfo = CKSubscription.NotificationInfo()
+        notificationInfo.alertBody = "Настройки блокировок были обновлены родителем."
+        // 2. Устанавливаем флаг, который заставит систему разбудить наше РАСШИРЕНИЕ
+        notificationInfo.shouldSendMutableContent = true
+        subscription.notificationInfo = notificationInfo
+        
+        try await publicDatabase.save(subscription)
+        print("✅ [Child] Успешно подписан на обновления блокировок.")
+    }
+    
+    // ✅ НОВАЯ ФУНКЦИЯ: Загружает все лимиты для ребенка
+    func fetchAppBlocks(for childID: String) async throws -> [AppBlock] {
+        print("☁️ Загрузка существующих блокирововк для ребенка: \(childID)...")
+        
+        let predicate = NSPredicate(format: "targetChildID == %@", childID)
+        let query = CKQuery(recordType: "AppBlock", predicate: predicate)
+        
+        let (matchResults, _) = try await publicDatabase.records(matching: query)
+        
+        // Превращаем записи CKRecord обратно в нашу модель AppLimit
+        let blocks: [AppBlock] = try matchResults.compactMap { _, result in
+            let record = try result.get()
+            
+            guard let tokenData = record["appTokenData"] as? Data,
+                  // Раскодируем токен из Data
+                  let token = try? JSONDecoder().decode(ApplicationToken.self, from: tokenData)
+            else {
+                print("⚠️ Пропускаем поврежденную запись лимита.")
+                return nil
+            }
+            
+            return AppBlock(token: token)
+        }
+        
+        print("✅ Загружено \(blocks.count) лимитов.")
+        return blocks
+    }
+}
+
+
+extension CloudKitManager {
+    /// "Дергает" сигнальную запись, чтобы отправить один пуш ребенку.
+    func triggerLimitsUpdateSignal(for childID: String) async throws {
+        let recordID = CKRecord.ID(recordName: "signal_\(childID)")
+        let record = CKRecord(recordType: "ConfigSignal", recordID: recordID)
+        
+        record["targetChildID"] = childID as CKRecordValue
+        record["lastUpdate"] = Date() as CKRecordValue
+        // ✅ УСТАНАВЛИВАЕМ ТИП СИГНАЛА
+        record["signalType"] = "limits" as CKRecordValue
+        
+        // Используем операцию с .allKeys для создания/обновления
+        let modifyOp = CKModifyRecordsOperation(recordsToSave: [record])
+        modifyOp.savePolicy = .allKeys
+
+        return try await withCheckedThrowingContinuation { continuation in
+            modifyOp.modifyRecordsResultBlock = { result in
+                switch result {
+                case .success:
+                    print("✅ Сигнал на обновление ЛИМИТОВ отправлен.")
+                    continuation.resume()
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+            publicDatabase.add(modifyOp)
+        }
+    }
+    
+    /// "Дергает" сигнальную запись, чтобы отправить один пуш ребенку.
+    func triggerBlocksUpdateSignal(for childID: String) async throws {
+        let recordID = CKRecord.ID(recordName: "signal_\(childID)")
+        let record = CKRecord(recordType: "ConfigSignal", recordID: recordID)
+
+        record["targetChildID"] = childID as CKRecordValue
+        record["lastUpdate"] = Date() as CKRecordValue
+        // ✅ УСТАНАВЛИВАЕМ ТИП СИГНАЛА
+        record["signalType"] = "blocks" as CKRecordValue
+        
+        let modifyOp = CKModifyRecordsOperation(recordsToSave: [record])
+        modifyOp.savePolicy = .allKeys
+//        // ... (оборачиваем в Continuation) ...
+//        print("✅ Сигнал на обновление БЛОКИРОВОК отправлен.")
+//        
+        return try await withCheckedThrowingContinuation { continuation in
+            modifyOp.modifyRecordsResultBlock = { result in
+                switch result {
+                case .success:
+                    print("✅ Сигнал на обновление БЛОКИРОВОК отправлен.")
+                    continuation.resume()
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+            publicDatabase.add(modifyOp)
         }
     }
 }

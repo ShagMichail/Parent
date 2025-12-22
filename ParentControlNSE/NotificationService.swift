@@ -9,6 +9,7 @@ import UserNotifications
 import ManagedSettings
 import CloudKit
 import FamilyControls // На всякий случай
+import DeviceActivity
 
 class NotificationService: UNNotificationServiceExtension {
     
@@ -25,6 +26,44 @@ class NotificationService: UNNotificationServiceExtension {
         
         guard let bestAttemptContent = bestAttemptContent else { return }
         let userInfo = request.content.userInfo
+        
+        if let ckInfo = userInfo["ck"] as? [String: Any],
+           let query = ckInfo["qry"] as? [String: Any],
+           let subscriptionID = query["sid"] as? String,
+           subscriptionID.starts(with: "app-limits-updates-") {
+            
+            print("🔔 [NSE] Получен пуш на обновление лимитов! Запускаем синхронизацию...")
+            
+            // Запускаем асинхронную задачу
+            Task {
+                await syncAndApplyAppLimits()
+                
+                bestAttemptContent.title = "Лимиты обновлены"
+                bestAttemptContent.body = "Родитель изменил правила использования приложений."
+                
+                contentHandler(bestAttemptContent)
+            }
+            return
+        }
+        
+        if let ckInfo = userInfo["ck"] as? [String: Any],
+           let query = ckInfo["qry"] as? [String: Any],
+           let subscriptionID = query["sid"] as? String,
+           subscriptionID.starts(with: "app-block-updates-") {
+            
+            print("🔔 [NSE] Получен пуш на обновление Блокировок! Запускаем синхронизацию...")
+            
+            // Запускаем асинхронную задачу
+            Task {
+                await fetchAndApplyAppBlocks()
+                
+                bestAttemptContent.title = "Блокировки обновлены"
+                bestAttemptContent.body = "Родитель изменил правила использования приложений."
+                
+                contentHandler(bestAttemptContent)
+            }
+            return
+        }
         
         // 1. Разбираем структуру CloudKit
         guard let ckInfo = userInfo["ck"] as? [String: Any],
@@ -43,9 +82,8 @@ class NotificationService: UNNotificationServiceExtension {
             
             if commandName == "block_all" {
                 store.shield.applicationCategories = .all()
-//                store.shield.webDomains = .all() // Если нужно блокировать и веб
+                //                store.shield.webDomains = .all() // Если нужно блокировать и веб
                 bestAttemptContent.body = "Устройство заблокировано родителем"
-                // Обновляем статус на executed
                 updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
                 return
             }
@@ -58,40 +96,8 @@ class NotificationService: UNNotificationServiceExtension {
                 return
             }
             else if commandName == "request_location_update" {
-                // ВАЖНО: Мы НЕ запускаем LocationManager здесь.
-                // Мы просто меняем текст пуша, чтобы ребенок не пугался (или делаем его пустым).
-                // Саму локацию обработает AppDelegate.
                 bestAttemptContent.body = "Обновление геолокации..."
-                // Статус не обновляем здесь, это сделает AppDelegate после отправки координат
                 contentHandler(bestAttemptContent)
-                return
-            }
-            else if commandName == "block_app_token" || commandName == "unblock_app_token" {
-                
-                // 1. Извлекаем payload
-                guard let payloadData = fields["payload"] as? Data,
-                      let payload = try? NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(payloadData) as? [String: Any],
-                      let token = payload["token"] as? ApplicationToken else {
-                    // Если нет токена, ничего не делаем
-                    updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
-                    return
-                }
-                
-                // 2. Применяем правило
-                if commandName == "block_app_token" {
-                    if store.shield.applications == nil { store.shield.applications = [token] }
-                    else { store.shield.applications?.insert(token) }
-                    bestAttemptContent.body = "Приложение заблокировано"
-                    print("✅ NSE: Приложение \(token) заблокировано по токену.")
-                    
-                } else { // unblock_app_token
-                    store.shield.applications?.remove(token)
-                    bestAttemptContent.body = "Приложение разблокировано"
-                    print("✅ NSE: Приложение \(token) разблокировано по токену.")
-                }
-                
-                // 3. Отправляем отчет об успехе
-                updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
                 return
             }
         }
@@ -114,7 +120,7 @@ class NotificationService: UNNotificationServiceExtension {
         contentHandler(bestAttemptContent)
     }
     
-    // Функция обновления статуса в CloudKit из Расширения    
+    // Функция обновления статуса в CloudKit из Расширения
     private func updateCloudKitStatus(recordName: String, completion: @escaping () -> Void) {
         let recordID = CKRecord.ID(recordName: recordName)
         
@@ -127,13 +133,8 @@ class NotificationService: UNNotificationServiceExtension {
         // 3. Используем операцию модификации
         let modifyOp = CKModifyRecordsOperation(recordsToSave: [record], recordIDsToDelete: nil)
         
-        // ВАЖНО: .changedKeys обновляет только те поля, которые мы задали (status),
-        // не затирая остальные данные на сервере.
         modifyOp.savePolicy = .changedKeys
-        
-        // Настройка качества обслуживания (UserInteractive - высший приоритет)
         modifyOp.qualityOfService = .userInteractive
-        
         modifyOp.modifyRecordsResultBlock = { result in
             switch result {
             case .success:
@@ -174,14 +175,10 @@ class NotificationService: UNNotificationServiceExtension {
         }
         
         // --- ✅ НОВЫЙ КОД ДЛЯ ПАРСИНГА ДНЕЙ НЕДЕЛИ ---
-        // 1. Разделяем строку по запятой: "2,6" -> ["2", "6"]
         let stringDays = daysStr.split(separator: ",")
-        // 2. Преобразуем в массив чисел: ["2", "6"] -> [2, 6]
         let rawDays = stringDays.compactMap { Int($0) }
-        // 3. Преобразуем в массив Weekday: [2, 6] -> [.monday, .friday]
         let daysOfWeek = rawDays.compactMap { FocusSchedule.Weekday(rawValue: $0) }
         
-        // 4. Преобразуем Int в Bool
         let isEnabled = isEnabledInt == 1
         
         // 5. Собираем и возвращаем готовый объект
@@ -233,8 +230,8 @@ class NotificationService: UNNotificationServiceExtension {
             print("NSE Error: Не удалось закодировать и сохранить массив расписаний: \(error)")
         }
     }
-
-
+    
+    
     /// Удаляет расписание из кэша в AppGroup UserDefaults по его ID.
     /// - Parameter recordIDString: Строковое представление ID записи, которая была удалена.
     private func removeScheduleFromCache(withID recordIDString: String) {
@@ -243,7 +240,7 @@ class NotificationService: UNNotificationServiceExtension {
             print("NSE Error: Не удалось получить доступ к AppGroup UserDefaults.")
             return
         }
-
+        
         // 2. Читаем существующий массив расписаний
         guard let data = groupDefaults.data(forKey: "cached_focus_schedules"),
               var currentSchedules = try? JSONDecoder().decode([FocusSchedule].self, from: data) else {
@@ -251,13 +248,11 @@ class NotificationService: UNNotificationServiceExtension {
             print("NSE: Кэш пуст, удаление не требуется.")
             return
         }
-
+        
         // 3. Находим ID расписания, которое нужно удалить.
-        // Ваша модель FocusSchedule использует `id` типа `UUID`, а из пуша приходит `recordID` типа `String`.
-        // Поэтому мы сравниваем `id.uuidString` с `recordIDString`.
         let initialCount = currentSchedules.count
         currentSchedules.removeAll { $0.id.uuidString == recordIDString }
-
+        
         // 4. Если что-то было удалено, сохраняем обновленный (уменьшенный) массив
         if currentSchedules.count < initialCount {
             print("NSE: Расписание с ID \(recordIDString) удалено из кэша.")
@@ -271,4 +266,132 @@ class NotificationService: UNNotificationServiceExtension {
             print("NSE Warning: Расписание с ID \(recordIDString) для удаления не найдено в кэше.")
         }
     }
+    
+    private func syncAndApplyAppLimits() async {
+        guard let defaults = UserDefaults(suiteName: "group.com.laborato.test.Parent"),
+              let childID = defaults.string(forKey: "myChildRecordID") else {
+            return
+        }
+        
+        let center = DeviceActivityCenter()
+        
+        do {
+            // --- ШАГ 1: ПОЛУЧАЕМ "ЧТО ДОЛЖНО БЫТЬ" (новые правила из CloudKit) ---
+            let predicate = NSPredicate(format: "targetChildID == %@", childID)
+            let query = CKQuery(recordType: "AppLimit", predicate: predicate)
+            let (matchResults, _) = try await database.records(matching: query)
+            let remoteLimits: [AppLimit] = try matchResults.compactMap {(recordID, result) in
+                let record = try result.get()
+                guard let tokenData = record["appTokenData"] as? Data,
+                      let timeLimit = record["timeLimit"] as? TimeInterval,
+                      let token = try? JSONDecoder().decode(ApplicationToken.self, from: tokenData)
+                else { return nil }
+                return AppLimit(token: token, time: timeLimit)
+            }
+        
+            // Сохраняем свежие правила в UserDefaults для Monitor
+            saveLimitsToUserDefaults(remoteLimits)
+            
+            // Группируем новые правила по времени
+            let remoteGroupedLimits = Dictionary(grouping: remoteLimits, by: { $0.time })
+            // Создаем множество ИМЕН активностей, которые должны быть
+            let remoteActivityNames = Set(remoteGroupedLimits.keys.map { timeLimit in
+                DeviceActivityName("limit_\(Int(timeLimit))")
+            })
+
+            // --- ШАГ 2: ПОЛУЧАЕМ "ЧТО ЕСТЬ СЕЙЧАС" (активные мониторы в системе) ---
+            let currentActivities = center.activities
+            // Фильтруем, чтобы получить только наши лимиты, игнорируя фокусы
+            let currentLimitActivityNames = Set(currentActivities.filter { $0.rawValue.starts(with: "limit_") })
+            
+            // --- ШАГ 3: СРАВНИВАЕМ И СИНХРОНИЗИРУЕМ ---
+            
+            // A) Определяем, что нужно УДАЛИТЬ
+            // (То, что есть в системе, но чего нет в новых правилах)
+            let activitiesToDelete = currentLimitActivityNames.subtracting(remoteActivityNames)
+            if !activitiesToDelete.isEmpty {
+                center.stopMonitoring(Array(activitiesToDelete))
+                print("🗑 [NSE] Удалено \(activitiesToDelete.count) устаревших мониторов лимитов.")
+            }
+            
+            // B) Определяем, что нужно ДОБАВИТЬ
+            // (То, что есть в новых правилах, но чего еще нет в системе)
+            let activitiesToAdd = remoteActivityNames.subtracting(currentLimitActivityNames)
+            for activityName in activitiesToAdd {
+                // Извлекаем время из имени (например, из "limit_3600")
+                let eventName = DeviceActivityEvent.Name("ThresholdReached")
+                let timeString = activityName.rawValue.replacingOccurrences(of: "limit_", with: "")
+                guard let timeLimit = TimeInterval(timeString),
+                      let appsInGroup = remoteGroupedLimits[timeLimit] else { continue }
+                
+                let tokens = Set(appsInGroup.map { $0.token })
+                let schedule = DeviceActivitySchedule(
+                    intervalStart: DateComponents(hour: 0, minute: 0),
+                    intervalEnd: DateComponents(hour: 23, minute: 59, second: 59),
+                    repeats: true
+                )
+                let event = DeviceActivityEvent(applications: tokens, threshold: DateComponents(second: Int(timeLimit)))
+                
+                do {
+                    try center.startMonitoring(activityName, during: schedule, events: [eventName: event])
+                    print("✅ [NSE] Запущен новый мониторинг '\(activityName.rawValue)'")
+                } catch {
+                    print("❌ [NSE] Ошибка запуска нового мониторинга '\(activityName.rawValue)': \(error)")
+                }
+            }
+            
+            print("🔄 [NSE] Синхронизация лимитов завершена.")
+            
+        } catch {
+            print("🛑 [NSE] Критическая ошибка при синхронизации лимитов: \(error).")
+            // Здесь мы НЕ сбрасываем все, чтобы не затронуть фокусы
+        }
+    }
+    
+    private func saveLimitsToUserDefaults(_ limits: [AppLimit]) {
+        guard let defaults = UserDefaults(suiteName: "group.com.laborato.test.Parent") else { return }
+        do {
+            let data = try JSONEncoder().encode(limits)
+            defaults.set(data, forKey: "app_limits_cache")
+            print("✅ [NSE] Лимиты сохранены в UserDefaults для Monitor.")
+        } catch {
+            print("❌ [NSE] Ошибка сохранения лимитов в UserDefaults: \(error)")
+        }
+    }
+    
+    func fetchAndApplyAppBlocks() async {
+        guard let defaults = UserDefaults(suiteName: "group.com.laborato.test.Parent"),
+              let childID = defaults.string(forKey: "myChildRecordID") else {
+            return
+        }
+        let store = ManagedSettingsStore()
+        let predicate = NSPredicate(format: "targetChildID == %@", childID)
+        let query = CKQuery(recordType: "AppBlock", predicate: predicate)
+
+        do {
+            let (matchResults, _) = try await database.records(matching: query)
+
+            var appTokens: Set<ApplicationToken> = []
+
+            for (_, result) in matchResults {
+                let record = try result.get()
+                if let tokenData = record["appTokenData"] as? Data,
+                   let token = try? JSONDecoder().decode(ApplicationToken.self, from: tokenData) {
+                    appTokens.insert(token)
+                }
+            }
+
+            store.shield.applications = appTokens
+            print("✅ Блокировки применены для \(appTokens.count) приложений.")
+
+        } catch {
+            print("ℹ️ Ошибка загрузки блокировок или блокировки не найдены: \(error). Снимаем ограничения.")
+            store.shield.applications = nil
+        }
+    }
+}
+
+struct AppLimit: Codable {
+    let token: ApplicationToken
+    var time: TimeInterval
 }

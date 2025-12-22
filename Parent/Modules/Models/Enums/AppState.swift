@@ -1,21 +1,11 @@
 //
-//  UserRole.swift
+//  AppState.swift
 //  Parent
 //
-//  Created by Михаил Шаговитов on 10.11.2025.
+//  Created by Michail Shagovitov on 22.12.2025.
 //
 
-enum UserRole: String, Codable, Identifiable {
-    case parent
-    case child
-    case unknown
-    
-    var id: String { self.rawValue }
-}
-
-//extension UserRole: Identifiable {
-//    var id: String { self.rawValue }
-//}
+import Foundation
 
 enum AppState {
     case authRequired       // Экран входа/регистрации

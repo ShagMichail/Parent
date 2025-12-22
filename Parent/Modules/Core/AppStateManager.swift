@@ -244,6 +244,8 @@ extension AppStateManager {
         // 2. ПОДПИСКА НА ПУШИ
         try? await cloudKitManager.subscribeToCommands(for: childID)
         try? await cloudKitManager.subscribeToScheduleChanges(for: childID)
+        try? await cloudKitManager.subscribeToAppLimitsChanges(for: childID)
+        try? await cloudKitManager.subscribeToAppBlocksChanges(for: childID)
         
         // 3. ЗАПУСК MONITOR EXTENSION
         startDeviceActivityMonitoring()

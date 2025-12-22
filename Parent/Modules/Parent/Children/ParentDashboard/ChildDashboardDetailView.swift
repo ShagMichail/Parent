@@ -14,6 +14,8 @@ struct ChildDashboardDetailView: View {
     @Binding var showBlockOverlay: Bool
     
     @State private var navigateToFocus = false
+    @State private var navigateToLimits = false
+    @State private var navigateToBlocks = false
     @State var showNavigationBar: Bool = true
     @State private var filter = DeviceActivityFilter(
         segment: .hourly(during: DateInterval(start: Calendar.current.startOfDay(for: Date()), end: Date())),
@@ -92,7 +94,25 @@ struct ChildDashboardDetailView: View {
                     }
                 ))
                 
-                ActionCard(model: ActionCardModel(title: "Приложения", icon: "apps-command", showsArrow: true, action: {}))
+                ActionCard(model: ActionCardModel(
+                    title: "Лимиты",
+                    icon: "timer-command", // Пример иконки, замените на свою
+                    showsArrow: true,
+                    action: {
+                        navigateToLimits = true
+                        showNavigationBar.toggle()
+                    }
+                ))
+                
+                ActionCard(model: ActionCardModel(
+                    title: "Приложения",
+                    icon: "apps-command",
+                    showsArrow: true,
+                    action: {
+                        navigateToBlocks = true
+                        showNavigationBar.toggle()
+                    }
+                ))
                 ActionCard(model: ActionCardModel(title: "Сайты", icon: "web-command", showsArrow: true, action: {}))
             }
         }
@@ -100,10 +120,24 @@ struct ChildDashboardDetailView: View {
         
         // Скрытая навигация для Фокусировки
         .background(
-            NavigationLink(
-                destination: FocusSettingsView(showNavigationBar: $showNavigationBar, childID: viewModel.selectedChild?.recordID ?? ""),
-                isActive: $navigateToFocus
-            ) { EmptyView() }.hidden()
+            Group {
+                // Ссылка на "Фокусировку"
+                NavigationLink(
+                    destination: FocusSettingsView(showNavigationBar: $showNavigationBar, childID: viewModel.selectedChild?.recordID ?? ""),
+                    isActive: $navigateToFocus
+                ) { EmptyView() }.hidden()
+                
+                // ✅ НОВАЯ ССЫЛКА на "Лимиты"
+                NavigationLink(
+                    destination: AppLimitsView(showNavigationBar: $showNavigationBar, child: viewModel.selectedChild),
+                    isActive: $navigateToLimits
+                ) { EmptyView() }
+                
+                NavigationLink(
+                    destination: AppBlockView(showNavigationBar: $showNavigationBar, child: viewModel.selectedChild),
+                    isActive: $navigateToBlocks
+                ) { EmptyView() }
+            }.hidden()
         )
         .toolbar(showNavigationBar ? .visible : .hidden, for: .tabBar)
     }

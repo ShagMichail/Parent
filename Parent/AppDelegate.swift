@@ -175,6 +175,18 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             return
         }
         
+        if notification.subscriptionID?.starts(with: "app-limits-updates-") == true {
+            print("🔔 [AppDelegate] Пуш о лимитах уже обработан расширением.")
+            completionHandler(.newData)
+            return
+        }
+        
+        if notification.subscriptionID?.starts(with: "app-blocks-updates-") == true {
+            print("🔔 [AppDelegate] Пуш о блокировках уже обработан расширением.")
+            completionHandler(.newData)
+            return
+        }
+        
         completionHandler(.noData)
     }
 }

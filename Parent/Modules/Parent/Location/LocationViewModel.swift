@@ -55,7 +55,7 @@ class LocationViewModel: ObservableObject {
         if status.state == "charging" || status.state == "full" { return .chartStart }
         if status.level <= 0.2 { return .warningStart }
         if status.level <= 0.5 { return .questionStart }
-        return .strokeTextField
+        return .chartStart
     }
     
     // ✅ НОВАЯ ФУНКЦИЯ

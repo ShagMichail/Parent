@@ -10,6 +10,7 @@ import SwiftUI
 // Экран для ребенка
 struct ChildDashboardView: View {
     @EnvironmentObject var locationManager: LocationManager
+    @EnvironmentObject var stateManager: AppStateManager
     
     var body: some View {
         NavigationView {
@@ -41,6 +42,9 @@ struct ChildDashboardView: View {
                     // но явный вызов тут гарантирует старт.
                     locationManager.startTracking()
                 }
+//                await MainActor.run {
+                    stateManager.didCompletePairing()
+//                }
             }
         }
     }

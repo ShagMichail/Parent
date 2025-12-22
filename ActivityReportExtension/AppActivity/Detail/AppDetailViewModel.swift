@@ -193,4 +193,4 @@ class AppDetailViewModel: ObservableObject {
     //        print("✅ Command '\(name)' sent from extension to \(childID)")
     //    }
     //}
-}
+} 

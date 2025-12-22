@@ -60,7 +60,8 @@ class CommandSyncService {
             // Блокируем все категории
             store.shield.applicationCategories = .all()
             // Если нужно блокировать и веб-домены:
-            // store.shield.webDomains = .all()
+//            store.webContent.blockedByFilter = .all()
+//            store.shield.webDomains = .all()
             print("🛡 Блокировка ВКЛЮЧЕНА (все приложения)")
             
         case "unblock_all":

@@ -1,0 +1,158 @@
+//
+//  AppLimitsViewModel.swift
+//  Parent
+//
+//  Created by Michail Shagovitov on 19.12.2025.
+//
+
+import SwiftUI
+import FamilyControls
+import ManagedSettings
+
+@MainActor
+class AppLimitsViewModel: ObservableObject {
+    enum SavingState: Equatable {
+        case idle // Ничего не происходит
+        case saving // Идет сохранение
+        case success // Успешно сохранено
+        case error(String) // Произошла ошибка с сообщением
+    }
+    
+    @Published var limits: [AppLimit] = []
+    
+    // `selection` теперь используется только для получения новых приложений из пикера
+    @Published var selection = FamilyActivitySelection()
+    
+    @Published var savingState: SavingState = .idle
+    @Published var showAlert = false
+    @Published var isLoadingInitialLimits = true
+    var alertTitle: String = ""
+    var alertMessage: String = ""
+    
+    var child: Child?
+    
+    // ✅ ИЗМЕНЕНИЕ 1: Храним "снимок" состояния, загруженного с сервера
+    private var originalLimits: [AppLimit] = []
+    
+    // ✅ ИЗМЕНЕНИЕ 2: Вычисляемое свойство, которое проверяет наличие изменений
+    var hasChanges: Bool {
+        // Сравниваем текущий массив `limits` с оригинальным.
+        // `AppLimit` должен соответствовать `Hashable`, что у нас уже есть.
+        return Set(limits) != Set(originalLimits)
+    }
+    
+    func loadInitialLimits() {
+        guard let childID = child?.recordID else {
+            isLoadingInitialLimits = false
+            return
+        }
+        
+        isLoadingInitialLimits = true
+        
+        Task {
+            do {
+                // 1. Вызываем новую функцию CloudKitManager
+                let loadedLimits = try await CloudKitManager.shared.fetchAppLimits(for: childID)
+                
+                // 2. Обновляем наш локальный массив лимитов
+                self.limits = loadedLimits
+                self.originalLimits = loadedLimits
+                // 3. ✅ САМОЕ ГЛАВНОЕ: Синхронизируем `selection`
+                // Мы говорим FamilyActivityPicker, какие галочки нужно проставить
+                // 1. Создаем пустой объект selection
+                var newSelection = FamilyActivitySelection()
+                
+                // 2. Получаем все токены из загруженных лимитов
+                let tokensToSelect = loadedLimits.map { $0.token }
+                
+                // 3. Добавляем их в selection
+                newSelection.applicationTokens = Set(tokensToSelect) // <-- Вот правильный способ!
+                
+                // 4. Присваиваем результат нашему @Published свойству
+                self.selection = newSelection
+                
+            } catch {
+                print("❌ Ошибка при загрузке начальных лимитов: \(error.localizedDescription)")
+                // В случае ошибки оставляем списки пустыми
+                self.limits = []
+                self.selection = FamilyActivitySelection()
+            }
+            
+            // В любом случае убираем индикатор загрузки
+            isLoadingInitialLimits = false
+        }
+    }
+    
+    func processNewSelection() {
+        for token in selection.applicationTokens {
+            // Добавляем новое приложение в наш список, только если его там еще нет
+            if !limits.contains(where: { $0.token == token }) {
+                // Устанавливаем лимит по умолчанию (например, 1 час)
+                let newLimit = AppLimit(token: token, time: 3600)
+                limits.append(newLimit)
+            }
+        }
+    }
+    
+    func saveLimits() {
+        guard let childID = child?.recordID else { return }
+        guard savingState != .saving else { return }
+        
+        print("▶️ Начинаем сохранение \(limits.count) лимитов для ребенка: \(childID)")
+        savingState = .saving
+        
+        Task {
+            do {
+                // Передаем весь массив `limits` в CloudKitManager
+                try await CloudKitManager.shared.saveAppLimits(limits, for: childID)
+                try await CloudKitManager.shared.triggerLimitsUpdateSignal(for: childID)
+                
+                self.originalLimits = self.limits
+                print("✅ Все лимиты успешно сохранены в CloudKit.")
+                self.savingState = .success
+                self.alertTitle = "Успешно"
+                self.alertMessage = "Новые лимиты для приложений были сохранены."
+                self.showAlert = true
+                
+            } catch {
+                print("🛑 КРИТИЧЕСКАЯ ОШИБКА при сохранении лимитов: \(error.localizedDescription)")
+                self.savingState = .error(error.localizedDescription)
+                self.alertTitle = "Ошибка"
+                self.alertMessage = "Не удалось сохранить лимиты."
+                self.showAlert = true
+            }
+        }
+    }
+    
+    // ✅ ИЗМЕНЕНИЕ 1: Полностью переписанная функция
+    func syncLimitsWithSelection() {
+        // --- Шаг A: Удаляем те лимиты, которых больше нет в selection ---
+        // Получаем множество токенов, которые ВЫБРАНЫ сейчас
+        let currentSelectionTokens = selection.applicationTokens
+        
+        // `removeAll` удалит из `limits` все элементы, для которых условие истинно
+        limits.removeAll { limit in
+            // Если токен из нашего списка НЕ содержится в новом выборе...
+            !currentSelectionTokens.contains(limit.token)
+        }
+        
+        // --- Шаг B: Добавляем новые приложения, которых еще нет в списке ---
+        for token in currentSelectionTokens {
+            if !limits.contains(where: { $0.token == token }) {
+                // Если в нашем списке еще нет такого приложения, добавляем его
+                let newLimit = AppLimit(token: token, time: 3600) // Лимит по умолчанию 1 час
+                limits.append(newLimit)
+            }
+        }
+    }
+    
+    // ✅ ИЗМЕНЕНИЕ 2: Новая функция для удаления по свайпу
+    func deleteLimit(at offsets: IndexSet) {
+        // Удаляем из нашего локального массива
+        limits.remove(atOffsets: offsets)
+        
+        // Теперь нужно обновить `selection`, чтобы пикер тоже "забыл" про эти приложения
+        let remainingTokens = Set(limits.map { $0.token })
+        selection.applicationTokens = remainingTokens
+    }
+}
