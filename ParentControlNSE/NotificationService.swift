@@ -29,40 +29,54 @@ class NotificationService: UNNotificationServiceExtension {
         
         if let ckInfo = userInfo["ck"] as? [String: Any],
            let query = ckInfo["qry"] as? [String: Any],
-           let subscriptionID = query["sid"] as? String,
-           subscriptionID.starts(with: "app-limits-updates-") {
-            
-            print("🔔 [NSE] Получен пуш на обновление лимитов! Запускаем синхронизацию...")
-            
-            // Запускаем асинхронную задачу
-            Task {
-                await syncAndApplyAppLimits()
+           let subscriptionID = query["sid"] as? String {
+            if subscriptionID.starts(with: "web-block-updates-") {
                 
-                bestAttemptContent.title = "Лимиты обновлены"
-                bestAttemptContent.body = "Родитель изменил правила использования приложений."
+                print("🔔 [NSE] Получен пуш на обновление web блокировок! Запускаем синхронизацию...")
                 
-                contentHandler(bestAttemptContent)
+                // Запускаем асинхронную задачу
+                Task {
+                    await syncAndApplyWebBlocks()
+                    
+                    bestAttemptContent.title = "Блокировки обновлены"
+                    bestAttemptContent.body = "Родитель изменил правила использования Web ресурсами."
+                    
+                    contentHandler(bestAttemptContent)
+                }
+                return
             }
-            return
-        }
-        
-        if let ckInfo = userInfo["ck"] as? [String: Any],
-           let query = ckInfo["qry"] as? [String: Any],
-           let subscriptionID = query["sid"] as? String,
-           subscriptionID.starts(with: "app-block-updates-") {
             
-            print("🔔 [NSE] Получен пуш на обновление Блокировок! Запускаем синхронизацию...")
-            
-            // Запускаем асинхронную задачу
-            Task {
-                await fetchAndApplyAppBlocks()
+            if subscriptionID.starts(with: "app-limits-updates-") {
                 
-                bestAttemptContent.title = "Блокировки обновлены"
-                bestAttemptContent.body = "Родитель изменил правила использования приложений."
+                print("🔔 [NSE] Получен пуш на обновление лимитов! Запускаем синхронизацию...")
                 
-                contentHandler(bestAttemptContent)
+                // Запускаем асинхронную задачу
+                Task {
+                    await syncAndApplyAppLimits()
+                    
+                    bestAttemptContent.title = "Лимиты обновлены"
+                    bestAttemptContent.body = "Родитель изменил правила использования приложений."
+                    
+                    contentHandler(bestAttemptContent)
+                }
+                return
             }
-            return
+            
+            if subscriptionID.starts(with: "app-block-updates-") {
+                
+                print("🔔 [NSE] Получен пуш на обновление Блокировок! Запускаем синхронизацию...")
+                
+                // Запускаем асинхронную задачу
+                Task {
+                    await fetchAndApplyAppBlocks()
+                    
+                    bestAttemptContent.title = "Блокировки обновлены"
+                    bestAttemptContent.body = "Родитель изменил правила использования приложений."
+                    
+                    contentHandler(bestAttemptContent)
+                }
+                return
+            }
         }
         
         // 1. Разбираем структуру CloudKit
@@ -82,6 +96,7 @@ class NotificationService: UNNotificationServiceExtension {
             
             if commandName == "block_all" {
                 store.shield.applicationCategories = .all()
+                store.shield.webDomainCategories = .all()
                 //                store.shield.webDomains = .all() // Если нужно блокировать и веб
                 bestAttemptContent.body = "Устройство заблокировано родителем"
                 updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
@@ -89,7 +104,7 @@ class NotificationService: UNNotificationServiceExtension {
             }
             else if commandName == "unblock_all" {
                 store.shield.applicationCategories = nil
-                store.shield.webDomains = nil
+                store.shield.webDomainCategories = nil
                 bestAttemptContent.body = "Устройство разблокировано"
                 // Обновляем статус на executed
                 updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
@@ -387,6 +402,53 @@ class NotificationService: UNNotificationServiceExtension {
         } catch {
             print("ℹ️ Ошибка загрузки блокировок или блокировки не найдены: \(error). Снимаем ограничения.")
             store.shield.applications = nil
+        }
+    }
+    
+    private func syncAndApplyWebBlocks() async {
+        // 1. Получаем ID ребенка из AppGroup
+        guard let defaults = UserDefaults(suiteName: "group.com.laborato.test.Parent"),
+              let childID = defaults.string(forKey: "myChildRecordID") else {
+            print("❌ [NSE] WebBlocks: Не удалось получить ID ребенка из AppGroup.")
+            return
+        }
+        
+        // 2. Создаем запрос в CloudKit для записей типа `WebDomainBlock`
+        let predicate = NSPredicate(format: "targetChildID == %@", childID)
+        let query = CKQuery(recordType: "WebDomainBlock", predicate: predicate)
+        
+        do {
+            // 3. Выполняем запрос
+            let (matchResults, _) = try await database.records(matching: query)
+            
+            // 4. Извлекаем из каждой записи поле `domain` и собираем их в Set<String>
+            let domainsToBlock: Set<String> = Set(try matchResults.compactMap {
+                try $0.1.get()["domain"] as? String
+            })
+            
+            let domains: Set<WebDomain> = Set(domainsToBlock.compactMap {
+                WebDomain(domain: $0)
+            })
+            
+            // 5. ✅ ПРИМЕНЯЕМ БЛОКИРОВКУ ПРАВИЛЬНЫМ СПОСОБОМ
+            
+            if domainsToBlock.isEmpty {
+                // Если список пуст, отключаем фильтрацию
+                store.webContent.blockedByFilter = WebContentSettings.FilterPolicy.none  // filterPolicy = .allowAll
+                print("✅ [NSE] Все web-блокировки сняты.")
+            } else {
+                // Если есть домены для блокировки:
+                // a) Включаем политику фильтрации (например, общую)
+                //store.webContent.filterPolicy = .limitAdultContent
+                // b) Устанавливаем наш конкретный список заблокированных сайтов
+                store.webContent.blockedByFilter = .specific(domains) //blockedSites = domainsToBlock
+                print("✅ [NSE] Web-блокировки применены для \(domainsToBlock.count) доменов.")
+            }
+            
+        } catch {
+            print("ℹ️ [NSE] Ошибка загрузки web-блокировок: \(error). Снимаем ограничения.")
+            // В случае любой ошибки безопаснее всего снять ограничения
+//            store.webContent.filterPolicy = .allowAll
         }
     }
 }

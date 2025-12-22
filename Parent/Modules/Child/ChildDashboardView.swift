@@ -7,45 +7,54 @@
 
 import SwiftUI
 
-// Экран для ребенка
 struct ChildDashboardView: View {
     @EnvironmentObject var locationManager: LocationManager
     @EnvironmentObject var stateManager: AppStateManager
     
+    @State private var childName: String = "пользователь"
+    
+    private let childNameStorageKey = "com.laborato.child.name"
+    
     var body: some View {
-        NavigationView {
-            VStack(spacing: 20) {
-                Image(systemName: "person.circle")
-                    .font(.system(size: 60))
-                    .foregroundColor(.blue)
+        VStack(alignment: .center) {
+            Spacer()
+            VStack(spacing: 15) {
+                Text("Привет, \(childName)!")
+                    .font(.system(size: 26, weight: .semibold, design: .rounded))
+                    .foregroundColor(.accent)
                 
-                Text("Привет, Ваня!")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                
-                Text("Это ваш детский аккаунт")
-                    .foregroundColor(.secondary)
+                Text("Твой телефон подключен к семье")
+                    .font(.system(size: 18, weight: .medium, design: .rounded))
+                    .foregroundColor(.accent)
                 
             }
-            .padding()
-            .navigationTitle("Мой аккаунт")
-            .onAppear {
-                // Запускаем с небольшой задержкой, чтобы UI успел прогрузиться
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    // 1. Сначала запрашиваем права (если их еще нет)
-                    if locationManager.authorizationStatus == .notDetermined {
-                        locationManager.requestPermission()
-                    }
-                    
-                    // 2. Запускаем трекинг
-                    // Внутри startTracking() у вас уже есть проверка прав,
-                    // но явный вызов тут гарантирует старт.
-                    locationManager.startTracking()
+            Spacer()
+            Image("child_home")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+            
+            Spacer()
+        }
+        
+        .onAppear {
+            loadChildName()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                if locationManager.authorizationStatus == .notDetermined {
+                    locationManager.requestPermission()
                 }
-//                await MainActor.run {
-                    stateManager.didCompletePairing()
-//                }
+                locationManager.startTracking()
             }
+            // убрать в дальнейшем
+            stateManager.didCompletePairing()
+        }
+    }
+    
+    private func loadChildName() {
+        if let savedName = UserDefaults.standard.string(forKey: childNameStorageKey) {
+            self.childName = savedName
+            print("👤 Имя ребенка '\(savedName)' успешно загружено.")
+        } else {
+            print("⚠️ Имя ребенка не найдено в UserDefaults.")
         }
     }
 }

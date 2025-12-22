@@ -19,6 +19,8 @@ struct EnterNameStepView: View {
     
     @Environment(\.presentationMode) var presentationMode
     
+    private let childNameStorageKey = "com.laborato.child.name"
+    
     var body: some View {
         VStack(spacing: 25) {
             Text("Как зовут ребёнка?")
@@ -91,14 +93,41 @@ struct EnterNameStepView: View {
     }
     
     private func acceptInvitation() async {
-        isLoading = true; errorMessage = nil
-        do {
-            let parentID = try await CloudKitManager.shared.acceptInvitationByChild(withCode: invitationCode, childName: childName)
-            print("✅ Успешно подключен к родителю \(parentID). Завершаю настройку.")
-            isCompletedStepActive = true
-        } catch {
-            errorMessage = error.localizedDescription
+        // --- Проверка на пустое имя ---
+        let trimmedName = childName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else {
+            errorMessage = "Пожалуйста, введите ваше имя."
+            return
         }
+        
+        // --- Начало асинхронной операции ---
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            // 1. Отправляем данные в CloudKit
+            let parentID = try await CloudKitManager.shared.acceptInvitationByChild(
+                withCode: invitationCode,
+                childName: trimmedName // Используем очищенное имя
+            )
+            print("✅ Успешно подключен к родителю \(parentID). Завершаю настройку.")
+            
+            // 2. ✅ ГЛАВНОЕ ИЗМЕНЕНИЕ: Сохраняем имя локально
+            // Мы делаем это только после того, как `acceptInvitationByChild`
+            // выполнился без ошибок, чтобы не сохранять имя в случае сбоя.
+            UserDefaults.standard.set(trimmedName, forKey: childNameStorageKey)
+            print("💾 Имя ребенка '\(trimmedName)' сохранено в UserDefaults.")
+            
+            // 3. Переходим на следующий экран
+            isCompletedStepActive = true
+            
+        } catch {
+            // 4. Обрабатываем ошибку
+            errorMessage = error.localizedDescription
+            print("❌ Ошибка при принятии приглашения: \(error.localizedDescription)")
+        }
+        
+        // 5. Завершаем индикатор загрузки в любом случае
         isLoading = false
     }
 }

@@ -59,15 +59,13 @@ class CommandSyncService {
         case "block_all":
             // Блокируем все категории
             store.shield.applicationCategories = .all()
-            // Если нужно блокировать и веб-домены:
-//            store.webContent.blockedByFilter = .all()
-//            store.shield.webDomains = .all()
+            store.shield.webDomainCategories = .all()
             print("🛡 Блокировка ВКЛЮЧЕНА (все приложения)")
             
         case "unblock_all":
             // Снимаем блокировку
             store.shield.applicationCategories = nil
-            store.shield.webDomains = nil
+            store.shield.webDomainCategories = nil
             print("🔓 Блокировка СНЯТА")
             
         case "request_location_update":

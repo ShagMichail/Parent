@@ -16,6 +16,7 @@ struct ChildDashboardDetailView: View {
     @State private var navigateToFocus = false
     @State private var navigateToLimits = false
     @State private var navigateToBlocks = false
+    @State private var navigateToWebBlocks = false
     @State var showNavigationBar: Bool = true
     @State private var filter = DeviceActivityFilter(
         segment: .hourly(during: DateInterval(start: Calendar.current.startOfDay(for: Date()), end: Date())),
@@ -113,7 +114,15 @@ struct ChildDashboardDetailView: View {
                         showNavigationBar.toggle()
                     }
                 ))
-                ActionCard(model: ActionCardModel(title: "Сайты", icon: "web-command", showsArrow: true, action: {}))
+                ActionCard(model: ActionCardModel(
+                    title: "Сайты",
+                    icon: "web-command",
+                    showsArrow: true,
+                    action: {
+                        navigateToWebBlocks = true
+                        showNavigationBar.toggle()
+                    }
+                ))
             }
         }
         .padding(.horizontal, 20)
@@ -136,6 +145,11 @@ struct ChildDashboardDetailView: View {
                 NavigationLink(
                     destination: AppBlockView(showNavigationBar: $showNavigationBar, child: viewModel.selectedChild),
                     isActive: $navigateToBlocks
+                ) { EmptyView() }
+                
+                NavigationLink(
+                    destination: WebBlockView(showNavigationBar: $showNavigationBar, child: viewModel.selectedChild),
+                    isActive: $navigateToWebBlocks
                 ) { EmptyView() }
             }.hidden()
         )

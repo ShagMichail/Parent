@@ -106,7 +106,7 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
             // Пока для простоты снимаем, но в будущем это потребует доработки.
             store.shield.applications = nil
             store.shield.applicationCategories = nil
-            store.shield.webDomains = nil
+            store.shield.webDomainCategories = nil
         }
         
         // --- Логика для Лимитов (limit_) ---
@@ -179,6 +179,7 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
             
             print("🛡 [MONITOR] Включаем блокировку по расписанию 'Фокус'.")
             store.shield.applicationCategories = .all()
+            store.shield.webDomainCategories = .all()
         }
     }
     

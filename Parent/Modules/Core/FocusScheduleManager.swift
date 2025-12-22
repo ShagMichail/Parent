@@ -75,7 +75,7 @@ class FocusScheduleManager: ObservableObject {
             // ⚠️ ВАЖНО: Если расписание было активно, снимаем щит прямо сейчас
             // (В более сложной версии нужно проверять, нет ли других активных расписаний)
             store.shield.applicationCategories = nil
-            store.shield.webDomains = nil
+            store.shield.webDomainCategories = nil
             print("🔓 Тогл выключен: принудительное снятие блокировки")
         }
     }
@@ -157,6 +157,7 @@ class FocusScheduleManager: ObservableObject {
         if schedule.isActiveNow() {
             print("⚡️ Тогл включен внутри активного интервала: Мгновенная блокировка!")
             store.shield.applicationCategories = .all()
+            store.shield.webDomainCategories = .all()
         }
     }
     
@@ -233,10 +234,12 @@ class FocusScheduleManager: ObservableObject {
         if shouldBeBlockedNow {
             print("⚡️ [Manager] Синхронизация показала, что блокировка должна быть активна сейчас. Включаем.")
             store.shield.applicationCategories = .all()
+            store.shield.webDomainCategories = .all()
         } else {
             // Опционально: если ни одно расписание не активно, можно снять блокировку
             // print("[Manager] Ни одно расписание не активно. Снимаем блокировку.")
-            // store.shield.applicationCategories = nil
+            store.shield.applicationCategories = nil
+            store.shield.webDomainCategories = nil
         }
     }
 }

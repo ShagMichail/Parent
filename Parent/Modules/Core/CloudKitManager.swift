@@ -653,6 +653,7 @@ extension CloudKitManager {
 
 import Foundation
 import CryptoKit // Фреймворк Apple для криптографии
+import FamilyControls
 
 extension Data {
     /// Вычисляет хеш SHA256 и возвращает его в виде строки.
@@ -736,18 +737,12 @@ extension CloudKitManager {
         }
     }
     
-    // Функция подписки на `AppLimit` остается концептуально такой же,
-    // просто меняется recordType на "AppLimit".
-    
     /// РЕБЕНОК: Подписывается на создание, обновление и удаление лимитов
     func subscribeToAppBlocksChanges(for childID: String) async throws {
         let subscriptionID = "app-block-updates-\(childID)"
         
         // Удаляем старую подписку, чтобы всегда иметь актуальную
         try? await publicDatabase.deleteSubscription(withID: subscriptionID)
-        
-        // Предикат: слушать изменения только для записей, предназначенных этому ребенку
-//        let predicate = NSPredicate(format: "targetChildID == %@", childID)
         
         let predicate = NSPredicate(format: "targetChildID == %@ AND signalType == 'blocks'", childID)
         
@@ -840,9 +835,7 @@ extension CloudKitManager {
         
         let modifyOp = CKModifyRecordsOperation(recordsToSave: [record])
         modifyOp.savePolicy = .allKeys
-//        // ... (оборачиваем в Continuation) ...
-//        print("✅ Сигнал на обновление БЛОКИРОВОК отправлен.")
-//        
+        
         return try await withCheckedThrowingContinuation { continuation in
             modifyOp.modifyRecordsResultBlock = { result in
                 switch result {
@@ -856,4 +849,162 @@ extension CloudKitManager {
             publicDatabase.add(modifyOp)
         }
     }
+    
+    func triggerWebBlocksUpdateSignal(for childID: String) async throws {
+        let recordID = CKRecord.ID(recordName: "signal_\(childID)")
+        let record = CKRecord(recordType: "ConfigSignal", recordID: recordID)
+
+        record["targetChildID"] = childID as CKRecordValue
+        record["lastUpdate"] = Date() as CKRecordValue
+        // ✅ УСТАНАВЛИВАЕМ ТИП СИГНАЛА
+        record["signalType"] = "web" as CKRecordValue
+        
+        let modifyOp = CKModifyRecordsOperation(recordsToSave: [record])
+        modifyOp.savePolicy = .allKeys
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            modifyOp.modifyRecordsResultBlock = { result in
+                switch result {
+                case .success:
+                    print("✅ Сигнал на обновление WEB БЛОКИРОВОК отправлен.")
+                    continuation.resume()
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+            publicDatabase.add(modifyOp)
+        }
+    }
+}
+
+// ✅ НОВАЯ МОДЕЛЬ ДАННЫХ ДЛЯ САЙТОВ
+// Ее можно вынести в отдельный файл
+struct WebBlock: Identifiable, Codable, Hashable {
+    var id: String { domain }
+    let domain: String
+}
+
+extension CloudKitManager {
+    /// РОДИТЕЛЬ: Синхронизирует список заблокированных сайтов с CloudKit (создает, обновляет, удаляет)
+    func syncWebBlocks(_ blocks: [WebBlock], for childID: String) async throws {
+        // --- Шаг 1: Получаем все записи о блокировках сайтов, которые сейчас есть на сервере ---
+        let predicate = NSPredicate(format: "targetChildID == %@", childID)
+        let query = CKQuery(recordType: "WebDomainBlock", predicate: predicate)
+        let (matchResults, _) = try await publicDatabase.records(matching: query)
+        let serverRecords = try matchResults.map { try $0.1.get() }
+        let serverRecordIDs = Set(serverRecords.map { $0.recordID })
+
+        // --- Шаг 2: Формируем записи для сохранения/обновления на основе локального списка ---
+        let recordsToSave: [CKRecord] = blocks.map { block in
+            // Создаем уникальное имя записи, устойчивое к опечаткам
+            let recordName = "webblock_\(childID)_\(block.domain.lowercased())"
+            let recordID = CKRecord.ID(recordName: recordName)
+            let record = CKRecord(recordType: "WebDomainBlock", recordID: recordID)
+            record["domain"] = block.domain.lowercased() as CKRecordValue
+            record["targetChildID"] = childID as CKRecordValue
+            return record
+        }
+        let localRecordIDs = Set(recordsToSave.map { $0.recordID })
+        
+        // --- Шаг 3: Определяем, какие записи нужно удалить с сервера ---
+        let recordIDsToDelete = Array(serverRecordIDs.subtracting(localRecordIDs))
+        
+        // --- Шаг 4: Выполняем единую операцию, если есть изменения ---
+        print("🔄 Синхронизация блокировок сайтов: Сохранить/Обновить - \(recordsToSave.count), Удалить - \(recordIDsToDelete.count)")
+        
+        if recordsToSave.isEmpty && recordIDsToDelete.isEmpty {
+            print("ℹ️ Нет изменений для синхронизации блокировок сайтов.")
+            return
+        }
+        
+        let modifyOperation = CKModifyRecordsOperation(recordsToSave: recordsToSave, recordIDsToDelete: recordIDsToDelete)
+        modifyOperation.savePolicy = .allKeys
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            modifyOperation.modifyRecordsResultBlock = { result in
+                switch result {
+                case .success: continuation.resume()
+                case .failure(let error): continuation.resume(throwing: error)
+                }
+            }
+            publicDatabase.add(modifyOperation)
+        }
+    }
+    
+    /// РОДИТЕЛЬ: Загружает существующий список заблокированных сайтов
+    func fetchWebBlocks(for childID: String) async throws -> [WebBlock] {
+        let predicate = NSPredicate(format: "targetChildID == %@", childID)
+        let query = CKQuery(recordType: "WebDomainBlock", predicate: predicate)
+        
+        let (matchResults, _) = try await publicDatabase.records(matching: query)
+        
+        let blocks: [WebBlock] = try matchResults.compactMap {
+            guard let domain = (try $0.1.get())["domain"] as? String else { return nil }
+            return WebBlock(domain: domain)
+        }
+        
+        print("✅ Загружено \(blocks.count) блокировок сайтов.")
+        return blocks
+    }
+    
+    // --- Функции для РЕБЕНКА (аналогичны другим) ---
+    
+    func subscribeToWebBlocksChanges(for childID: String) async throws {
+        let subscriptionID = "web-block-updates-\(childID)"
+        
+        // Удаляем старую подписку, чтобы всегда иметь актуальную
+        try? await publicDatabase.deleteSubscription(withID: subscriptionID)
+        
+        let predicate = NSPredicate(format: "targetChildID == %@ AND signalType == 'web'", childID)
+        
+        let subscription = CKQuerySubscription(
+            recordType: "ConfigSignal", // Следим за типом записи AppLimit
+            predicate: predicate,
+            subscriptionID: subscriptionID,
+            // Реагируем на все возможные изменения
+            options: [.firesOnRecordUpdate]
+        )
+        
+        let notificationInfo = CKSubscription.NotificationInfo()
+        notificationInfo.alertBody = "Настройки блокировок WEB страниц были обновлены родителем."
+        notificationInfo.shouldSendMutableContent = true
+        subscription.notificationInfo = notificationInfo
+        
+        try await publicDatabase.save(subscription)
+        print("✅ [Child] Успешно подписан на обновления блокировок WEB.")
+    }
+    
+
+//    func fetchAndApplyWebBlocks(for childID: String) async {
+//        let store = ManagedSettingsStore()
+//        
+//        do {
+//            // Шаг 1: Скачиваем список доменов в виде [String]
+//            let blocks = try await fetchWebBlocks(for: childID)
+//            let domainsToBlock = Set(blocks.map { $0.domain })
+//            
+//            // Если список пуст, сбрасываем фильтр
+//            if domainsToBlock.isEmpty {
+//                store.webContent.blockedByFilter = .all() // Разрешаем все
+//                print("✅ Все блокировки сайтов сняты (политика allowAll).")
+//                return
+//            }
+//            
+//            // --- ✅ ШАГ 2: ИСПОЛЬЗУЕМ WEB CONTENT FILTER ---
+//            
+//            // a) Включаем политику фильтрации. Можно использовать .limitAdultContent,
+//            // это даст нам еще и встроенный фильтр Apple.
+//            store.webContent.filterPolicy = .limitAdultContent
+//            
+//            // b) Устанавливаем наш список доменов в `blockedSites`.
+//            // Это свойство принимает Set<String>, что нам и нужно!
+//            store.webContent.blockedSites = domainsToBlock
+//            
+//            print("✅ Блокировки веб-контента применены для \(domainsToBlock.count) доменов.")
+//
+//        } catch {
+//            print("ℹ️ Ошибка загрузки блокировок сайтов: \(error). Снимаем ограничения.")
+//            store.webContent.filterPolicy = .allowAll
+//        }
+//    }
 }

@@ -187,6 +187,12 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             return
         }
         
+        if notification.subscriptionID?.starts(with: "web-blocks-updates-") == true {
+            print("🔔 [AppDelegate] Пуш о web блокировках уже обработан расширением.")
+            completionHandler(.newData)
+            return
+        }
+        
         completionHandler(.noData)
     }
 }
