@@ -146,7 +146,7 @@ class AppStateManager: ObservableObject {
                 appState = .childPairing
             }
             
-        case .unknown:
+        case .unknown, .men, .girl:
             appState = .roleSelection
         }
     }

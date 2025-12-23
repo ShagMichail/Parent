@@ -56,7 +56,7 @@ struct ReportLoadingView: View {
             .padding(.horizontal, 20)
             .padding(.top, 16)
         }
-        .background(Color.roleBackround)
+        .background(Color.roleBackground)
         .opacity(isAnimating ? 0.7 : 1.0)
         .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: isAnimating)
         .onAppear {

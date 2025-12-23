@@ -43,7 +43,7 @@ struct ErrorView: View {
         .padding(.top, 80)
         .padding(.bottom, 92)
         .padding(.horizontal, 20)
-        .background(Color.roleBackround.ignoresSafeArea())
+        .background(Color.roleBackground.ignoresSafeArea())
         .ignoresSafeArea(.container, edges: .bottom)
     }
 }

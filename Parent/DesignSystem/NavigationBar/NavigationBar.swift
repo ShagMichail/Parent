@@ -84,7 +84,7 @@ struct NavigationBar: View {
         }
         .padding(.horizontal, 20)
         .background(
-            Color.roleBackround
+            Color.roleBackground
                 .ignoresSafeArea(edges: .top)
         )
     }

@@ -67,7 +67,7 @@ struct ParentDashboardView: View {
                 .scrollIndicators(.hidden)
             }
             .navigationBarHidden(true)
-            .background(Color.roleBackround.ignoresSafeArea())
+            .background(Color.roleBackground.ignoresSafeArea())
         }
         .id(viewModel.selectedChild?.id)
     }

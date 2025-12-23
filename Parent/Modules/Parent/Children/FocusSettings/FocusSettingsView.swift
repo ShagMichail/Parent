@@ -117,7 +117,7 @@ struct FocusSettingsView: View {
                 .zIndex(2)
             }
         }
-        .background(Color.roleBackround.ignoresSafeArea())
+        .background(Color.roleBackground.ignoresSafeArea())
         .navigationBarHidden(true)
         
         // --- Навигационные ссылки (скрытые) ---

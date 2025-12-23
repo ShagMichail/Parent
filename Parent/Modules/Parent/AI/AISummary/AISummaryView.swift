@@ -152,7 +152,7 @@ struct AISummaryView: View {
                 }
             }
             .navigationBarHidden(true)
-            .background(Color.roleBackround.ignoresSafeArea())
+            .background(Color.roleBackground.ignoresSafeArea())
             .background(
                 NavigationLink(
                     destination: AppsActivityReportView(),

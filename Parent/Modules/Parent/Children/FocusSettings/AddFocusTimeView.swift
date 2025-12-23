@@ -172,7 +172,7 @@ struct AddFocusTimeView: View {
                 .padding(.vertical, 20)
             }
         }
-        .background(Color.roleBackround.ignoresSafeArea())
+        .background(Color.roleBackground.ignoresSafeArea())
         .navigationBarHidden(true)
         .sheet(isPresented: $showingDaysSheet) {
             DaysSelectionSheet(selectedDays: $selectedDays)

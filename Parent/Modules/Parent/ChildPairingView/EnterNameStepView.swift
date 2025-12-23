@@ -9,7 +9,7 @@ import SwiftUI
 
 struct EnterNameStepView: View {
     let invitationCode: String
-    
+    let childGender: String
     // Состояния для этого экрана
     @State private var childName = ""
     @State private var isLoading = false
@@ -20,6 +20,7 @@ struct EnterNameStepView: View {
     @Environment(\.presentationMode) var presentationMode
     
     private let childNameStorageKey = "com.laborato.child.name"
+    private let childGenderStorageKey = "com.laborato.child.gender"
     
     var body: some View {
         VStack(spacing: 25) {
@@ -64,10 +65,6 @@ struct EnterNameStepView: View {
                 )
             )
             .frame(height: 50)
-            // Проверить при следующей попытке регистрации ребенка и взрослого (вместо NavigationLink)
-//            .navigationDestination(isPresented: $isCompletedStepActive) {
-//                ChildCompletedView()
-//            }
         }
         .padding(.top, 40)
         .padding(.bottom, 92)
@@ -108,7 +105,8 @@ struct EnterNameStepView: View {
             // 1. Отправляем данные в CloudKit
             let parentID = try await CloudKitManager.shared.acceptInvitationByChild(
                 withCode: invitationCode,
-                childName: trimmedName // Используем очищенное имя
+                childName: trimmedName, // Используем очищенное имя
+                childGender: childGender
             )
             print("✅ Успешно подключен к родителю \(parentID). Завершаю настройку.")
             
@@ -117,6 +115,9 @@ struct EnterNameStepView: View {
             // выполнился без ошибок, чтобы не сохранять имя в случае сбоя.
             UserDefaults.standard.set(trimmedName, forKey: childNameStorageKey)
             print("💾 Имя ребенка '\(trimmedName)' сохранено в UserDefaults.")
+            
+            UserDefaults.standard.set(childGender, forKey: childGenderStorageKey)
+            print("💾 Имя ребенка '\(childGender)' сохранено в UserDefaults.")
             
             // 3. Переходим на следующий экран
             isCompletedStepActive = true

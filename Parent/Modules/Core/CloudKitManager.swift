@@ -51,7 +51,7 @@ class CloudKitManager: ObservableObject {
     }
     
     /// ВЫЗЫВАЕТСЯ РЕБЕНКОМ для принятия приглашения.
-    func acceptInvitationByChild(withCode code: String, childName: String) async throws -> String {
+    func acceptInvitationByChild(withCode code: String, childName: String, childGender: String) async throws -> String {
         let predicate = NSPredicate(format: "invitationCode == %@", code)
         let query = CKQuery(recordType: "Invitation", predicate: predicate)
         
@@ -71,8 +71,9 @@ class CloudKitManager: ObservableObject {
         
         record["childUserRecordID"] = childID
         record["childName"] = childName
+        record["childGender"] = childGender
         
-        try await publicDatabase.save(record) // Это действие триггерит push родителю
+        try await publicDatabase.save(record)
         print("✅ CloudKitManager: Ребенок \(childName) принял приглашение от родителя \(parentID)")
         return parentID
     }
@@ -92,7 +93,7 @@ class CloudKitManager: ObservableObject {
         let notificationInfo = CKSubscription.NotificationInfo()
         
         notificationInfo.shouldSendContentAvailable = true
-        notificationInfo.desiredKeys = ["childUserRecordID", "childName"]
+        notificationInfo.desiredKeys = ["childUserRecordID", "childName", "childGender"]
         
         subscription.notificationInfo = notificationInfo
         
@@ -106,17 +107,12 @@ class CloudKitManager: ObservableObject {
     }
     
     /// ВЫЗЫВАЕТСЯ РОДИТЕЛЕМ для отправки команды.
-//    func sendCommand(name: String, to childID: String, payload: [String: Any]? = nil) async throws {
-        func sendCommand(name: String, to childID: String) async throws {
+    func sendCommand(name: String, to childID: String) async throws {
         let record = CKRecord(recordType: "Command")
         record["commandName"] = name as CKRecordValue
         record["targetChildID"] = childID as CKRecordValue
         record["status"] = CommandStatus.pending.rawValue as CKRecordValue
         record["createdAt"] = Date() as CKRecordValue
-        
-//        if let payload = payload {
-//            record["payload"] = try NSKeyedArchiver.archivedData(withRootObject: payload, requiringSecureCoding: false) as CKRecordValue
-//        }
         
         do {
             print("▶️ [Parent] Пытаемся сохранить команду...")
@@ -151,7 +147,6 @@ class CloudKitManager: ObservableObject {
         notificationInfo.alertBody = "Обновление настроек и сбор информации"
         notificationInfo.shouldSendMutableContent = true
         notificationInfo.shouldSendContentAvailable = true
-//        notificationInfo.desiredKeys = ["commandName", "payload"]
         notificationInfo.desiredKeys = ["commandName"]
         
         subscription.notificationInfo = notificationInfo
@@ -469,9 +464,10 @@ extension CloudKitManager {
         for (_, result) in matchResults {
             if let record = try? result.get() {
                 if let childID = record["childUserRecordID"] as? String,
-                   let name = record["childName"] as? String {
+                   let name = record["childName"] as? String,
+                   let gender = record["childGender"] as? String {
                     
-                    children.append(Child(id: UUID(uuidString: childID) ?? UUID(), name: name, recordID: childID))
+                    children.append(Child(id: UUID(uuidString: childID) ?? UUID(), name: name, recordID: childID, gender: gender))
                 }
             }
         }
@@ -503,7 +499,7 @@ extension CloudKitManager {
             
             guard let level = record["batteryLevel"] as? Double,
                   let state = record["batteryState"] as? String,
-                  let timestamp = record["timestamp"] as? Date else { // Используем 'timestamp'
+                  let timestamp = record["timestamp"] as? Date else {
                 print("⚠️ Запись статуса для \(childID) повреждена.")
                 return nil
             }
@@ -554,7 +550,6 @@ extension CloudKitManager {
         let localRecordIDs = Set(recordsToSave.map { $0.recordID })
         
         // --- Шаг 3: Определяем, какие записи нужно удалить с сервера ---
-        // (Те, что есть на сервере, но которых нет в локальном списке)
         let recordIDsToDelete = Array(serverRecordIDs.subtracting(localRecordIDs))
         
         // --- Шаг 4: Выполняем единую операцию ---
@@ -601,7 +596,6 @@ extension CloudKitManager {
         try? await publicDatabase.deleteSubscription(withID: subscriptionID)
         
         // Предикат: слушать изменения только для записей, предназначенных этому ребенку
-//        let predicate = NSPredicate(format: "targetChildID == %@", childID)
         let predicate = NSPredicate(format: "targetChildID == %@ AND signalType == 'limits'", childID)
         let subscription = CKQuerySubscription(
             recordType: "ConfigSignal", // Следим за типом записи AppLimit
@@ -621,7 +615,7 @@ extension CloudKitManager {
         print("✅ [Child] Успешно подписан на обновления лимитов.")
     }
     
-    // ✅ НОВАЯ ФУНКЦИЯ: Загружает все лимиты для ребенка
+    // Загружает все лимиты для ребенка
     func fetchAppLimits(for childID: String) async throws -> [AppLimit] {
         print("☁️ Загрузка существующих лимитов для ребенка: \(childID)...")
         
@@ -650,19 +644,6 @@ extension CloudKitManager {
         return limits
     }
 }
-
-import Foundation
-import CryptoKit // Фреймворк Apple для криптографии
-import FamilyControls
-
-extension Data {
-    /// Вычисляет хеш SHA256 и возвращает его в виде строки.
-    var sha256: String {
-        let hash = SHA256.hash(data: self)
-        return hash.compactMap { String(format: "%02x", $0) }.joined()
-    }
-}
-
 
 extension CloudKitManager {
     /// РОДИТЕЛЬ: Сохраняет массив отдельных лимитов
@@ -877,13 +858,6 @@ extension CloudKitManager {
     }
 }
 
-// ✅ НОВАЯ МОДЕЛЬ ДАННЫХ ДЛЯ САЙТОВ
-// Ее можно вынести в отдельный файл
-struct WebBlock: Identifiable, Codable, Hashable {
-    var id: String { domain }
-    let domain: String
-}
-
 extension CloudKitManager {
     /// РОДИТЕЛЬ: Синхронизирует список заблокированных сайтов с CloudKit (создает, обновляет, удаляет)
     func syncWebBlocks(_ blocks: [WebBlock], for childID: String) async throws {
@@ -947,8 +921,7 @@ extension CloudKitManager {
         return blocks
     }
     
-    // --- Функции для РЕБЕНКА (аналогичны другим) ---
-    
+    // --- Функции для РЕБЕНКА ---
     func subscribeToWebBlocksChanges(for childID: String) async throws {
         let subscriptionID = "web-block-updates-\(childID)"
         
@@ -958,10 +931,9 @@ extension CloudKitManager {
         let predicate = NSPredicate(format: "targetChildID == %@ AND signalType == 'web'", childID)
         
         let subscription = CKQuerySubscription(
-            recordType: "ConfigSignal", // Следим за типом записи AppLimit
+            recordType: "ConfigSignal",
             predicate: predicate,
             subscriptionID: subscriptionID,
-            // Реагируем на все возможные изменения
             options: [.firesOnRecordUpdate]
         )
         
@@ -973,38 +945,4 @@ extension CloudKitManager {
         try await publicDatabase.save(subscription)
         print("✅ [Child] Успешно подписан на обновления блокировок WEB.")
     }
-    
-
-//    func fetchAndApplyWebBlocks(for childID: String) async {
-//        let store = ManagedSettingsStore()
-//        
-//        do {
-//            // Шаг 1: Скачиваем список доменов в виде [String]
-//            let blocks = try await fetchWebBlocks(for: childID)
-//            let domainsToBlock = Set(blocks.map { $0.domain })
-//            
-//            // Если список пуст, сбрасываем фильтр
-//            if domainsToBlock.isEmpty {
-//                store.webContent.blockedByFilter = .all() // Разрешаем все
-//                print("✅ Все блокировки сайтов сняты (политика allowAll).")
-//                return
-//            }
-//            
-//            // --- ✅ ШАГ 2: ИСПОЛЬЗУЕМ WEB CONTENT FILTER ---
-//            
-//            // a) Включаем политику фильтрации. Можно использовать .limitAdultContent,
-//            // это даст нам еще и встроенный фильтр Apple.
-//            store.webContent.filterPolicy = .limitAdultContent
-//            
-//            // b) Устанавливаем наш список доменов в `blockedSites`.
-//            // Это свойство принимает Set<String>, что нам и нужно!
-//            store.webContent.blockedSites = domainsToBlock
-//            
-//            print("✅ Блокировки веб-контента применены для \(domainsToBlock.count) доменов.")
-//
-//        } catch {
-//            print("ℹ️ Ошибка загрузки блокировок сайтов: \(error). Снимаем ограничения.")
-//            store.webContent.filterPolicy = .allowAll
-//        }
-//    }
 }

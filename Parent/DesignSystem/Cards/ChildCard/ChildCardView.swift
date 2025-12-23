@@ -12,12 +12,16 @@ struct ChildCardView: View {
     
     var body: some View {
         HStack(alignment: .center, spacing: 6) {
-            Image("person")
+            Image(model.childImage)
+                .resizable()
+                .scaledToFit()
                 .frame(width: 50, height: 50)
-                .foregroundColor(.red)
+                .background(model.childImage == "men-small" ? .backgroundMen : .backgroundGirl)
+                .clipShape(Circle())
+
             
             VStack(alignment: .leading, spacing: 4) {
-                Text(model.child.name)
+                Text(model.childName)
                     .font(.system(size: 16, weight: .regular, design: .rounded))
                     .foregroundColor(.blackText)
                 
@@ -49,4 +53,28 @@ struct ChildCardView: View {
             y: 4
         )
     }
+}
+
+#Preview {
+    ChildCardView(
+        model: ChildCardViewModel(
+            childName: "Michael",
+            childImage: "men-small",
+            isSelected: true,
+            showBatteryLevel: true,
+            batteryLevel: "34%",
+            batteryLevelColor: .chartStart
+        )
+    )
+    
+    ChildCardView(
+        model: ChildCardViewModel(
+            childName: "Ekaterina",
+            childImage: "girl-small",
+            isSelected: true,
+            showBatteryLevel: true,
+            batteryLevel: "34%",
+            batteryLevelColor: .chartStart
+        )
+    )
 }

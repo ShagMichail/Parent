@@ -24,11 +24,8 @@ struct AppUsageReport: DeviceActivityReportScene {
     func makeConfiguration(representing data: DeviceActivityResults<DeviceActivityData>) async -> ActivityReportViewModel {
         
         var detailedDailyAppsDict: [ApplicationToken: [Date: TimeInterval]] = [:]
-        // [Токен: [Час: Длительность]] (только за сегодня)
         var detailedHourlyAppsDict: [ApplicationToken: [Int: TimeInterval]] = [:]
-        // [Токен: BundleIdentifier]
         var applications: [ApplicationToken: Application] = [:]
-        // [Токен: Категория]
         var appCategories: [ApplicationToken: ActivityCategory] = [:]
 
         
@@ -51,7 +48,7 @@ struct AppUsageReport: DeviceActivityReportScene {
                 let start = segment.dateInterval.start
                 let duration = segment.totalActivityDuration
                 
-//                // --- ОПРЕДЕЛЯЕМ РЕЖИМ ---
+                // --- ОПРЕДЕЛЯЕМ РЕЖИМ ---
                 if start < yesterdayStart {
                     hasDataOlderThanYesterday = true
                 }

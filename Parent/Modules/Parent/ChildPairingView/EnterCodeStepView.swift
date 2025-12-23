@@ -36,7 +36,7 @@ struct EnterCodeStepView: View {
             Spacer()
             
             NavigationLink(
-                destination: EnterNameStepView(invitationCode: invitationCode),
+                destination: EnterGenderStepView(invitationCode: invitationCode),
                 isActive: $isNameStepActive
             ) { EmptyView() }
             

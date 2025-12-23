@@ -10,6 +10,7 @@ import FamilyControls
 
 struct Child: Identifiable, Codable, Hashable {
     let id: UUID
-    var name: String
-    let recordID: String // Уникальный ID из CloudKit
+    let name: String
+    let recordID: String
+    let gender: String
 }

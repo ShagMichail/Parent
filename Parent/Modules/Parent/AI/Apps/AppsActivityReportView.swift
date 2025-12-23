@@ -40,7 +40,7 @@ struct AppsActivityReportView: View {
                 .frame(height: 34)
                 .padding(.horizontal, 90)
                 .padding(.vertical, 16)
-                .background(.roleBackround)
+                .background(.roleBackground)
             
             ZStack {
                 ReportLoadingView()

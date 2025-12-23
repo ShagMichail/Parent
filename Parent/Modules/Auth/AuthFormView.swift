@@ -9,15 +9,15 @@ import SwiftUI
 
 struct AuthFormView: View {
     
-    let mode: AuthMode
+    @Binding var mode: AuthMode
     @StateObject private var viewModel: AuthViewModel
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var stateManager: AppStateManager
     @EnvironmentObject var authService: AuthenticationService
     
-    init(mode: AuthMode) {
-        self.mode = mode
-        self._viewModel = StateObject(wrappedValue: AuthViewModel(mode: mode))
+    init(mode: Binding<AuthMode>) {
+        self._mode = mode
+        self._viewModel = StateObject(wrappedValue: AuthViewModel(mode: mode.wrappedValue))
     }
     
     var body: some View {
@@ -36,20 +36,6 @@ struct AuthFormView: View {
             .ignoresSafeArea(.keyboard, edges: .bottom)
         }
         .navigationBarBackButtonHidden(true)
-        .toolbarRole(.editor)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: {
-                    presentationMode.wrappedValue.dismiss()
-                }) {
-                    HStack {
-                        Image(systemName: "chevron.backward")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                    }
-                }
-            }
-        }
     }
     
     @ViewBuilder
@@ -101,24 +87,43 @@ struct AuthFormView: View {
             
             Spacer()
             
-            Button(action: {
-                viewModel.submit(authService: authService, stateManager: stateManager)
-            }) {
-                MainButton(model:
-                            MainButtonModel(
-                                title: mode == .register ? "Зарегистрироваться" : "Авторизоваться",
-                                font: .system(size: 18, weight: .regular, design: .rounded),
-                                foregroundColor: .white,
-                                cornerRadius: 12,
-                                background: Color.accent,
-                                strokeColor: Color.accent,
-                                strokeLineWidth: 0
-                            )
-                )
-                .frame(height: 50)
+            VStack(spacing: 30) {
+                
+                Button(action: {
+                    viewModel.submit(authService: authService, stateManager: stateManager)
+                }) {
+                    MainButton(model:
+                                MainButtonModel(
+                                    title: mode == .register ? "Зарегистрироваться" : "Авторизоваться",
+                                    font: .system(size: 18, weight: .regular, design: .rounded),
+                                    foregroundColor: .white,
+                                    cornerRadius: 12,
+                                    background: Color.accent,
+                                    strokeColor: Color.accent,
+                                    strokeLineWidth: 0
+                                )
+                    )
+                    .frame(height: 50)
+                }
+                .disabled(viewModel.isLoading)
+                
+                HStack {
+                    Text(mode == .register ? "Есть аккаунт?" : "Нет аккаунтa?")
+                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                        .foregroundColor(.strokeTextField)
+                    
+                    Button(action: {
+                        withAnimation {
+                            mode = (mode == .login) ? .register : .login
+                        }
+                    }) {
+                        Text(mode == .register ? "Войти" : "Зарегистрироваться")
+                            .font(.system(size: 16, weight: .regular, design: .rounded))
+                            .foregroundColor(.accent)
+                    }
+                }
             }
-            .padding(.bottom, 96)
-            .disabled(viewModel.isLoading)
+            .padding(.bottom, 20)
         }
         .padding(.horizontal, 20)
         .frame(maxWidth: .infinity)

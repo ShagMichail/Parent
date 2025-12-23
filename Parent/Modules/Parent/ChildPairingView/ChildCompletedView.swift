@@ -20,10 +20,12 @@ struct ChildCompletedView: View {
                 .font(.system(size: 16, weight: .regular, design: .rounded))
                 .frame(maxWidth: .infinity, alignment: .center)
             
+            Spacer()
+            
             Image("child-completed")
-                .resizable()
                 .aspectRatio(contentMode: .fit)
-                .clipShape(RoundedCorner(radius: 1000, corners: .allCorners))
+            
+            Spacer()
             
             ContinueButton(
                 model: ContinueButtonModel(
@@ -41,7 +43,7 @@ struct ChildCompletedView: View {
         .padding(.top, 80)
         .padding(.bottom, 92)
         .padding(.horizontal, 20)
-        .background(Color.roleBackround.ignoresSafeArea())
+        .background(Color.roleBackground.ignoresSafeArea())
         .ignoresSafeArea(.container, edges: .bottom)
         .navigationBarBackButtonHidden(true)
     }
@@ -56,7 +58,7 @@ struct ChildCompletedView: View {
         }
     }
 }
-//
+
 //#Preview {
 //    ChildCompletedView()
 //}

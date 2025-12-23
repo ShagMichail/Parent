@@ -139,7 +139,7 @@ class ParentDashboardViewModel: ObservableObject {
     
     func getBatteryText(for childID: String) -> String {
         guard let status = batteryStatuses[childID] else { return "--%" }
-        return "\(Int(status.level * 100))"
+        return "\(Int(status.level * 100))%"
     }
     
     /// Основное действие по кнопке

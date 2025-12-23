@@ -20,22 +20,11 @@ struct PairingSuccessView: View {
 
             Spacer()
             
-            HStack {
-                Image("conected-left")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .clipShape(RoundedCorner(radius: 200, corners: [.topRight, .bottomRight]))
-                
-                Spacer()
-                
-                Image("conected-right")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .scaleEffect(x: -1, y: 1)
-                    .clipShape(RoundedCorner(radius: 200, corners: [.topLeft, .bottomLeft]))
-            }
+            Image("parent-completed")
+                .aspectRatio(contentMode: .fit)
             
             Spacer()
+            
             
             ContinueButton(
                 model: ContinueButtonModel(
@@ -53,18 +42,16 @@ struct PairingSuccessView: View {
         }
         .padding(.top, 80)
         .padding(.bottom, 92)
-        .background(Color.roleBackround.ignoresSafeArea())
+        .background(Color.roleBackground.ignoresSafeArea())
         .ignoresSafeArea(.container, edges: .bottom)
         .navigationBarBackButtonHidden(true)
-}
-
+    }
+    
     private func parentScreen() async {
         stateManager.didAddChild(newChild)
     }
 }
 
 //#Preview {
-//    PairingSuccessView(childName: "Иван", onContinue: {
-//
-//    })
+//    PairingSuccessView(newChild: Child(id: UUID(), name: "Ivan", recordID: "", gender: "men"))
 //}

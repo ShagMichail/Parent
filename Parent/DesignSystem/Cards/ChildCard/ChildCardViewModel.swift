@@ -9,14 +9,16 @@ import Foundation
 import SwiftUI
 
 struct ChildCardViewModel {
-    let child: Child
+    let childName: String
+    let childImage: String
     let isSelected: Bool
     let showBatteryLevel: Bool
     let batteryLevel: String?
     let batteryLevelColor: Color?
     
-    init(child: Child, isSelected: Bool, showBatteryLevel: Bool, batteryLevel: String? = nil, batteryLevelColor: Color? = .green) {
-        self.child = child
+    init(childName: String, childImage: String, isSelected: Bool, showBatteryLevel: Bool, batteryLevel: String?, batteryLevelColor: Color?) {
+        self.childName = childName
+        self.childImage = childImage
         self.isSelected = isSelected
         self.showBatteryLevel = showBatteryLevel
         self.batteryLevel = batteryLevel

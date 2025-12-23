@@ -70,7 +70,7 @@ struct WebBlockView: View {
             }
         }
         .navigationBarHidden(true)
-        .background(Color.roleBackround.ignoresSafeArea())
+        .background(Color.roleBackground.ignoresSafeArea())
         .onAppear {
             viewModel.child = self.child
             viewModel.loadInitialBlocks()

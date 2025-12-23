@@ -64,7 +64,7 @@ struct AuthView: View {
                     // Кнопки
                     VStack(spacing: 16) {
                         
-                        NavigationLink(destination: RegistrationView()) {
+                        NavigationLink(destination: AuthContainerView(initialMode: .register)) {
                             MainButton(model:
                                         MainButtonModel(
                                             title: "Зарегистрироваться",
@@ -79,7 +79,7 @@ struct AuthView: View {
                             .frame(height: 50)
                         }
                         
-                        NavigationLink(destination: LoginView()) {
+                        NavigationLink(destination: AuthContainerView(initialMode: .login)) {
                             MainButton(model:
                                         MainButtonModel(
                                             title: "Авторизоваться",

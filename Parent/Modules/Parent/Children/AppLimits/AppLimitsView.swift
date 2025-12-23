@@ -87,7 +87,7 @@ struct AppLimitsView: View {
             }
         }
         .navigationBarHidden(true)
-        .background(Color.roleBackround.ignoresSafeArea())
+        .background(Color.roleBackground.ignoresSafeArea())
         .familyActivityPicker(
             isPresented: $isPickerPresented,
             selection: $viewModel.selection

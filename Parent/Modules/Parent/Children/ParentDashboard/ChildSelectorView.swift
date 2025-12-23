@@ -37,7 +37,8 @@ struct ChildSelectorView: View {
                 ForEach(children) { child in
                     ChildCardView(
                         model: ChildCardViewModel(
-                            child: child,
+                            childName: child.name,
+                            childImage: child.gender == "men" ? "men-small" : "girl-small",
                             isSelected: child.recordID == selectedChild?.recordID,
                             showBatteryLevel: showBatteryLevel,
                             batteryLevel: viewModel.getBatteryText(for: child.recordID),

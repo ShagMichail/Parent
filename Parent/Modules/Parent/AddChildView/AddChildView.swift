@@ -63,11 +63,12 @@ struct AddChildView: View {
     private func handleInvitationAccepted(notification: Notification) {
         guard let userInfo = notification.userInfo,
               let childID = userInfo["childUserRecordID"] as? String,
-              let childName = userInfo["childName"] as? String else {
+              let childName = userInfo["childName"] as? String,
+              let gender = userInfo["childGender"] as? String else {
             return
         }
         
-        let newChild = Child(id: UUID(uuidString: childID) ?? UUID(), name: childName, recordID: childID)
+        let newChild = Child(id: UUID(uuidString: childID) ?? UUID(), name: childName, recordID: childID, gender: gender)
         self.state = .success(newChild)
     }
 }
