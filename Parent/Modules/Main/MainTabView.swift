@@ -13,59 +13,44 @@ private enum Tab {
 }
 
 struct MainTabView: View {
-    // Получаем ViewModel, чтобы знать статус блокировки и вызывать методы
     @EnvironmentObject var viewModel: ParentDashboardViewModel
     @EnvironmentObject var stateManager: AppStateManager
     @EnvironmentObject var cloudKitManager: CloudKitManager
     
-    @State private var selectedTab: Tab = .children
+    @State private var selectedTab: Tab = .location
     
     // --- ГЛАВНЫЕ СОСТОЯНИЯ (ЖИВУТ ЗДЕСЬ) ---
-    @State private var showBlockOverlay = false // Управляет показом оверлея
-    @Namespace private var animation            // Магия перемещения карточки
+    @State private var showBlockOverlay = false
+    @Namespace private var animation
     
     init() {
-        // 1. Создаем объект настроек
         let appearance = UITabBarAppearance()
         
-        // 2. Делаем фон непрозрачным и белым
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = .white
         
-        // 3. Настраиваем Тень (полоску сверху)
-        // В iOS нативный TabBar поддерживает "Shadow Image" (обычно это тонкая линия)
-        // Чтобы сделать её похожей на тень, делаем светло-серый цвет
-        appearance.shadowImage = nil // Сбрасываем картинку
-        appearance.shadowColor = UIColor.black.withAlphaComponent(0.1) // Цвет линии/тени
+        appearance.shadowImage = nil
+        appearance.shadowColor = UIColor.black.withAlphaComponent(0.1)
         
-        // 4. Настраиваем иконки и текст
         let itemAppearance = UITabBarItemAppearance()
         
-        // Неактивное состояние (Серый)
         itemAppearance.normal.iconColor = UIColor.gray
         itemAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.gray]
         
-        // Активное состояние (Ваш акцентный цвет, например фиолетовый)
-        // Если у вас есть Color.accent, используйте UIColor(named: "AccentColor")
-        let activeColor = UIColor(named: "accent") // Ваш фиолетовый
+        let activeColor = UIColor(named: "accent")
         itemAppearance.selected.iconColor = activeColor
         itemAppearance.selected.titleTextAttributes = [.foregroundColor: activeColor ?? .accent]
         
-        // Применяем настройки к иконкам
         appearance.stackedLayoutAppearance = itemAppearance
         appearance.inlineLayoutAppearance = itemAppearance
         appearance.compactInlineLayoutAppearance = itemAppearance
         
-        // 5. Применяем настройки глобально
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
     }
     
     var body: some View {
         ZStack {
-            // ===================================
-            // СЛОЙ 1: ПРИЛОЖЕНИЕ (ТАБЫ)
-            // ===================================
             TabView(selection: $selectedTab) {
                 LocationView(stateManager: stateManager, cloudKitManager: cloudKitManager)
                     .tabItem { Label("Локация", image: "location-tab") }
@@ -75,7 +60,6 @@ struct MainTabView: View {
                     .tabItem { Label("AI-Сводка", image: "shield-tick-tab") }
                     .tag(Tab.summary)
                 
-                // Передаем Binding и Namespace вниз в иерархию
                 ParentDashboardView(
                     showBlockOverlay: $showBlockOverlay,
                     animation: animation
@@ -88,21 +72,15 @@ struct MainTabView: View {
                     .tag(Tab.settings)
             }
             .accentColor(.accent)
-            // ✅ БЛЮРИМ ВСЁ ПРИЛОЖЕНИЕ (ВКЛЮЧАЯ TABBAR)
             .blur(radius: showBlockOverlay ? 5 : 0)
             
-            // ===================================
-            // СЛОЙ 2: ОВЕРЛЕЙ (ПОВЕРХ TABBAR)
-            // ===================================
             if showBlockOverlay {
-                // Темный фон
                 Color.black.opacity(0.4)
                     .ignoresSafeArea()
                     .onTapGesture { closeOverlay() }
                     .transition(.opacity)
                 ZStack(alignment: .topLeading) {
                     VStack(spacing: 24) {
-                        // КАРТОЧКА (Прилетает снизу через matchedGeometryEffect)
                         ActionCard(model: ActionCardModel(
                             title: "Блокировать",
                             icon: "lock-command",
@@ -113,7 +91,6 @@ struct MainTabView: View {
                         .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
                         .matchedGeometryEffect(id: "blockCard", in: animation)
                         
-                        // КНОПКИ УПРАВЛЕНИЯ
                         VStack(spacing: 12) {
                             Button {
                                 viewModel.toggleBlock()

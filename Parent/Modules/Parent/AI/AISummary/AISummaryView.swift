@@ -23,8 +23,9 @@ struct AISummaryView: View {
     
     @State private var reportId = UUID()
     @State private var reportRefreshID = UUID()
-    @State private var navigateToFocus = false
-    @State private var navigateToResistor = false
+    @State private var navigateToAppReport = false
+    @State private var navigateToWebReport = false
+    @State private var navigateToCategoryReport = false
     
     var body: some View {
         NavigationStack {
@@ -118,20 +119,19 @@ struct AISummaryView: View {
                                         .contentShape(Rectangle())
                                 }
                                 .id(reportId)
+                                .onTapGesture {
+                                    navigateToCategoryReport = true
+                                }
                             }
                             .padding(.horizontal, 20)
 
                             VStack(spacing: 0) {
                                 NavigationLinkRow(title: "Используемые приложения")  {
-                                    navigateToFocus = true
+                                    navigateToAppReport = true
                                 }
                                 Divider().padding(.horizontal, 10)
                                 NavigationLinkRow(title: "Посещаемые сайты")  {
-                                    navigateToFocus = true
-                                }
-                                Divider().padding(.horizontal, 10)
-                                NavigationLinkRow(title: "Отложенные ограничения")  {
-                                    navigateToResistor = true
+                                    navigateToWebReport = true
                                 }
                             }
                             .background(
@@ -156,15 +156,21 @@ struct AISummaryView: View {
             .background(
                 NavigationLink(
                     destination: AppsActivityReportView(),
-                    isActive: $navigateToFocus
+                    isActive: $navigateToAppReport
                 ) { EmptyView() }.hidden()
             )
-//            .background(
-//                NavigationLink(
-//                    destination: RestrictionsView(),
-//                    isActive: $navigateToResistor
-//                ) { EmptyView() }.hidden()
-//            )
+            .background(
+                NavigationLink(
+                    destination: WebActivityReportView(),
+                    isActive: $navigateToWebReport
+                ) { EmptyView() }.hidden()
+            )
+            .background(
+                NavigationLink(
+                    destination: CategoryActivityReportView(),
+                    isActive: $navigateToCategoryReport
+                ) { EmptyView() }.hidden()
+            )
         }
         .onChange(of: viewModel.selectedChild) { _, _ in
             updateReport()

@@ -1,23 +1,17 @@
 //
-//  AppDetailView.swift
+//  CategoryDetailView.swift
 //  Parent
 //
-//  Created by Michail Shagovitov on 17.12.2025.
+//  Created by Michail Shagovitov on 23.12.2025.
 //
 
 import SwiftUI
-import FamilyControls
 import Charts
-import ManagedSettings
+import FamilyControls
 
-struct AppDetailView: View {
-    let detail: AppUsageDetail
+struct CategoryDetailView: View {
+    let detail: CategoryUsageDetail
     let chartType: ChartDetailType
-    
-    @State private var isBlocked = false
-    @State private var isBlockButtonLoading = false
-    
-    private let store = ManagedSettingsStore()
     
     private var dailyChartData: [DailyActivityModel] {
         var completeWeekData: [DailyActivityModel] = []
@@ -39,14 +33,23 @@ struct AppDetailView: View {
             HourlyActivityModel(hour: hour, duration: duration)
         }
     }
-        
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Экранное время")
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Количество уведомлений")
                         .font(.system(size: 20, weight: .semibold, design: .rounded))
                         .foregroundColor(.blackText)
+                    
+                    HStack {
+                        Text("\(detail.totalNotifications)")
+                            .font(.system(size: 18, weight: .semibold, design: .rounded))
+                            .foregroundColor(.redStat)
+                        Text(chartType == .daily ? "за неделю" : "за сегодня")
+                            .font(.system(size: 18, weight: .regular, design: .rounded))
+                            .foregroundColor(.timestamps)
+                    }
                     
                     VStack(alignment: .leading, spacing: 12) {
                         headerView
@@ -62,28 +65,66 @@ struct AppDetailView: View {
                     .cornerRadius(20)
                     .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
                 }
-                .padding(.horizontal, 20)
                 
-                AppInfoCardView(detail: detail)
+                // --- ✅ БЛОК 2: Статистика по УВЕДОМЛЕНИЯМ ---
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Приложения")
+                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                        .foregroundColor(.blackText)
+                    
+                    VStack(alignment: .leading) {
+                        // Список приложений с количеством уведомлений
+                        if detail.totalNotifications == 0 {
+                            HStack {
+                                Text("Нет данных")
+                                    .foregroundColor(.gray)
+                                    .multilineTextAlignment(.leading)
+                                    .padding(.vertical, 20)
+                                    .padding(.horizontal, 10)
+                                Spacer()
+                            }
+                            .frame(maxWidth: .infinity)
+                        } else {
+                            ForEach(detail.applications) { appDetail in
+                                // Показываем только если были уведомления
+                                if appDetail.totalNotifications > 0 {
+                                    HStack {
+                                        Label(appDetail.token).labelStyle(.iconOnly)
+                                            .frame(width: 24, height: 24)
+                                        Text(appDetail.application.localizedDisplayName ?? "Приложение")
+                                        Spacer()
+                                        Text("\(appDetail.totalNotifications)")
+                                            .fontWeight(.semibold)
+                                    }
+                                    .padding(.vertical, 20)
+                                    .padding(.horizontal, 10)
+                                }
+                            }
+                        }
+                    }
+                    .background(Color.white)
+                    .cornerRadius(20)
+                }
             }
-            .padding(.bottom, 20)
+            .padding(.horizontal, 20)
         }
         .scrollIndicators(.hidden)
         .background(.backgroundApps)
         .toolbar {
             ToolbarItem(placement: .principal) {
                 HStack(spacing: 8) {
-                    Label(detail.token)
+                    Label(detail.category.token!)
                         .labelStyle(.iconOnly)
                         .frame(width: 24, height: 24)
                     
-                    Label(detail.token)
+                    Label(detail.category.token!)
                         .labelStyle(.titleOnly)
                         .font(.system(size: 16))
                         .foregroundColor(.blackText)
                 }
             }
         }
+
     }
     
     private var headerView: some View {

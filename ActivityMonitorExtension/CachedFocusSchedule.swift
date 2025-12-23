@@ -11,7 +11,7 @@ struct CachedFocusSchedule: Codable {
     let id: UUID
     let startTime: Date
     let endTime: Date
-    let daysOfWeek: [CachedWeekday] // Используем упрощенный enum или Int
+    let daysOfWeek: [CachedWeekday]
     let isEnabled: Bool
     
     // Зеркало вашего Enum Weekday для Codable совместимости

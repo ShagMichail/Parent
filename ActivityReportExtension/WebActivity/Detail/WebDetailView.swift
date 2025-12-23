@@ -1,8 +1,8 @@
 //
-//  AppDetailView.swift
+//  WebDetailView.swift
 //  Parent
 //
-//  Created by Michail Shagovitov on 17.12.2025.
+//  Created by Michail Shagovitov on 23.12.2025.
 //
 
 import SwiftUI
@@ -10,15 +10,10 @@ import FamilyControls
 import Charts
 import ManagedSettings
 
-struct AppDetailView: View {
-    let detail: AppUsageDetail
+struct WebDetailView: View {
+    let detail: WebUsageDetail
     let chartType: ChartDetailType
-    
-    @State private var isBlocked = false
-    @State private var isBlockButtonLoading = false
-    
-    private let store = ManagedSettingsStore()
-    
+        
     private var dailyChartData: [DailyActivityModel] {
         var completeWeekData: [DailyActivityModel] = []
         let calendar = Calendar.current
@@ -39,7 +34,12 @@ struct AppDetailView: View {
             HourlyActivityModel(hour: hour, duration: duration)
         }
     }
-        
+    
+    init(detail: WebUsageDetail, chartType: ChartDetailType) {
+        self.detail = detail
+        self.chartType = chartType
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -63,8 +63,6 @@ struct AppDetailView: View {
                     .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
                 }
                 .padding(.horizontal, 20)
-                
-                AppInfoCardView(detail: detail)
             }
             .padding(.bottom, 20)
         }

@@ -8,12 +8,6 @@
 import Foundation
 import ManagedSettings
 
-struct AppUsageItem: Identifiable, Hashable {
-    let id = UUID()
-    let token: ApplicationToken
-    let duration: TimeInterval
-}
-
 struct DailyActivityModel: Identifiable {
     var id: String { dateString }
     let date: Date
@@ -40,12 +34,8 @@ struct ActivityReportViewModel: Equatable {
     let totalDuration: TimeInterval
     let yesterdayTotalDuration: TimeInterval
     var isWeekView: Bool
-    //    {
-    //        return !dailyData.isEmpty
-    //    }
     
     static func == (lhs: ActivityReportViewModel, rhs: ActivityReportViewModel) -> Bool {
-        // Считаем ViewModel "равными", если у них совпадает режим (День/Неделя)
         return lhs.isWeekView == rhs.isWeekView
     }
 }
@@ -54,6 +44,7 @@ struct AppUsageDetail: Identifiable, Hashable {
     let id = UUID()
     let token: ApplicationToken
     let totalDuration: TimeInterval
+    let totalNotifications: Int
     let dailyUsage: [Date: TimeInterval]
     let hourlyUsage: [TimeInterval]
     let application: Application

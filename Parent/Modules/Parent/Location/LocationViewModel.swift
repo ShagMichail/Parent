@@ -58,7 +58,6 @@ class LocationViewModel: ObservableObject {
         return .chartStart
     }
     
-    // ✅ НОВАЯ ФУНКЦИЯ
     func requestLocationUpdateForSelectedChild() {
         guard let child = selectedChild else { return }
         

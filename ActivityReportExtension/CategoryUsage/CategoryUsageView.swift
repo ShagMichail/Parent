@@ -1,24 +1,18 @@
 //
-//  CombinedActivityView.swift
+//  CategoryUsageView.swift
 //  Parent
 //
-//  Created by Михаил Шаговитов on 24.11.2025.
+//  Created by Michail Shagovitov on 23.12.2025.
 //
 
 import SwiftUI
 import Charts
+import FamilyControls
 
-struct AppUsageView: View {
-    let viewModel: ActivityReportViewModel
-    // ✅ ИЗМЕНЕНИЕ 1: Добавляем @State для управления сегментом "День/Неделя"
-    @State private var selectedSegment: TimeSegment = .day
-    @State private var selectedAppDetail: AppUsageDetail?
-    
-    enum TimeSegment: String, CaseIterable {
-        case day = "День"
-        case week = "Неделя"
-    }
-    
+struct CategoryUsageView: View {
+    let viewModel: CategoryReportViewModel
+    @State private var selectedCategoryDetail: CategoryUsageDetail?
+
     var body: some View {
             ScrollView {
                 VStack {
@@ -53,22 +47,25 @@ struct AppUsageView: View {
                     .padding(.bottom, 16)
                     
                     // --- Список приложений ---
-                    appsListView
+                    categoriesListView
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 20)
             }
             .background(.backgroundApps)
             .scrollIndicators(.hidden)
-            .sheet(item: $selectedAppDetail) { detail in
+            .sheet(item: $selectedCategoryDetail) { detail in
                 NavigationView {
-                    AppDetailView(detail: detail, chartType: viewModel.isWeekView ? .daily : .hourly)
+                    CategoryDetailView(
+                        detail: detail,
+                        chartType: viewModel.isWeekView ? .daily : .hourly
+                    )
                 }
             }
             .onChange(of: viewModel) { _, _ in
-                if selectedAppDetail != nil {
+                if selectedCategoryDetail != nil {
                     print("Фильтр изменился, закрываем детальное окно...")
-                    selectedAppDetail = nil
+                    selectedCategoryDetail = nil
                 }
             }
     }
@@ -177,26 +174,24 @@ struct AppUsageView: View {
     }
     
     // --- Список приложений ---
-    private var appsListView: some View {
+    private var categoriesListView: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Используемые приложения")
                 .font(.system(size: 20, weight: .semibold, design: .rounded))
                 .foregroundColor(.blackText)
             
             VStack(spacing: 0) {
-                ForEach(viewModel.apps) { appDetail in
+                ForEach(viewModel.categories) { category in
                     Button(action: {
-                        selectedAppDetail = appDetail
+                        selectedCategoryDetail = category
                     }) {
                         HStack {
-                            Label(appDetail.token).labelStyle(.iconOnly)
-                                .scaleEffect(1.2)
-                            Label(appDetail.token).labelStyle(.titleOnly)
+                            Label(category.category.token!).labelStyle(.titleOnly)
                                 .font(.system(size: 16))
                                 .foregroundColor(.blackText)
                                 .lineLimit(1)
                             Spacer()
-                            Text(formatTotalDuration(appDetail.totalDuration))
+                            Text(formatTotalDuration(category.totalDuration))
                                 .font(.system(size: 16, weight: .regular, design: .rounded))
                                 .foregroundColor(.timestamps)
                             Image(systemName: "chevron.right")
@@ -207,12 +202,12 @@ struct AppUsageView: View {
                         .padding(.horizontal, 10)
                     }
                     .buttonStyle(PlainButtonStyle())
-                    if appDetail.id != viewModel.apps.last?.id {
+                    if category.id != viewModel.categories.last?.id {
                         Divider()
                             .padding(.horizontal, 10)
                     }
                 }
-                if viewModel.apps.isEmpty {
+                if viewModel.categories.isEmpty {
                     HStack {
                         Text("Нет данных")
                             .foregroundColor(.gray)
@@ -239,13 +234,13 @@ struct AppUsageView: View {
         
         if yesterday == 0 {
             Text("Нет данных за вчера")
-                .foregroundColor(.gray)
+                .foregroundColor(.timestamps)
         } else {
             let diff = today - yesterday
             let percent = Int(abs((diff / yesterday) * 100))
-            if diff > 0 { Text("+ \(percent)% в сравнении со вчера").foregroundColor(.red) }
-            else if diff < 0 { Text("- \(percent)% в сравнении со вчера").foregroundColor(.green) }
-            else { Text("Столько же, сколько вчера").foregroundColor(.gray) }
+            if diff > 0 { Text("+ \(percent)% в сравнении со вчера").foregroundColor(.redStat) }
+            else if diff < 0 { Text("- \(percent)% в сравнении со вчера").foregroundColor(.greenStat) }
+            else { Text("Столько же, сколько вчера").foregroundColor(.timestamps) }
         }
     }
 }

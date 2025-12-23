@@ -1,77 +1,62 @@
 //
-//  CombinedActivityView.swift
+//  WebUsageView.swift
 //  Parent
 //
-//  Created by Михаил Шаговитов on 24.11.2025.
+//  Created by Michail Shagovitov on 23.12.2025.
 //
 
 import SwiftUI
 import Charts
+import FamilyControls
 
-struct AppUsageView: View {
-    let viewModel: ActivityReportViewModel
-    // ✅ ИЗМЕНЕНИЕ 1: Добавляем @State для управления сегментом "День/Неделя"
-    @State private var selectedSegment: TimeSegment = .day
-    @State private var selectedAppDetail: AppUsageDetail?
-    
-    enum TimeSegment: String, CaseIterable {
-        case day = "День"
-        case week = "Неделя"
-    }
+struct WebUsageView: View {
+    let viewModel: WebReportViewModel
+    @State private var selectedWebDetail: WebUsageDetail?
     
     var body: some View {
-            ScrollView {
-                VStack {
-                    // --- Блок "Экранное время" ---
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Экранное время")
-                            .font(.system(size: 20, weight: .semibold, design: .rounded))
-                            .foregroundColor(.blackText)
-                        
-                        VStack(alignment: .leading, spacing: 12) {
-                            
-                            // 1. Заголовок
-                            headerView
-                            
-                            // 2. Графики
-                            if viewModel.isWeekView {
-                                weekChartView
-                            } else {
-                                dayChartView
-                            }
-                            
-                            // 3. Сравнение (только для дня)
-                            if !viewModel.isWeekView {
-                                comparisonView
-                            }
-                        }
-                        .padding(.vertical, 20)
-                        .background(Color.white)
-                        .cornerRadius(20)
-                        .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
-                    }
-                    .padding(.bottom, 16)
+        ScrollView {
+            VStack {
+                // --- Блок "Экранное время" ---
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Экранное время")
+                        .font(.system(size: 20, weight: .semibold, design: .rounded))
                     
-                    // --- Список приложений ---
-                    appsListView
+                    VStack(alignment: .leading, spacing: 12) {
+                        headerView
+                        if viewModel.isWeekView { weekChartView }
+                        else { dayChartView }
+                        
+                        if !viewModel.isWeekView { comparisonView }
+                    }
+                    .padding(.vertical, 20)
+                    .background(Color(.systemBackground))
+                    .cornerRadius(20)
                 }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 20)
+                .padding(.bottom, 16)
+                
+                // --- Список сайтов ---
+                webListView
             }
-            .background(.backgroundApps)
-            .scrollIndicators(.hidden)
-            .sheet(item: $selectedAppDetail) { detail in
-                NavigationView {
-                    AppDetailView(detail: detail, chartType: viewModel.isWeekView ? .daily : .hourly)
-                }
+            .padding()
+        }
+        .background(.backgroundApps)
+        .scrollIndicators(.hidden)
+        .sheet(item: $selectedWebDetail) { detail in
+            NavigationView {
+                WebDetailView(
+                    detail: detail,
+                    chartType: viewModel.isWeekView ? .daily : .hourly
+                )
             }
-            .onChange(of: viewModel) { _, _ in
-                if selectedAppDetail != nil {
-                    print("Фильтр изменился, закрываем детальное окно...")
-                    selectedAppDetail = nil
-                }
+        }
+        .onChange(of: viewModel) { _, _ in
+            if selectedWebDetail != nil {
+                print("Фильтр изменился, закрываем детальное окно...")
+                selectedWebDetail = nil
             }
+        }
     }
+    
     
     // MARK: - Subviews
     
@@ -176,27 +161,27 @@ struct AppUsageView: View {
             .padding(.horizontal, 10)
     }
     
-    // --- Список приложений ---
-    private var appsListView: some View {
+    // --- Список сайтов ---
+    private var webListView: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Используемые приложения")
+            Text("Посещаемые сайты")
                 .font(.system(size: 20, weight: .semibold, design: .rounded))
                 .foregroundColor(.blackText)
             
             VStack(spacing: 0) {
-                ForEach(viewModel.apps) { appDetail in
+                ForEach(viewModel.websites) { detail in
                     Button(action: {
-                        selectedAppDetail = appDetail
+                        selectedWebDetail = detail
                     }) {
                         HStack {
-                            Label(appDetail.token).labelStyle(.iconOnly)
+                            Label(detail.token).labelStyle(.iconOnly)
                                 .scaleEffect(1.2)
-                            Label(appDetail.token).labelStyle(.titleOnly)
+                            Label(detail.token).labelStyle(.titleOnly)
                                 .font(.system(size: 16))
                                 .foregroundColor(.blackText)
                                 .lineLimit(1)
                             Spacer()
-                            Text(formatTotalDuration(appDetail.totalDuration))
+                            Text(formatTotalDuration(detail.totalDuration))
                                 .font(.system(size: 16, weight: .regular, design: .rounded))
                                 .foregroundColor(.timestamps)
                             Image(systemName: "chevron.right")
@@ -207,12 +192,12 @@ struct AppUsageView: View {
                         .padding(.horizontal, 10)
                     }
                     .buttonStyle(PlainButtonStyle())
-                    if appDetail.id != viewModel.apps.last?.id {
+                    if detail.id != viewModel.websites.last?.id {
                         Divider()
                             .padding(.horizontal, 10)
                     }
                 }
-                if viewModel.apps.isEmpty {
+                if viewModel.websites.isEmpty {
                     HStack {
                         Text("Нет данных")
                             .foregroundColor(.gray)

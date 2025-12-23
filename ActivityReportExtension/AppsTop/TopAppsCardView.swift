@@ -41,7 +41,7 @@ struct TopAppsCardView: View {
                                 .foregroundColor(.blackText)
                             
                             Spacer()
-                            Text(formatDuration(model.duration))
+                            Text(formatTotalDuration(model.duration))
                                 .font(.system(size: 16, weight: .regular, design: .rounded))
                                 .foregroundColor(.timestamps)
                         }
@@ -81,15 +81,5 @@ struct TopAppsCardView: View {
                 }
             )
         }
-    }
-    
-    private func formatDuration(_ duration: TimeInterval) -> String {
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.hour, .minute]
-        formatter.unitsStyle = .abbreviated
-        var calendar = Calendar.current
-        calendar.locale = Locale(identifier: "ru_RU")
-        formatter.calendar = calendar
-        return formatter.string(from: duration) ?? "0 мин"
     }
 }

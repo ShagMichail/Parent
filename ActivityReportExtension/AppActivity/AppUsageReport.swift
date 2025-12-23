@@ -146,6 +146,7 @@ struct AppUsageReport: DeviceActivityReportScene {
             return AppUsageDetail(
                 token: token,
                 totalDuration: totalDuration,
+                totalNotifications: 0,
                 dailyUsage: dailyData,
                 hourlyUsage: hourlyArray,
                 application: applications[token]!,

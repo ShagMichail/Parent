@@ -33,13 +33,15 @@ struct LocationView: View {
                         if let coordinate = viewModel.childCoordinates[child.recordID] {
                             Annotation("", coordinate: coordinate) {
                                 PinContentView(
-                                    child: child,
-                                    isSelected: child.recordID == viewModel.selectedChild?.recordID,
-                                    onTap: {
-                                        withAnimation {
-                                            viewModel.selectedChild = child
+                                    model: PinContentViewModel(
+                                        child: child,
+                                        isSelected: child.recordID == viewModel.selectedChild?.recordID,
+                                        onTap: {
+                                            withAnimation {
+                                                viewModel.selectedChild = child
+                                            }
                                         }
-                                    }
+                                    )
                                 )
                             }
                         }
@@ -68,15 +70,23 @@ struct LocationView: View {
                     HStack {
                         Spacer()
                         VStack {
-                            FloatingActionButton(iconName: "notification") {
-                                print("🔔 Кнопка 'Уведомления' нажата")
-                                // TODO: Добавьте здесь логику для перехода на экран уведомлений
-                            }
+                            FloatingActionButton(
+                                model: FloatingActionButtonModel(
+                                    iconName: "notification",
+                                    action: {
+                                        print("🔔 Кнопка 'Уведомления' нажата")
+                                    }
+                                )
+                            )
                             Spacer()
-                            FloatingActionButton(iconName: "current-location") {
-                                print("🎯 Кнопка 'Мое местоположение' нажата")
-                                // TODO: Добавьте здесь логику для центрирования карты на местоположении родителя
-                            }
+                            FloatingActionButton(
+                                model: FloatingActionButtonModel(
+                                    iconName: "current-location",
+                                    action: {
+                                        print("🎯 Кнопка 'Мое местоположение' нажата")
+                                    }
+                                )
+                            )
                             Spacer()
                         }
                     }
@@ -89,11 +99,11 @@ struct LocationView: View {
                 VStack(spacing: 0) {
                     Spacer()
                     
-                    // ✅ ИЗМЕНЕНИЕ: Инфо-карточка появляется здесь
+                    // Инфо-карточка появляется здесь
                     if let selectedChild = viewModel.selectedChild {
                         let isPingingBinding = Binding<Bool>(
                             get: { viewModel.isPinging[selectedChild.recordID, default: false] },
-                            set: { _ in } // Нам не нужен set, View не меняет это состояние
+                            set: { _ in }
                         )
                         
                         
@@ -148,28 +158,6 @@ struct LocationView: View {
         withAnimation(.easeInOut(duration: 0.5)) {
             cameraPosition = .camera(
                 MapCamera(centerCoordinate: coordinate, distance: 3000)
-            )
-        }
-    }
-}
-
-struct FloatingActionButton: View {
-    let iconName: String
-    let action: () -> Void // Замыкание, которое будет выполняться при нажатии
-
-    var body: some View {
-        Button(action: action) {
-            ZStack {
-                Image(iconName)
-                    .resizable()
-                    .font(.title3)
-                    .foregroundColor(.primary)
-                    .frame(width: 24, height: 24)
-            }
-            .frame(width: 50, height: 50)
-            .background(
-                Circle()
-                    .stroke(.accent, lineWidth: 1)
             )
         }
     }

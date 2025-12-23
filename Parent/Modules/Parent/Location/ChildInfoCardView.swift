@@ -12,7 +12,7 @@ struct ChildInfoCardView: View {
     
     let child: Child
     let address: String
-    let onRefresh: () -> Void // Замыкание для кнопки обновления
+    let onRefresh: () -> Void
     
     var body: some View {
         HStack {
