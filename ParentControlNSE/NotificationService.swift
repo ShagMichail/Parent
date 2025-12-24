@@ -8,7 +8,6 @@
 import UserNotifications
 import ManagedSettings
 import CloudKit
-import FamilyControls // На всякий случай
 import DeviceActivity
 
 class NotificationService: UNNotificationServiceExtension {
