@@ -20,7 +20,7 @@ struct EnterGenderStepView: View {
     var body: some View {
         VStack(spacing: 25) {
             Text("Выберете пол ребенка")
-                .font(.system(size: 24, weight: .medium, design: .rounded))
+                .font(.custom("Inter-Medium", size: 24))
             
             VStack(spacing: 20) {
                 RoleCardView(

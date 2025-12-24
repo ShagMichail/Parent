@@ -20,7 +20,7 @@ struct ActionCard: View {
                 VStack(alignment: .leading, spacing: 5) {
                     HStack {
                         Text(model.title)
-                            .font(.system(size: 16, weight: .medium, design: .rounded))
+                            .font(.custom("Inter-Medium", size: 16))
                             .foregroundColor(.blackText)
                             .frame(maxWidth: .infinity, alignment: .leading)
                         if model.showsArrow ?? false {
@@ -32,7 +32,7 @@ struct ActionCard: View {
                     }
                     if let status = model.status {
                         Text(status)
-                            .font(.system(size: 16, weight: .medium, design: .rounded))
+                            .font(.custom("Inter-Medium", size: 16))
                             .foregroundColor(.plusForderground)
                     }
                 }

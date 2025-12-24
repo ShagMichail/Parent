@@ -17,7 +17,7 @@ struct NavigationBar: View {
                 HStack(spacing: 12) {
                     if let mainTitle = model.mainTitle {
                         Text(mainTitle)
-                            .font(.system(size: 24, weight: .medium, design: .rounded))
+                            .font(.custom("Inter-Medium", size: 24))
                             .foregroundColor(.blackText)
                     } else if model.chevronBackward ?? false {
                         Button(action: model.onBackTap) {
@@ -32,10 +32,11 @@ struct NavigationBar: View {
                 
                 Spacer()
                 
-                HStack(spacing: 12) {
+                HStack(alignment: .center) {
                     if let subTitle = model.subTitle {
                         Text(subTitle)
-                            .font(.system(size: 16, weight: .regular, design: .rounded))
+                            .font(.custom("Inter-Regular", size: 16))
+                            .frame(maxWidth: .infinity, alignment: .center)
                             .foregroundColor(.blackText)
                     }
                 }

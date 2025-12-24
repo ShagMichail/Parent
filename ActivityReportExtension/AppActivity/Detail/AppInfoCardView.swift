@@ -19,7 +19,7 @@ struct AppInfoCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Общие сведения")
-                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                .font(.custom("Inter-SemiBold", size: 20))
                 .foregroundColor(.blackText)
             
             VStack(spacing: 0) {

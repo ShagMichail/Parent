@@ -14,11 +14,11 @@ struct ErrorView: View {
     var body: some View {
         VStack(alignment: .center, spacing: 25) {
             Text("Ошибка создания приглашения")
-                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                .font(.custom("Inter-SemiBold", size: 20))
                 .frame(maxWidth: .infinity, alignment: .center)
             
             Text(errorMessage)
-                .font(.system(size: 16, weight: .regular, design: .rounded))
+                .font(.custom("Inter-Regular", size: 16))
                 .frame(maxWidth: .infinity, alignment: .center)
             
             Image(systemName: "exclamationmark.triangle.fill")

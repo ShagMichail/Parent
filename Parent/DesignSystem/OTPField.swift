@@ -34,7 +34,7 @@ struct OTPField: View {
                 ForEach(0..<numberOfFields, id: \.self) { index in
                     let character = getCharacter(at: index)
                     Text(character)
-                        .font(.system(size: 30, weight: .medium, design: .rounded))
+                        .font(.custom("Inter-Medium", size: 30))
                         .frame(maxWidth: .infinity)
                         .frame(height: 60)
                 }

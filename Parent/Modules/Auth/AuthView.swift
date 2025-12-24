@@ -50,17 +50,16 @@ struct AuthView: View {
                         .padding(.bottom, 30)
                     
                     Text("Добро пожаловать!")
-                        .font(.system(size: 34, weight: .medium, design: .rounded))
+                        .font(.custom("Inter-Medium", size: 34))
                         .foregroundColor(.accent)
                         .padding(.bottom, 30)
                     
                     Text("Цифровая безопасность вашей семьи\nначинается здесь.")
-                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                        .font(.custom("Inter-Regular", size: 16))
                         .foregroundColor(Color.accent)
                         .multilineTextAlignment(.center)
                         .lineSpacing(4)
                         .padding(.bottom, 40)
-                    
                     // Кнопки
                     VStack(spacing: 16) {
                         
@@ -68,7 +67,7 @@ struct AuthView: View {
                             MainButton(model:
                                         MainButtonModel(
                                             title: "Зарегистрироваться",
-                                            font: .system(size: 18, weight: .regular, design: .rounded),
+                                            font: .custom("Inter-Regular", size: 18),
                                             foregroundColor: .white,
                                             cornerRadius: 12,
                                             background: Color.accent,
@@ -83,7 +82,7 @@ struct AuthView: View {
                             MainButton(model:
                                         MainButtonModel(
                                             title: "Авторизоваться",
-                                            font: .system(size: 18, weight: .regular, design: .rounded),
+                                            font: .custom("Inter-Regular", size: 18),
                                             foregroundColor: Color.accent,
                                             cornerRadius: 12,
                                             background: Color.white,

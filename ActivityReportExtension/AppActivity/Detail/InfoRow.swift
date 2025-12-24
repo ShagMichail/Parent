@@ -14,13 +14,13 @@ struct InfoRow: View {
     var body: some View {
         HStack {
             Text(title)
-                .font(.system(size: 16, weight: .regular, design: .rounded))
+                .font(.custom("Inter-Regular", size: 16))
                 .foregroundColor(.blackText)
             
             Spacer()
             
             Text(value)
-                .font(.system(size: 16, weight: .regular, design: .rounded))
+                .font(.custom("Inter-Regular", size: 16))
                 .foregroundColor(.timestamps)
         }
         .padding(.horizontal, 10)

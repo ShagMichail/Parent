@@ -20,7 +20,7 @@ struct NavigationLinkRow: View {
         Button(action: action) {
             HStack {
                 Text(title)
-                    .font(.system(size: 16, weight: .regular))
+                    .font(.custom("Inter-Regular", size: 16))
                     .foregroundColor(.blackText)
                 Spacer()
                 Image(systemName: "chevron.right")

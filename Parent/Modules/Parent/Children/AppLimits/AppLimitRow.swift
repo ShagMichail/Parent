@@ -47,7 +47,7 @@ struct AppLimitRow: View {
                 showTimePicker = true
             }) {
                 Text(formatDuration(limit.time))
-                    .font(.system(size: 16, weight: .regular))
+                    .font(.custom("Inter-Regular", size: 16))
                     .foregroundColor(.white)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
@@ -69,7 +69,7 @@ struct AppLimitRow: View {
         .sheet(isPresented: $showTimePicker) {
             VStack {
                 Text("Установить дневной лимит")
-                    .font(.system(size: 16, weight: .regular, design: .rounded))
+                    .font(.custom("Inter-Regular", size: 16))
                     .foregroundColor(.strokeTextField)
                     .padding(.top, 60)
 

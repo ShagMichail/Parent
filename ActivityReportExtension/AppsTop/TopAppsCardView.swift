@@ -15,8 +15,8 @@ struct TopAppsCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Топ приложений за сегодня")
-                .font(.system(size: 16, weight: .medium, design: .rounded))
-                .foregroundColor(Color(red: 0.122, green: 0.161, blue: 0.216)) // тут цвет
+                .font(.custom("Inter-Medium", size: 16))
+                .foregroundColor(.blackText)
             
             VStack(spacing: 16) {
                 if !apps.isEmpty {
@@ -37,12 +37,12 @@ struct TopAppsCardView: View {
                                     .foregroundColor(.timestamps)
                             }
                             Text(model.name)
-                                .font(.system(size: 16, weight: .regular, design: .rounded))
+                                .font(.custom("Inter-Regular", size: 16))
                                 .foregroundColor(.blackText)
                             
                             Spacer()
                             Text(formatTotalDuration(model.duration))
-                                .font(.system(size: 16, weight: .regular, design: .rounded))
+                                .font(.custom("Inter-Regular", size: 16))
                                 .foregroundColor(.timestamps)
                         }
                         .padding(.horizontal, 10)
@@ -57,7 +57,7 @@ struct TopAppsCardView: View {
                                 .foregroundColor(.timestamps)
                             
                             Text("Больше никакое приложение не было активным")
-                                .font(.system(size: 16, weight: .regular, design: .rounded))
+                                .font(.custom("Inter-Regular", size: 16))
                                 .foregroundColor(.timestamps)
                                 .multilineTextAlignment(.leading)
                             Spacer()

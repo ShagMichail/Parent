@@ -13,7 +13,7 @@ struct RoleCardView: View {
     var body: some View {
         VStack {
             Text(model.title)
-                .font(.system(size: 16, weight: .medium, design: .rounded))
+                .font(.custom("Inter-Medium", size: 16))
                 .foregroundColor(.black)
             Spacer()
             

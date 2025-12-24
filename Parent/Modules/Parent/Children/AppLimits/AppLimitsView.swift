@@ -46,7 +46,7 @@ struct AppLimitsView: View {
                         VStack(alignment: .leading) {
                             if viewModel.limits.isEmpty {
                                 Text("Нажмите 'Выбрать приложения', чтобы добавить ограничения.")
-                                    .font(.system(size: 14, weight: .regular, design: .rounded))
+                                    .font(.custom("Inter-Regular", size: 14))
                                     .foregroundColor(.strokeTextField)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             } else {
@@ -70,7 +70,7 @@ struct AppLimitsView: View {
                                     .resizable()
                                     .frame(width: 16, height: 16)
                                 Text("Выбрать приложения")
-                                    .font(.system(size: 16, weight: .regular))
+                                    .font(.custom("Inter-Regular", size: 16))
                             }
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity, alignment: .leading)

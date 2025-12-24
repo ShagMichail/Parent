@@ -45,7 +45,7 @@ struct WebDetailView: View {
             VStack(alignment: .leading, spacing: 20) {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Экранное время")
-                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                        .font(.custom("Inter-SemiBold", size: 20))
                         .foregroundColor(.blackText)
                     
                     VStack(alignment: .leading, spacing: 12) {
@@ -89,11 +89,11 @@ struct WebDetailView: View {
             let durationToShow = detail.totalDuration
 
             Text(formatTotalDuration(durationToShow))
-                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                .font(.custom("Inter-SemiBold", size: 18))
                 .foregroundColor(.blackText)
             Spacer()
             Text(chartType == .daily ? "Последние 7 дней" : "Сегодня, \(getDateString())")
-                .font(.system(size: 14, weight: .regular, design: .rounded))
+                .font(.custom("Inter-Regular", size: 14))
                 .foregroundColor(.data)
         }
         .padding(.horizontal, 10)
@@ -115,7 +115,7 @@ struct WebDetailView: View {
                 AxisValueLabel {
                     if let v = value.as(Int.self) {
                         Text("\(v):00")
-                            .font(.system(size: 12, weight: .regular, design: .rounded))
+                            .font(.custom("Inter-Regular", size: 12))
                             .foregroundColor(.timestamps)
                     }
                 }
@@ -127,7 +127,7 @@ struct WebDetailView: View {
                 AxisValueLabel {
                     if let s = value.as(Int.self) {
                         Text("\(s / 60)")
-                            .font(.system(size: 12, weight: .regular, design: .rounded))
+                            .font(.custom("Inter-Regular", size: 12))
                             .foregroundColor(.timestamps)
                             .padding(.trailing, 10)
                     }
@@ -153,7 +153,7 @@ struct WebDetailView: View {
                 AxisValueLabel {
                     if let s = value.as(Int.self) {
                         Text("\(s / 3600)")
-                            .font(.system(size: 12, weight: .regular, design: .rounded))
+                            .font(.custom("Inter-Regular", size: 12))
                             .foregroundColor(.timestamps)
                             .padding(.trailing, 10)
                     }

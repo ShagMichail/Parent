@@ -20,11 +20,11 @@ struct ChildDashboardView: View {
             Spacer()
             VStack(spacing: 15) {
                 Text("Привет, \(childName)!")
-                    .font(.system(size: 26, weight: .semibold, design: .rounded))
+                    .font(.custom("Inter-SemiBold", size: 26))
                     .foregroundColor(.accent)
                 
                 Text("Твой телефон подключен к семье")
-                    .font(.system(size: 18, weight: .medium, design: .rounded))
+                    .font(.custom("Inter-Medium", size: 18))
                     .foregroundColor(.accent)
                 
             }

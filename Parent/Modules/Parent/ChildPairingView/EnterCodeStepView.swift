@@ -17,7 +17,7 @@ struct EnterCodeStepView: View {
         VStack(alignment: .leading, spacing: 25) {
             
             Text("Введите уникальный код")
-                .font(.system(size: 24, weight: .semibold, design: .rounded))
+                .font(.custom("Inter-SemiBold", size: 24))
                 .frame(maxWidth: .infinity, alignment: .center)
 
             OTPField(numberOfFields: 6, code: $invitationCode)

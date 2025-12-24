@@ -22,7 +22,7 @@ struct ChildCardView: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(model.childName)
-                    .font(.system(size: 16, weight: .regular, design: .rounded))
+                    .font(.custom("Inter-Regular", size: 16))
                     .foregroundColor(.blackText)
                 
                 if model.showBatteryLevel {
@@ -31,7 +31,7 @@ struct ChildCardView: View {
                             .frame(width: 24, height: 24)
                             .foregroundColor(model.batteryLevelColor ?? .chartStart)
                         Text((model.batteryLevel ?? "100"))
-                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .font(.custom("Inter-Medium", size: 12))
                             .foregroundColor(.blackText)
                     }
                 }

@@ -104,12 +104,12 @@ struct AddFocusTimeView: View {
                             HStack {
                                 
                                     Text("Дни недели")
-                                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                                    .font(.custom("Inter-Regular", size: 16))
                                         .foregroundColor(.blackText)
                                     Spacer()
                                 HStack(spacing: 6) {
                                     Text(formatSelectedDays())
-                                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                                        .font(.custom("Inter-Regular", size: 16))
                                         .foregroundColor(.strokeTextField)
                                     
                                     Image(systemName: "chevron.right")

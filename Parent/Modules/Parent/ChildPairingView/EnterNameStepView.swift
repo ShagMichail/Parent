@@ -25,7 +25,7 @@ struct EnterNameStepView: View {
     var body: some View {
         VStack(spacing: 25) {
             Text("Как зовут ребёнка?")
-                .font(.system(size: 24, weight: .semibold, design: .rounded))
+                .font(.custom("Inter-SemiBold", size: 24))
                 .frame(maxWidth: .infinity, alignment: .center)
             
             TextField("Ваше имя", text: $childName)

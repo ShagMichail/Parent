@@ -29,7 +29,7 @@ struct CustomSegmentedControl: View {
                     }
                     
                     Text(options[index])
-                        .font(.system(size: 14, weight: isSelected ? .medium : .regular, design: .rounded))
+                        .font(isSelected ? .custom("Inter-Medium", size: 14) : .custom("Inter-Regular", size: 14))
                         .foregroundColor(isSelected ? .white : .blackText)
                         .padding(.vertical, 8)
                 }

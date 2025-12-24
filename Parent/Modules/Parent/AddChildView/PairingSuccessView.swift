@@ -14,7 +14,7 @@ struct PairingSuccessView: View {
     var body: some View {
         VStack {
             Text("Аккаунт ребёнка соединён")
-                .font(.system(size: 24, weight: .semibold, design: .rounded))
+                .font(.custom("Inter-SemiBold", size: 24))
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.horizontal, 20)
 

@@ -80,7 +80,7 @@ struct FocusSettingsView: View {
                                 Image(systemName: "pencil")
                                 Text("Изменить")
                             }
-                            .font(.system(size: 16, weight: .medium))
+                            .font(.custom("Inter-Medium", size: 16))
                             .foregroundColor(.black)
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -102,7 +102,7 @@ struct FocusSettingsView: View {
                                 Image(systemName: "trash")
                                 Text("Удалить")
                             }
-                            .font(.system(size: 16, weight: .medium))
+                            .font(.custom("Inter-Medium", size: 16))
                             .foregroundColor(.red)
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -180,7 +180,7 @@ struct FocusSettingsView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     
                     Text("Когда функция включена, пользователь сможет проверять только время, звонить родителям и использовать экстренные сигналы")
-                        .font(.system(size: 14, weight: .regular, design: .rounded))
+                        .font(.custom("Inter-Regular", size: 14))
                         .foregroundColor(.strokeTextField)
                     
                     VStack(spacing: 10) {
@@ -237,7 +237,7 @@ struct FocusSettingsView: View {
                                     .resizable()
                                     .frame(width: 16, height: 16)
                                 Text("Добавить время")
-                                    .font(.system(size: 16, weight: .regular))
+                                    .font(.custom("Inter-Regular", size: 16))
                             }
                             .foregroundColor(.focus)
                             .frame(maxWidth: .infinity, alignment: .leading)

@@ -100,7 +100,7 @@ struct MainTabView: View {
                                     Image(viewModel.isSelectedChildBlocked ? "unlock-command" : "lock-command")
                                         .resizable().frame(width: 16, height: 16)
                                     Text(viewModel.isSelectedChildBlocked ? "Разблокировать" : "Блокировать")
-                                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                                        .font(.custom("Inter-Regular", size: 16))
                                 }
                                 .padding(.vertical, 20)
                                 .padding(.horizontal, 10)

@@ -15,7 +15,7 @@ struct RoleSelectionView: View {
     var body: some View {
         VStack(spacing: 25) {
             Text("Кто вы?")
-                .font(.system(size: 24, weight: .medium, design: .rounded))
+                .font(.custom("Inter-Medium", size: 24))
             
             VStack(spacing: 20) {
                 RoleCardView(

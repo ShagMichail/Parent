@@ -17,13 +17,13 @@ struct AiSummaryCard: View {
                     .foregroundStyle(.white)
                 
                 Text("AI Сводка за сегодня")
-                    .font(.system(size: 18, weight: .medium, design: .rounded))
+                    .font(.custom("Inter-Medium", size: 18))
                     .foregroundStyle(.white)
             }
             .foregroundColor(.white)
             
             Text("Маша провела весь день продуктивно. Экранное время снизилось на 12% по сравнению со вчерашним днём. Основное время было потрачено на образовательные приложения.")
-                .font(.system(size: 16, weight: .regular, design: .rounded))
+                .font(.custom("Inter-Regular", size: 16))
                 .frame(maxWidth: .infinity)
                 .foregroundStyle(.white)
                 .lineSpacing(5)

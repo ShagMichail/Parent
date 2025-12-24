@@ -55,7 +55,7 @@ struct WebBlockView: View {
                             Image(systemName: "trash")
                             Text("Удалить")
                         }
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.custom("Inter-Medium", size: 16))
                         .foregroundColor(.red)
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -167,10 +167,9 @@ struct WebBlockView: View {
                                 .resizable()
                                 .frame(width: 16, height: 16)
                             Text("Добавить")
-                                .font(.system(size: 16, weight: .regular))
+                                .font(.custom("Inter-Regular", size: 16))
                         }
                         .foregroundColor(.white)
-//                        .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.vertical, 16)
                         .padding(.horizontal, 10)
                         .background(

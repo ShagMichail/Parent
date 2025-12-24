@@ -25,7 +25,7 @@ struct ActionTag: View {
                     .frame(width: 16, height: 16)
                 
                 Text(text)
-                    .font(.system(size: 16, weight: .regular))
+                    .font(.custom("Inter-Regular", size: 16))
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)

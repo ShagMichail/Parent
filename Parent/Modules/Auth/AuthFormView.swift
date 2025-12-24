@@ -45,7 +45,7 @@ struct AuthFormView: View {
                 .frame(width: 120, height: 120)
             
             Text(mode == .register ? "Регистрация\nвашего аккаунта" : "Вход в ваш аккаунт")
-                .font(.system(size: 36, weight: .medium, design: .rounded))
+                .font(.custom("Inter-Medium", size: 36))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
                 .lineSpacing(4)
@@ -95,7 +95,7 @@ struct AuthFormView: View {
                     MainButton(model:
                                 MainButtonModel(
                                     title: mode == .register ? "Зарегистрироваться" : "Авторизоваться",
-                                    font: .system(size: 18, weight: .regular, design: .rounded),
+                                    font: .custom("Inter-Regular", size: 18),
                                     foregroundColor: .white,
                                     cornerRadius: 12,
                                     background: Color.accent,
@@ -109,7 +109,7 @@ struct AuthFormView: View {
                 
                 HStack {
                     Text(mode == .register ? "Есть аккаунт?" : "Нет аккаунтa?")
-                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                        .font(.custom("Inter-Regular", size: 16))
                         .foregroundColor(.strokeTextField)
                     
                     Button(action: {
@@ -118,7 +118,7 @@ struct AuthFormView: View {
                         }
                     }) {
                         Text(mode == .register ? "Войти" : "Зарегистрироваться")
-                            .font(.system(size: 16, weight: .regular, design: .rounded))
+                            .font(.custom("Inter-Regular", size: 16))
                             .foregroundColor(.accent)
                     }
                 }

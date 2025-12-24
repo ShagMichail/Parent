@@ -16,7 +16,7 @@ struct AuthTextField: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(model.title)
-                .font(.system(size: 12, weight: .regular, design: .rounded))
+                .font(.custom("Inter-Regular", size: 12))
                 .foregroundColor(Color.blackText)
             
             TextField(model.placeholder, text: $text)

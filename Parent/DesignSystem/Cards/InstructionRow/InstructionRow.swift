@@ -18,12 +18,12 @@ struct InstructionRow: View {
                     .frame(width: 28, height: 39)
                 
                 Text(model.number)
-                    .font(.system(size: 16, weight: .regular, design: .rounded))
+                    .font(.custom("Inter-Regular", size: 16))
                     .foregroundColor(.white)
             }
             
             Text(model.text)
-                .font(.system(size: 16, weight: .regular, design: .rounded))
+                .font(.custom("Inter-Regular", size: 16))
                 .foregroundColor(Color.blackText)
                 .fixedSize(horizontal: false, vertical: true)
             

@@ -13,11 +13,11 @@ struct ChildCompletedView: View {
     var body: some View {
         VStack(alignment: .center, spacing: 25) {
             Text("Аккаунт готов")
-                .font(.system(size: 24, weight: .semibold, design: .rounded))
+                .font(.custom("Inter-SemiBold", size: 24))
                 .frame(maxWidth: .infinity, alignment: .center)
             
             Text("Завершите настройку на вашем устройстве")
-                .font(.system(size: 16, weight: .regular, design: .rounded))
+                .font(.custom("Inter-Regular", size: 16))
                 .frame(maxWidth: .infinity, alignment: .center)
             
             Spacer()

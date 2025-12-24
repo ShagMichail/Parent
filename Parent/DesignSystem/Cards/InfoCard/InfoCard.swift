@@ -14,7 +14,7 @@ struct InfoCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(model.title)
-                .font(.system(size: 16, weight: .medium, design: .rounded))
+                .font(.custom("Inter-Medium", size: 16))
                 .foregroundColor(.blackText)
             
             HStack(spacing: 10) {
@@ -22,7 +22,7 @@ struct InfoCard: View {
                     .frame(width: 16, height: 16)
                     .foregroundColor(.accent)
                 Text(model.location)
-                    .font(.system(size: 16, weight: .regular, design: .rounded))
+                    .font(.custom("Inter-Regular", size: 16))
                     .foregroundColor(.blackText)
                 
                 Spacer()
@@ -32,7 +32,7 @@ struct InfoCard: View {
                         .fill(model.statusColor)
                         .frame(width: 8, height: 8)
                     Text(model.status)
-                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                        .font(.custom("Inter-Regular", size: 16))
                         .foregroundColor(.blackText)
                 }
             }

@@ -18,7 +18,7 @@ struct WebBlockCardView: View {
                 .foregroundColor(.accentColor)
             
             Text(block.domain)
-                .font(.system(size: 16, weight: .regular, design: .rounded))
+                .font(.custom("Inter-Regular", size: 16))
                 .foregroundStyle(.blackText)
             
             

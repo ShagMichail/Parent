@@ -18,11 +18,11 @@ struct ChildInfoCardView: View {
         HStack {
             VStack(alignment: .leading, spacing: 10) {
                 Text(child.name)
-                    .font(.system(size: 18, weight: .medium, design: .rounded))
+                    .font(.custom("Inter-Medium", size: 18))
                     .foregroundColor(.blackText)
                 
                 Text(address)
-                    .font(.system(size: 16, weight: .regular, design: .rounded))
+                    .font(.custom("Inter-Regular", size: 16))
                     .foregroundColor(.blackText)
                     .lineLimit(2)
             }
@@ -31,7 +31,7 @@ struct ChildInfoCardView: View {
             
             VStack(spacing: 10) {
                 Text("Текущее место")
-                    .font(.system(size: 14, weight: .regular, design: .rounded))
+                    .font(.custom("Inter-Regular", size: 14))
                     .foregroundColor(.strokeTextField)
                 
                 if isPinging {

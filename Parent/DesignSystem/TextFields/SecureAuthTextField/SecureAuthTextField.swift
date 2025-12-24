@@ -27,7 +27,7 @@ struct SecureAuthTextField: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.system(size: 12, weight: .regular, design: .rounded))
+                .font(.custom("Inter-Regular", size: 12))
                 .foregroundColor(Color.blackText)
 
             ZStack(alignment: .trailing) {

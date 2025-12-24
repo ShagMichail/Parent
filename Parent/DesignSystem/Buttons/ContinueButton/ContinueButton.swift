@@ -13,7 +13,7 @@ struct ContinueButton: View {
     var body: some View {
         Button(action: model.action) {
             Text(model.title)
-                .font(.system(size: 18, weight: .regular, design: .rounded))
+                .font(.custom("Inter-Regular", size: 18))
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .padding()

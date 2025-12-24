@@ -15,7 +15,7 @@ struct ValidationErrorView: View {
             Image(systemName: "exclamationmark.circle")
             Text(text)
         }
-        .font(.system(size: 12, weight: .regular, design: .rounded))
+        .font(.custom("Inter-Regular", size: 12))
         .foregroundColor(Color.errorMessage)
         .fixedSize(horizontal: false, vertical: true)
         .transition(.opacity.combined(with: .move(edge: .top)))

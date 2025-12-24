@@ -18,11 +18,11 @@ struct TimeRow: View {
         }) {
             HStack {
                 Text(title)
-                    .font(.system(size: 16, weight: .regular, design: .rounded))
+                    .font(.custom("Inter-Regular", size: 16))
                     .foregroundColor(.blackText)
                 Spacer()
                 Text(time, style: .time)
-                    .font(.system(size: 16, weight: .regular, design: .rounded))
+                    .font(.custom("Inter-Regular", size: 16))
                     .foregroundColor(.strokeTextField)
             }
         }

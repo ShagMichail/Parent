@@ -57,7 +57,7 @@ struct AISummaryView: View {
                             Spacer()
                             HStack(spacing: 10) {
                                 Text("Сегодня")
-                                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                    .font(.custom("Inter-SemiBold", size: 16))
                                     .foregroundColor(.accent)
                                 Image(systemName: "chevron.down")
                                     .resizable()
@@ -71,7 +71,7 @@ struct AISummaryView: View {
                         VStack(alignment: .leading, spacing: 16) {
                             VStack(alignment: .leading) {
                                 Text("Общий анализ")
-                                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                                    .font(.custom("Inter-SemiBold", size: 20))
                                     .foregroundColor(.blackText)
                                 
                                 AiSummaryCard()
@@ -107,7 +107,7 @@ struct AISummaryView: View {
 
                             VStack(alignment: .leading, spacing: 10) {
                                 Text("Экранное время")
-                                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                                    .font(.custom("Inter-SemiBold", size: 20))
                                     .foregroundColor(.blackText)
                                 
                                 ZStack {

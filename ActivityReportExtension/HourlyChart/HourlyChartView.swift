@@ -19,11 +19,11 @@ struct HourlyChartView: View {
             
             HStack {
                 Text(formatTotalDuration(viewModel.todayTotalDuration))
-                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .font(.custom("Inter-SemiBold", size: 18))
                     .foregroundColor(.blackText)
                 Spacer()
                 Text("Сегодня, \(getDateString())")
-                    .font(.system(size: 14, weight: .regular, design: .rounded))
+                    .font(.custom("Inter-Regular", size: 14))
                     .foregroundColor(.data)
             }
             .padding(.horizontal, 10)
@@ -43,7 +43,7 @@ struct HourlyChartView: View {
                     AxisValueLabel {
                         if let intValue = value.as(Int.self) {
                             Text("\(intValue):00")
-                                .font(.system(size: 10, weight: .regular, design: .rounded))
+                                .font(.custom("Inter-Regular", size: 10))
                                 .foregroundColor(.timestamps)
                         }
                     }
@@ -55,7 +55,7 @@ struct HourlyChartView: View {
                     AxisValueLabel {
                         if let seconds = value.as(Int.self) {
                             Text("\(seconds / 60)")
-                                .font(.system(size: 10, weight: .regular, design: .rounded))
+                                .font(.custom("Inter-Regular", size: 10))
                                 .foregroundColor(.timestamps)
                                 .padding(.trailing, 10)
                         }
@@ -65,7 +65,7 @@ struct HourlyChartView: View {
             .frame(height: 120)
             
             getComparisonText()
-                .font(.system(size: 14, weight: .regular, design: .rounded))
+                .font(.custom("Inter-Regular", size: 14))
                 .padding(.horizontal, 10)
         }
         .padding(.vertical, 20)

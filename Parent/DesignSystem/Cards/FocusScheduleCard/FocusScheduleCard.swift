@@ -14,11 +14,11 @@ struct FocusScheduleCard: View {
         HStack {
             VStack(alignment: .leading, spacing: 6) {
                 Text(model.schedule.timeString)
-                    .font(.system(size: 16, weight: .regular))
+                    .font(.custom("Inter-Regular", size: 16))
                     .foregroundColor(.blackText)
                 
                 Text(model.schedule.daysString)
-                    .font(.system(size: 16, weight: .regular))
+                    .font(.custom("Inter-Regular", size: 16))
                     .foregroundColor(.strokeTextField)
                     .textCase(.uppercase)
             }

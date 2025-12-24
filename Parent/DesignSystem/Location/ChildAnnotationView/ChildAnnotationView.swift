@@ -27,7 +27,7 @@ struct ChildAnnotationView: View {
                 .frame(width: 64, height: 64)
                 
                 Text(model.name)
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .font(.custom("Inter-Medium", size: 12))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
                     .background(primaryColor)
@@ -48,7 +48,7 @@ struct ChildAnnotationView: View {
                 .frame(width: 10, height: 10)
                 
                 Text(model.name)
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .font(.custom("Inter-Medium", size: 12))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
                     .background(primaryColor)

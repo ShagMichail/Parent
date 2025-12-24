@@ -19,7 +19,7 @@ struct CategoryUsageView: View {
                     // --- Блок "Экранное время" ---
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Экранное время")
-                            .font(.system(size: 20, weight: .semibold, design: .rounded))
+                            .font(.custom("Inter-SemiBold", size: 20))
                             .foregroundColor(.blackText)
                         
                         VStack(alignment: .leading, spacing: 12) {
@@ -78,11 +78,11 @@ struct CategoryUsageView: View {
             let durationToShow = viewModel.isWeekView ? viewModel.dailyData.reduce(0) { $0 + $1.duration } : viewModel.totalDuration
             
             Text(formatTotalDuration(durationToShow))
-                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                .font(.custom("Inter-SemiBold", size: 18))
                 .foregroundColor(.blackText)
             Spacer()
             Text(viewModel.isWeekView ? "Последние 7 дней" : "Сегодня, \(getDateString())")
-                .font(.system(size: 14, weight: .regular, design: .rounded))
+                .font(.custom("Inter-Regular", size: 14))
                 .foregroundColor(.data)
         }
         .padding(.horizontal, 10)
@@ -110,7 +110,7 @@ struct CategoryUsageView: View {
                 AxisValueLabel {
                     if let s = value.as(Int.self) {
                         Text("\(s / 3600)")
-                            .font(.system(size: 12, weight: .regular, design: .rounded))
+                            .font(.custom("Inter-Regular", size: 12))
                             .foregroundColor(.timestamps)
                             .padding(.trailing, 10)
                     }
@@ -142,7 +142,7 @@ struct CategoryUsageView: View {
                 AxisValueLabel {
                     if let v = value.as(Int.self) {
                         Text("\(v):00")
-                            .font(.system(size: 12, weight: .regular, design: .rounded))
+                            .font(.custom("Inter-Regular", size: 12))
                             .foregroundColor(.timestamps)
                     }
                 }
@@ -154,7 +154,7 @@ struct CategoryUsageView: View {
                 AxisValueLabel {
                     if let s = value.as(Int.self) {
                         Text("\(s / 60)")
-                            .font(.system(size: 12, weight: .regular, design: .rounded))
+                            .font(.custom("Inter-Regular", size: 12))
                             .foregroundColor(.timestamps)
                             .padding(.trailing, 10)
                     }
@@ -169,7 +169,7 @@ struct CategoryUsageView: View {
     @ViewBuilder
     private var comparisonView: some View {
         getComparisonText()
-            .font(.system(size: 14, weight: .medium, design: .rounded))
+            .font(.custom("Inter-Medium", size: 14))
             .padding(.horizontal, 10)
     }
     
@@ -177,7 +177,7 @@ struct CategoryUsageView: View {
     private var categoriesListView: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Используемые приложения")
-                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                .font(.custom("Inter-SemiBold", size: 20))
                 .foregroundColor(.blackText)
             
             VStack(spacing: 0) {
@@ -192,7 +192,7 @@ struct CategoryUsageView: View {
                                 .lineLimit(1)
                             Spacer()
                             Text(formatTotalDuration(category.totalDuration))
-                                .font(.system(size: 16, weight: .regular, design: .rounded))
+                                .font(.custom("Inter-Regular", size: 16))
                                 .foregroundColor(.timestamps)
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 14))

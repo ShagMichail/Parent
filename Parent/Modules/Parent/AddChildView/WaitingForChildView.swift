@@ -15,12 +15,12 @@ struct WaitingForChildView: View {
             
             VStack(alignment: .leading, spacing: 25) {
                 Text("Вход с помощью кода")
-                    .font(.system(size: 24, weight: .semibold, design: .rounded))
+                    .font(.custom("Inter-SemiBold", size: 24))
                     .foregroundColor(.primary)
                     .frame(maxWidth: .infinity, alignment: .center)
                 
                 Text("Чтобы начать мониторинг и помочь вашему ребёнку оставаться в безопасности, подключите его устройство:")
-                    .font(.system(size: 16, weight: .regular, design: .rounded))
+                    .font(.custom("Inter-Regular", size: 16))
                     .lineSpacing(4)
                     .fixedSize(horizontal: false, vertical: true)
                 
@@ -56,7 +56,7 @@ struct WaitingForChildView: View {
                         .fill(Color.accent)
                     
                     Text(invitationCode)
-                        .font(.system(size: 36, weight: .medium, design: .rounded))
+                        .font(.custom("Inter-Medium", size: 36))
                         .kerning(4)
                         .foregroundColor(.white)
                 }

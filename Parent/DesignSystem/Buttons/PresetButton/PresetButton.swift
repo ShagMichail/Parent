@@ -16,7 +16,7 @@ struct PresetButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 14, weight: .medium))
+                .font(.custom("Inter-Medium", size: 14))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
                 .background(isActive ? .accent : Color.gray.opacity(0.1))

@@ -18,7 +18,7 @@ struct EmptyStateTopAppsCardView: View {
                     .foregroundColor(.gray.opacity(0.5))
                 
                 Text(model.message)
-                    .font(.system(size: 16, weight: .regular, design: .rounded))
+                    .font(.custom("Inter-Regular", size: 16))
                     .foregroundColor(.timestamps)
                     .multilineTextAlignment(.center)
             }

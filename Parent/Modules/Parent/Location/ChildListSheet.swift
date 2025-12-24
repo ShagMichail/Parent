@@ -15,7 +15,7 @@ struct ChildListSheet: View {
         VStack(spacing: 0) {
             HStack {
                 Text("Все устройства")
-                    .font(.system(size: 24, weight: .medium, design: .rounded))
+                    .font(.custom("Inter-Medium", size: 24))
                     .foregroundStyle(.blackText)
                 Spacer()
                 Button(action: {
@@ -38,6 +38,7 @@ struct ChildListSheet: View {
                         ChildRowView(
                             model: ChildRowViewModel(
                                 childName: child.name,
+                                childGender: child.gender,
                                 childAddress: viewModel.getStreetName(for: child.recordID),
                                 childBatteryLevel: viewModel.getBatteryText(for: child.recordID),
                                 childBatteryColor: viewModel.getBatteryColor(for: child.recordID)

@@ -22,7 +22,7 @@ struct ActionDetailsCard: View {
                     .foregroundColor(category.startColor)
                 
                 Text(category.rawValue)
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.custom("Inter-Medium", size: 16))
                     .foregroundColor(category.startColor)
                 
                 Spacer()
@@ -30,7 +30,7 @@ struct ActionDetailsCard: View {
             
             HStack {
                 Text(category.emptyStateText)
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.custom("Inter-Medium", size: 16))
                     .foregroundColor(.gray)
                 
                 Spacer()
