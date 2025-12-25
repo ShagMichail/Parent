@@ -144,7 +144,7 @@ class CloudKitManager: ObservableObject {
         )
         
         let notificationInfo = CKSubscription.NotificationInfo()
-        notificationInfo.alertBody = "Обновление настроек и сбор информации"
+        notificationInfo.alertBody = String(localized: "Updating settings and collecting information")
         notificationInfo.shouldSendMutableContent = true
         notificationInfo.shouldSendContentAvailable = true
         notificationInfo.desiredKeys = ["commandName"]
@@ -318,7 +318,7 @@ extension CloudKitManager {
         )
         
         let notificationInfo = CKSubscription.NotificationInfo()
-        notificationInfo.alertBody = "Расписание было обновлено"
+        notificationInfo.alertBody = String(localized: "The schedule has been updated")
         notificationInfo.shouldSendMutableContent = true
         notificationInfo.shouldSendContentAvailable = true
         
@@ -533,7 +533,7 @@ extension CloudKitManager {
                 return nil
             }
             
-            // ✅ ИСПРАВЛЕНИЕ 2: Используем хеш от Data как уникальный идентификатор
+            // Используем хеш от Data как уникальный идентификатор
             let tokenHash = tokenData.sha256
             
             // Формируем чистый и уникальный recordName
@@ -593,26 +593,37 @@ extension CloudKitManager {
         let subscriptionID = "app-limits-updates-\(childID)"
         
         // Удаляем старую подписку, чтобы всегда иметь актуальную
-        try? await publicDatabase.deleteSubscription(withID: subscriptionID)
+        do {
+            try await publicDatabase.deleteSubscription(withID: subscriptionID)
+            print("✅ [Child] Подписка удалена app-limits-updates")
+        } catch {
+            print("🛑 ОШИБКА УДАЛЕНИЯ ПОДПИСКИ: \(error)")
+        }
+        
         
         // Предикат: слушать изменения только для записей, предназначенных этому ребенку
         let predicate = NSPredicate(format: "targetChildID == %@ AND signalType == 'limits'", childID)
         let subscription = CKQuerySubscription(
-            recordType: "ConfigSignal", // Следим за типом записи AppLimit
+            recordType: "ConfigSignal",
             predicate: predicate,
             subscriptionID: subscriptionID,
-            // Реагируем на все возможные изменения
             options: [.firesOnRecordUpdate]
         )
         
         let notificationInfo = CKSubscription.NotificationInfo()
-        notificationInfo.alertBody = "Настройки лимитов были обновлены родителем."
+        notificationInfo.alertBody = String(localized: "The limit settings have been updated by the parent.")
         // 2. Устанавливаем флаг, который заставит систему разбудить наше РАСШИРЕНИЕ
         notificationInfo.shouldSendMutableContent = true
         subscription.notificationInfo = notificationInfo
         
-        try await publicDatabase.save(subscription)
-        print("✅ [Child] Успешно подписан на обновления лимитов.")
+        do {
+            print("▶️ [Child] Пытаемся подписаться на обновление лимитов приложений...")
+            try await publicDatabase.save(subscription)
+            print("✅ [Child] Успешно подписан на обновления лимитов.")
+            await markPendingLocationCommandAsExecuted()
+        } catch {
+            print("🛑 [Child] КРИТИЧЕСКАЯ ОШИБКА: Не удалось подписаться на обновление лимитов приложений: \(error)")
+        }
     }
     
     // Загружает все лимиты для ребенка
@@ -663,7 +674,7 @@ extension CloudKitManager {
                 return nil
             }
             
-            // ✅ ИСПРАВЛЕНИЕ 2: Используем хеш от Data как уникальный идентификатор
+            // Используем хеш от Data как уникальный идентификатор
             let tokenHash = tokenData.sha256
             
             // Формируем чистый и уникальный recordName
@@ -723,29 +734,39 @@ extension CloudKitManager {
         let subscriptionID = "app-block-updates-\(childID)"
         
         // Удаляем старую подписку, чтобы всегда иметь актуальную
-        try? await publicDatabase.deleteSubscription(withID: subscriptionID)
+        do {
+            try await publicDatabase.deleteSubscription(withID: subscriptionID)
+            print("✅ [Child] Подписка удалена app-block-updates")
+        } catch {
+            print("🛑 ОШИБКА УДАЛЕНИЯ ПОДПИСКИ: \(error)")
+        }
         
         let predicate = NSPredicate(format: "targetChildID == %@ AND signalType == 'blocks'", childID)
         
         let subscription = CKQuerySubscription(
-            recordType: "ConfigSignal", // Следим за типом записи AppLimit
+            recordType: "ConfigSignal",
             predicate: predicate,
             subscriptionID: subscriptionID,
-            // Реагируем на все возможные изменения
             options: [.firesOnRecordUpdate]
         )
         
         let notificationInfo = CKSubscription.NotificationInfo()
-        notificationInfo.alertBody = "Настройки блокировок были обновлены родителем."
+        notificationInfo.alertBody = String(localized: "The lock settings have been updated by the parent.")
         // 2. Устанавливаем флаг, который заставит систему разбудить наше РАСШИРЕНИЕ
         notificationInfo.shouldSendMutableContent = true
         subscription.notificationInfo = notificationInfo
         
-        try await publicDatabase.save(subscription)
-        print("✅ [Child] Успешно подписан на обновления блокировок.")
+        do {
+            print("▶️ [Child] Пытаемся подписаться на обновление блокировок приложений...")
+            try await publicDatabase.save(subscription)
+            print("✅ [Child] Успешно подписан на обновления блокировок приложений.")
+            await markPendingLocationCommandAsExecuted()
+        } catch {
+            print("🛑 [Child] КРИТИЧЕСКАЯ ОШИБКА: Не удалось подписаться на обновление блокировок приложений: \(error)")
+        }
     }
     
-    // ✅ НОВАЯ ФУНКЦИЯ: Загружает все лимиты для ребенка
+    // Загружает все лимиты для ребенка
     func fetchAppBlocks(for childID: String) async throws -> [AppBlock] {
         print("☁️ Загрузка существующих блокирововк для ребенка: \(childID)...")
         
@@ -783,7 +804,6 @@ extension CloudKitManager {
         
         record["targetChildID"] = childID as CKRecordValue
         record["lastUpdate"] = Date() as CKRecordValue
-        // ✅ УСТАНАВЛИВАЕМ ТИП СИГНАЛА
         record["signalType"] = "limits" as CKRecordValue
         
         // Используем операцию с .allKeys для создания/обновления
@@ -811,7 +831,6 @@ extension CloudKitManager {
 
         record["targetChildID"] = childID as CKRecordValue
         record["lastUpdate"] = Date() as CKRecordValue
-        // ✅ УСТАНАВЛИВАЕМ ТИП СИГНАЛА
         record["signalType"] = "blocks" as CKRecordValue
         
         let modifyOp = CKModifyRecordsOperation(recordsToSave: [record])
@@ -837,7 +856,6 @@ extension CloudKitManager {
 
         record["targetChildID"] = childID as CKRecordValue
         record["lastUpdate"] = Date() as CKRecordValue
-        // ✅ УСТАНАВЛИВАЕМ ТИП СИГНАЛА
         record["signalType"] = "web" as CKRecordValue
         
         let modifyOp = CKModifyRecordsOperation(recordsToSave: [record])
@@ -926,7 +944,12 @@ extension CloudKitManager {
         let subscriptionID = "web-block-updates-\(childID)"
         
         // Удаляем старую подписку, чтобы всегда иметь актуальную
-        try? await publicDatabase.deleteSubscription(withID: subscriptionID)
+        do {
+            try await publicDatabase.deleteSubscription(withID: subscriptionID)
+            print("✅ [Child] Подписка удалена web-block-updates")
+        } catch {
+            print("🛑 ОШИБКА УДАЛЕНИЯ ПОДПИСКИ: \(error)")
+        }
         
         let predicate = NSPredicate(format: "targetChildID == %@ AND signalType == 'web'", childID)
         
@@ -938,11 +961,17 @@ extension CloudKitManager {
         )
         
         let notificationInfo = CKSubscription.NotificationInfo()
-        notificationInfo.alertBody = "Настройки блокировок WEB страниц были обновлены родителем."
+        notificationInfo.alertBody = String(localized: "The WEB page blocking settings have been updated by the parent.")
         notificationInfo.shouldSendMutableContent = true
         subscription.notificationInfo = notificationInfo
         
-        try await publicDatabase.save(subscription)
-        print("✅ [Child] Успешно подписан на обновления блокировок WEB.")
+        do {
+            print("▶️ [Child] Пытаемся подписаться на обновление блокировок WEB...")
+            try await publicDatabase.save(subscription)
+            print("✅ [Child] Успешно подписан на обновления блокировок WEB.")
+            await markPendingLocationCommandAsExecuted()
+        } catch {
+            print("🛑 [Child] КРИТИЧЕСКАЯ ОШИБКА: Не удалось подписаться на обновление блокировок WEB: \(error)")
+        }
     }
 }

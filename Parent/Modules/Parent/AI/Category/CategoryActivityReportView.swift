@@ -29,14 +29,14 @@ struct CategoryActivityReportView: View {
             NavigationBar(
                 model: NavigationBarModel(
                     chevronBackward: true,
-                    subTitle: "Активное время",
+                    subTitle: String(localized: "Active time"),
                     onBackTap: { dismiss() },
                     onNotificationTap: {},
                     onConfirmTap: {}
                 )
             )
             
-            CustomSegmentedControl(selection: $selectedTab, options: ["День", "Неделя"])
+            CustomSegmentedControl(selection: $selectedTab, options: [String(localized: "Day"), String(localized: "Week")])
                 .frame(height: 34)
                 .padding(.horizontal, 90)
                 .padding(.vertical, 16)

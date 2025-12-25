@@ -122,7 +122,7 @@ class ParentDashboardViewModel: ObservableObject {
     
     func getStreetName(for childID: String) -> String {
         // Возвращаем название улицы или текст-заглушку, пока данные грузятся
-        return childStreetNames[childID, default: "Обновление локации..."]
+        return childStreetNames[childID, default: String(localized: "Location Update...")]
     }
     
     func getBatteryColor(for childID: String) -> Color {
@@ -175,7 +175,7 @@ class ParentDashboardViewModel: ObservableObject {
         do {
             guard let status = try await cloudKitManager.fetchDeviceStatus(for: child.recordID) else {
                 await MainActor.run {
-                    self.childStreetNames[child.recordID] = "Местоположение неизвестно"
+                    self.childStreetNames[child.recordID] = String(localized: "Location unknown")
                 }
                 await MainActor.run {
                     self.onlineStatuses[child.recordID] = .unknown
@@ -192,7 +192,7 @@ class ParentDashboardViewModel: ObservableObject {
             
             guard let location = status.location else {
                 await MainActor.run {
-                    self.childStreetNames[child.recordID] = "Координаты не определены"
+                    self.childStreetNames[child.recordID] = String(localized: "Coordinates are not defined")
                 }
                 return
             }
@@ -210,7 +210,7 @@ class ParentDashboardViewModel: ObservableObject {
             } catch {
                 print("❌ Ошибка геокодирования: \(error.localizedDescription)")
                 await MainActor.run {
-                    self.childStreetNames[child.recordID] = "Не удалось определить адрес"
+                    self.childStreetNames[child.recordID] = String(localized: "Couldn't determine the address")
                 }
             }
             
@@ -321,7 +321,7 @@ class ParentDashboardViewModel: ObservableObject {
             addressParts.append(poi)
         } else {
             // Если совсем ничего нет, возвращаем город
-            return placemark.locality ?? "Неизвестное место"
+            return placemark.locality ?? String(localized: "Unknown location")
         }
         
         return addressParts.joined(separator: ", ")

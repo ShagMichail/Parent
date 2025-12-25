@@ -14,13 +14,13 @@ struct RoleSelectionView: View {
     
     var body: some View {
         VStack(spacing: 25) {
-            Text("Кто вы?")
+            Text("Who are you?")
                 .font(.custom("Inter-Medium", size: 24))
             
             VStack(spacing: 20) {
                 RoleCardView(
                     model: RoleCardViewModel(
-                        title: "Родитель",
+                        title: String(localized: "Parent"),
                         imageName: "parents-art",
                         isSelected: selectedRole == .parent
                     )
@@ -33,7 +33,7 @@ struct RoleSelectionView: View {
                 
                 RoleCardView(
                     model: RoleCardViewModel(
-                        title: "Ребёнок",
+                        title: String(localized: "Child"),
                         imageName: "children-art",
                         isSelected: selectedRole == .child
                     )
@@ -53,7 +53,7 @@ struct RoleSelectionView: View {
             } else {
                 ContinueButton(
                     model: ContinueButtonModel(
-                        title: "Продолжить",
+                        title: String(localized: "Continue"),
                         isEnabled: selectedRole != nil,
                         action: {
                             Task {

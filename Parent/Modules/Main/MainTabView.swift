@@ -53,22 +53,22 @@ struct MainTabView: View {
         ZStack {
             TabView(selection: $selectedTab) {
                 LocationView(stateManager: stateManager, cloudKitManager: cloudKitManager)
-                    .tabItem { Label("Локация", image: "location-tab") }
+                    .tabItem { Label("Location", image: "location-tab") }
                     .tag(Tab.location)
                 
                 AISummaryView()
-                    .tabItem { Label("AI-Сводка", image: "shield-tick-tab") }
+                    .tabItem { Label("AI-Summary", image: "shield-tick-tab") }
                     .tag(Tab.summary)
                 
                 ParentDashboardView(
                     showBlockOverlay: $showBlockOverlay,
                     animation: animation
                 )
-                .tabItem { Label("Дети", image: "profile-user-tab") }
+                .tabItem { Label("Children", image: "profile-user-tab") }
                 .tag(Tab.children)
                 
-                Text("Настройки")
-                    .tabItem { Label("Настройки", image: "setting-tab") }
+                Text("Settings")
+                    .tabItem { Label("Settings", image: "setting-tab") }
                     .tag(Tab.settings)
             }
             .accentColor(.accent)
@@ -82,9 +82,9 @@ struct MainTabView: View {
                 ZStack(alignment: .topLeading) {
                     VStack(spacing: 24) {
                         ActionCard(model: ActionCardModel(
-                            title: "Блокировать",
+                            title: String(localized: "Block"),
                             icon: "lock-command",
-                            status: viewModel.isSelectedChildBlocked ? "Вкл." : "Выкл.",
+                            status: viewModel.isSelectedChildBlocked ? String(localized: "On.") : String(localized: "Off."),
                             action: { closeOverlay() }
                         ))
                         .frame(width: (UIScreen.main.bounds.width - 16 * 3) / 2)
@@ -99,7 +99,7 @@ struct MainTabView: View {
                                 HStack(spacing: 6) {
                                     Image(viewModel.isSelectedChildBlocked ? "unlock-command" : "lock-command")
                                         .resizable().frame(width: 16, height: 16)
-                                    Text(viewModel.isSelectedChildBlocked ? "Разблокировать" : "Блокировать")
+                                    Text(viewModel.isSelectedChildBlocked ? "Unblock" : "Block")
                                         .font(.custom("Inter-Regular", size: 16))
                                 }
                                 .padding(.vertical, 20)

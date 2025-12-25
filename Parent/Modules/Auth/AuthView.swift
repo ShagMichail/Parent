@@ -49,12 +49,12 @@ struct AuthView: View {
                         .frame(width: 120, height: 120)
                         .padding(.bottom, 30)
                     
-                    Text("Добро пожаловать!")
+                    Text("Welcome!")
                         .font(.custom("Inter-Medium", size: 34))
                         .foregroundColor(.accent)
                         .padding(.bottom, 30)
                     
-                    Text("Цифровая безопасность вашей семьи\nначинается здесь.")
+                    Text("Your family's digital security starts here.")
                         .font(.custom("Inter-Regular", size: 16))
                         .foregroundColor(Color.accent)
                         .multilineTextAlignment(.center)
@@ -66,7 +66,7 @@ struct AuthView: View {
                         NavigationLink(destination: AuthContainerView(initialMode: .register)) {
                             MainButton(model:
                                         MainButtonModel(
-                                            title: "Зарегистрироваться",
+                                            title: String(localized: "Register"),
                                             font: .custom("Inter-Regular", size: 18),
                                             foregroundColor: .white,
                                             cornerRadius: 12,
@@ -81,7 +81,7 @@ struct AuthView: View {
                         NavigationLink(destination: AuthContainerView(initialMode: .login)) {
                             MainButton(model:
                                         MainButtonModel(
-                                            title: "Авторизоваться",
+                                            title: String(localized: "Login"),
                                             font: .custom("Inter-Regular", size: 18),
                                             foregroundColor: Color.accent,
                                             cornerRadius: 12,

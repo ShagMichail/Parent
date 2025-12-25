@@ -14,7 +14,7 @@ struct TopAppsCardView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Топ приложений за сегодня")
+            Text("Top applications for today")
                 .font(.custom("Inter-Medium", size: 16))
                 .foregroundColor(.blackText)
             
@@ -56,7 +56,7 @@ struct TopAppsCardView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 6))
                                 .foregroundColor(.timestamps)
                             
-                            Text("Больше никакое приложение не было активным")
+                            Text("No other application was active.")
                                 .font(.custom("Inter-Regular", size: 16))
                                 .foregroundColor(.timestamps)
                                 .multilineTextAlignment(.leading)
@@ -68,7 +68,7 @@ struct TopAppsCardView: View {
                     EmptyStateTopAppsCardView(
                         model: EmptyStateTopAppsCardViewModel(
                             iconName: "moon.zzz.fill",
-                            message: "Пока устройством не пользовались"
+                            message: String(localized: "The device has not been used yet")
                         )
                     )
                 }

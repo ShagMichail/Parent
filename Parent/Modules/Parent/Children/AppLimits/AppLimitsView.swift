@@ -23,7 +23,7 @@ struct AppLimitsView: View {
         VStack {
             if viewModel.isLoadingInitialLimits {
                 Spacer()
-                ProgressView("Загрузка лимитов...")
+                ProgressView("Loading limits...")
                     .frame(maxWidth: .infinity)
                 Spacer()
             } else {
@@ -31,7 +31,7 @@ struct AppLimitsView: View {
                     NavigationBar(
                         model: NavigationBarModel(
                             chevronBackward: true,
-                            subTitle: "Лимиты",
+                            subTitle: String(localized: "Limits"),
                             hasConfirm: viewModel.hasChanges,
                             onBackTap: {
                                 handleBackButton()
@@ -45,7 +45,7 @@ struct AppLimitsView: View {
                     ScrollView {
                         VStack(alignment: .leading) {
                             if viewModel.limits.isEmpty {
-                                Text("Нажмите 'Выбрать приложения', чтобы добавить ограничения.")
+                                Text("Click on 'Select Applications' to add restrictions.")
                                     .font(.custom("Inter-Regular", size: 14))
                                     .foregroundColor(.strokeTextField)
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -53,7 +53,6 @@ struct AppLimitsView: View {
                                 ForEach($viewModel.limits) { $limit in
                                     AppLimitRow(limit: $limit)
                                 }
-                                .onDelete(perform: viewModel.deleteLimit)
                             }
                         }
                         .padding(.horizontal, 20)
@@ -69,7 +68,7 @@ struct AppLimitsView: View {
                                 Image(systemName: "plus.circle.fill")
                                     .resizable()
                                     .frame(width: 16, height: 16)
-                                Text("Выбрать приложения")
+                                Text("Select Applications")
                                     .font(.custom("Inter-Regular", size: 16))
                             }
                             .foregroundColor(.white)
@@ -112,16 +111,16 @@ struct AppLimitsView: View {
                 }
             )
         }
-        .alert("Несохраненные изменения", isPresented: $showUnsavedChangesAlert) {
-            Button("Выйти без сохранения", role: .destructive) {
+        .alert("Unsaved changes", isPresented: $showUnsavedChangesAlert) {
+            Button("Exit without saving", role: .destructive) {
                 showNavigationBar.toggle()
                 dismiss()
             }
-            Button("Продолжить редактирование", role: .cancel) {
+            Button("Continue editing", role: .cancel) {
                 
             }
         } message: {
-            Text("У вас есть несохраненные изменения. Если вы выйдете, они будут потеряны.")
+            Text("You have unsaved changes. If you exit, they will be lost.")
         }
     }
    

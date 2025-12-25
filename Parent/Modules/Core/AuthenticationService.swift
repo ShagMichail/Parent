@@ -39,9 +39,9 @@ class AuthenticationService: ObservableObject {
             isAuthenticated = true
             return true
         } else {
-            print("AuthService: Токен невалиден.")
-            logout()
-            return false
+//            print("AuthService: Токен невалиден.")
+//            logout()
+//            return false
         }
     }
     

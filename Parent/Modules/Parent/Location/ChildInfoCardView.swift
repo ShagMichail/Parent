@@ -30,7 +30,7 @@ struct ChildInfoCardView: View {
             Spacer()
             
             VStack(spacing: 10) {
-                Text("Текущее место")
+                Text("Current location")
                     .font(.custom("Inter-Regular", size: 14))
                     .foregroundColor(.strokeTextField)
                 

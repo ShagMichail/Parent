@@ -23,7 +23,7 @@ struct ParentDashboardView: View {
             VStack(spacing: 0) {
                 NavigationBar(
                     model: NavigationBarModel(
-                        mainTitle: "Дети",
+                        mainTitle: String(localized: "Children"),
                         hasNotification: true,
                         hasNewNotification: true,
                         onBackTap: {},
@@ -44,7 +44,7 @@ struct ParentDashboardView: View {
                         )
                         .padding(.bottom, 10)
                         
-                        if let selectedChild = viewModel.selectedChild {
+                        if viewModel.selectedChild != nil {
                             ChildDashboardDetailView(showBlockOverlay: $showBlockOverlay, animation: animation)
                                 .transition(.opacity.combined(with: .scale(scale: 0.95)))
                                 .id(reportRefreshID)
@@ -52,7 +52,7 @@ struct ParentDashboardView: View {
                                     viewModel.refreshChildStatus()
                                 }
                         } else {
-                            ContentUnavailableView("Добавьте ребенка", systemImage: "person.3.fill", description: Text("Нажмите на '+' чтобы добавить первого ребенка."))
+                            ContentUnavailableView("Add a child", systemImage: "person.3.fill", description: Text("Click on the '+' to add the first child."))
                         }
                     }
                     .padding(.bottom, 20)

@@ -31,13 +31,11 @@ class AppLimitsViewModel: ObservableObject {
     
     var child: Child?
     
-    // ✅ ИЗМЕНЕНИЕ 1: Храним "снимок" состояния, загруженного с сервера
+    // Храним "снимок" состояния, загруженного с сервера
     private var originalLimits: [AppLimit] = []
     
-    // ✅ ИЗМЕНЕНИЕ 2: Вычисляемое свойство, которое проверяет наличие изменений
+    // Вычисляемое свойство, которое проверяет наличие изменений
     var hasChanges: Bool {
-        // Сравниваем текущий массив `limits` с оригинальным.
-        // `AppLimit` должен соответствовать `Hashable`, что у нас уже есть.
         return Set(limits) != Set(originalLimits)
     }
     
@@ -57,7 +55,7 @@ class AppLimitsViewModel: ObservableObject {
                 // 2. Обновляем наш локальный массив лимитов
                 self.limits = loadedLimits
                 self.originalLimits = loadedLimits
-                // 3. ✅ САМОЕ ГЛАВНОЕ: Синхронизируем `selection`
+                // 3. Синхронизируем `selection`
                 // Мы говорим FamilyActivityPicker, какие галочки нужно проставить
                 // 1. Создаем пустой объект selection
                 var newSelection = FamilyActivitySelection()
@@ -66,7 +64,7 @@ class AppLimitsViewModel: ObservableObject {
                 let tokensToSelect = loadedLimits.map { $0.token }
                 
                 // 3. Добавляем их в selection
-                newSelection.applicationTokens = Set(tokensToSelect) // <-- Вот правильный способ!
+                newSelection.applicationTokens = Set(tokensToSelect)
                 
                 // 4. Присваиваем результат нашему @Published свойству
                 self.selection = newSelection
@@ -110,49 +108,33 @@ class AppLimitsViewModel: ObservableObject {
                 self.originalLimits = self.limits
                 print("✅ Все лимиты успешно сохранены в CloudKit.")
                 self.savingState = .success
-                self.alertTitle = "Успешно"
-                self.alertMessage = "Новые лимиты для приложений были сохранены."
+                self.alertTitle = String(localized: "Successfully")
+                self.alertMessage = String(localized: "The new limits for applications have been maintained.")
                 self.showAlert = true
                 
             } catch {
                 print("🛑 КРИТИЧЕСКАЯ ОШИБКА при сохранении лимитов: \(error.localizedDescription)")
                 self.savingState = .error(error.localizedDescription)
-                self.alertTitle = "Ошибка"
-                self.alertMessage = "Не удалось сохранить лимиты."
+                self.alertTitle = String(localized: "Error")
+                self.alertMessage = String(localized: "Couldn't save the limits.")
                 self.showAlert = true
             }
         }
     }
     
-    // ✅ ИЗМЕНЕНИЕ 1: Полностью переписанная функция
+    // Полностью переписанная функция
     func syncLimitsWithSelection() {
-        // --- Шаг A: Удаляем те лимиты, которых больше нет в selection ---
-        // Получаем множество токенов, которые ВЫБРАНЫ сейчас
         let currentSelectionTokens = selection.applicationTokens
         
-        // `removeAll` удалит из `limits` все элементы, для которых условие истинно
         limits.removeAll { limit in
-            // Если токен из нашего списка НЕ содержится в новом выборе...
             !currentSelectionTokens.contains(limit.token)
         }
         
-        // --- Шаг B: Добавляем новые приложения, которых еще нет в списке ---
         for token in currentSelectionTokens {
             if !limits.contains(where: { $0.token == token }) {
-                // Если в нашем списке еще нет такого приложения, добавляем его
                 let newLimit = AppLimit(token: token, time: 3600) // Лимит по умолчанию 1 час
                 limits.append(newLimit)
             }
         }
-    }
-    
-    // ✅ ИЗМЕНЕНИЕ 2: Новая функция для удаления по свайпу
-    func deleteLimit(at offsets: IndexSet) {
-        // Удаляем из нашего локального массива
-        limits.remove(atOffsets: offsets)
-        
-        // Теперь нужно обновить `selection`, чтобы пикер тоже "забыл" про эти приложения
-        let remainingTokens = Set(limits.map { $0.token })
-        selection.applicationTokens = remainingTokens
     }
 }

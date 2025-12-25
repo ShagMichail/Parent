@@ -32,7 +32,7 @@ struct AISummaryView: View {
             VStack(spacing: 0) {
                 NavigationBar(
                     model: NavigationBarModel(
-                        mainTitle: "AI-сводка",
+                        mainTitle: String(localized: "AI summary"),
                         hasNotification: true,
                         hasNewNotification: true,
                         onBackTap: {},
@@ -56,7 +56,7 @@ struct AISummaryView: View {
                         HStack {
                             Spacer()
                             HStack(spacing: 10) {
-                                Text("Сегодня")
+                                Text("Today")
                                     .font(.custom("Inter-SemiBold", size: 16))
                                     .foregroundColor(.accent)
                                 Image(systemName: "chevron.down")
@@ -70,7 +70,7 @@ struct AISummaryView: View {
 
                         VStack(alignment: .leading, spacing: 16) {
                             VStack(alignment: .leading) {
-                                Text("Общий анализ")
+                                Text("General analysis")
                                     .font(.custom("Inter-SemiBold", size: 20))
                                     .foregroundColor(.blackText)
                                 
@@ -82,7 +82,7 @@ struct AISummaryView: View {
                                 HStack(spacing: 10) {
                                     ForEach(ActionCategory.allCases) { category in
                                         ActionTag(
-                                            text: category.rawValue,
+                                            text: category.name,
                                             startColor: category.startColor,
                                             endColor: category.endColor,
                                             icon: category.icon,
@@ -106,7 +106,7 @@ struct AISummaryView: View {
                                 .padding(.horizontal, 20)
 
                             VStack(alignment: .leading, spacing: 10) {
-                                Text("Экранное время")
+                                Text("Screen time")
                                     .font(.custom("Inter-SemiBold", size: 20))
                                     .foregroundColor(.blackText)
                                 
@@ -126,11 +126,11 @@ struct AISummaryView: View {
                             .padding(.horizontal, 20)
 
                             VStack(spacing: 0) {
-                                NavigationLinkRow(title: "Используемые приложения")  {
+                                NavigationLinkRow(title: String(localized: "Applications used"))  {
                                     navigateToAppReport = true
                                 }
                                 Divider().padding(.horizontal, 10)
-                                NavigationLinkRow(title: "Посещаемые сайты")  {
+                                NavigationLinkRow(title: String(localized: "Sites visited"))  {
                                     navigateToWebReport = true
                                 }
                             }
@@ -153,24 +153,9 @@ struct AISummaryView: View {
             }
             .navigationBarHidden(true)
             .background(Color.roleBackground.ignoresSafeArea())
-            .background(
-                NavigationLink(
-                    destination: AppsActivityReportView(),
-                    isActive: $navigateToAppReport
-                ) { EmptyView() }.hidden()
-            )
-            .background(
-                NavigationLink(
-                    destination: WebActivityReportView(),
-                    isActive: $navigateToWebReport
-                ) { EmptyView() }.hidden()
-            )
-            .background(
-                NavigationLink(
-                    destination: CategoryActivityReportView(),
-                    isActive: $navigateToCategoryReport
-                ) { EmptyView() }.hidden()
-            )
+            .navigationDestination(isPresented: $navigateToAppReport, destination: { AppsActivityReportView()})
+            .navigationDestination(isPresented: $navigateToWebReport, destination: { WebActivityReportView()})
+            .navigationDestination(isPresented: $navigateToCategoryReport, destination: { CategoryActivityReportView()})
         }
         .onChange(of: viewModel.selectedChild) { _, _ in
             updateReport()

@@ -14,7 +14,7 @@ struct ChildListSheet: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Все устройства")
+                Text("All devices")
                     .font(.custom("Inter-Medium", size: 24))
                     .foregroundStyle(.blackText)
                 Spacer()

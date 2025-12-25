@@ -24,11 +24,11 @@ struct EnterNameStepView: View {
     
     var body: some View {
         VStack(spacing: 25) {
-            Text("Как зовут ребёнка?")
+            Text("What is the child's name?")
                 .font(.custom("Inter-SemiBold", size: 24))
                 .frame(maxWidth: .infinity, alignment: .center)
             
-            TextField("Ваше имя", text: $childName)
+            TextField("Enter a name", text: $childName)
                 .padding(12)
                 .background(Color.white)
                 .cornerRadius(12)
@@ -45,17 +45,12 @@ struct EnterNameStepView: View {
             
             // --- Кнопка действия ---
             if isLoading {
-                ProgressView("Подключение...")
+                ProgressView("Connection...")
             }
-            
-            NavigationLink(
-                destination: ChildCompletedView(),
-                isActive: $isCompletedStepActive
-            ) { EmptyView() }
-            
+
             ContinueButton(
                 model: ContinueButtonModel(
-                    title: "Продолжить",
+                    title: String(localized: "Continue"),
                     isEnabled: invitationCode.count == 6,
                     action: {
                         Task {
@@ -87,13 +82,14 @@ struct EnterNameStepView: View {
                 }
             }
         }
+        .navigationDestination(isPresented: $isCompletedStepActive, destination: { ChildCompletedView() })
     }
     
     private func acceptInvitation() async {
         // --- Проверка на пустое имя ---
         let trimmedName = childName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedName.isEmpty else {
-            errorMessage = "Пожалуйста, введите ваше имя."
+            errorMessage = String(localized: "Please enter your name.")
             return
         }
         
@@ -105,30 +101,28 @@ struct EnterNameStepView: View {
             // 1. Отправляем данные в CloudKit
             let parentID = try await CloudKitManager.shared.acceptInvitationByChild(
                 withCode: invitationCode,
-                childName: trimmedName, // Используем очищенное имя
+                childName: trimmedName,
                 childGender: childGender
             )
             print("✅ Успешно подключен к родителю \(parentID). Завершаю настройку.")
             
-            // 2. ✅ ГЛАВНОЕ ИЗМЕНЕНИЕ: Сохраняем имя локально
-            // Мы делаем это только после того, как `acceptInvitationByChild`
-            // выполнился без ошибок, чтобы не сохранять имя в случае сбоя.
+            // 2. Сохраняем имя локально
             UserDefaults.standard.set(trimmedName, forKey: childNameStorageKey)
             print("💾 Имя ребенка '\(trimmedName)' сохранено в UserDefaults.")
-            
+            // 3. Сохраняем гендер локально
             UserDefaults.standard.set(childGender, forKey: childGenderStorageKey)
-            print("💾 Имя ребенка '\(childGender)' сохранено в UserDefaults.")
+            print("💾 Гендер ребенка '\(childGender)' сохранено в UserDefaults.")
             
-            // 3. Переходим на следующий экран
+            // 4. Переходим на следующий экран
             isCompletedStepActive = true
             
         } catch {
-            // 4. Обрабатываем ошибку
+            // 5. Обрабатываем ошибку
             errorMessage = error.localizedDescription
             print("❌ Ошибка при принятии приглашения: \(error.localizedDescription)")
         }
         
-        // 5. Завершаем индикатор загрузки в любом случае
+        // 6. Завершаем индикатор загрузки в любом случае
         isLoading = false
     }
 }

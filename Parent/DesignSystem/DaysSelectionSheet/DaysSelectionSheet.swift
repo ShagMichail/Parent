@@ -17,19 +17,19 @@ struct DaysSelectionSheet: View {
             // Кастомный NavigationBar для sheet
             HStack {
                 Button(action: { dismiss() }) {
-                    Text("Отмена")
+                    Text("Cancel")
                         .foregroundColor(.blue)
                 }
                 
                 Spacer()
                 
-                Text("Выберите дни")
+                Text("Select the days")
                     .font(.headline)
                 
                 Spacer()
                 
                 Button(action: { dismiss() }) {
-                    Text("Готово")
+                    Text("Done")
                         .fontWeight(.semibold)
                         .foregroundColor(.blue)
                 }

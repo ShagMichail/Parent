@@ -34,7 +34,7 @@ struct TimeRow: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                 
-                Button("Готово") {
+                Button("Done") {
                     showingTimePicker = false
                 }
                 .padding()

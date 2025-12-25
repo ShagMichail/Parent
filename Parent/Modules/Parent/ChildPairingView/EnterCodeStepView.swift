@@ -16,7 +16,7 @@ struct EnterCodeStepView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 25) {
             
-            Text("Введите уникальный код")
+            Text("Enter a unique code")
                 .font(.custom("Inter-SemiBold", size: 24))
                 .frame(maxWidth: .infinity, alignment: .center)
 
@@ -24,7 +24,7 @@ struct EnterCodeStepView: View {
                         
             ContinueButton(
                 model: ContinueButtonModel(
-                    title: "или отсканировать код",
+                    title: String(localized: "or scan the code"),
                     isEnabled: false,
                     action: {
                         print("Hey hey")
@@ -35,14 +35,9 @@ struct EnterCodeStepView: View {
             
             Spacer()
             
-            NavigationLink(
-                destination: EnterGenderStepView(invitationCode: invitationCode),
-                isActive: $isNameStepActive
-            ) { EmptyView() }
-            
             ContinueButton(
                 model: ContinueButtonModel(
-                    title: "Продолжить",
+                    title: String(localized: "Continue"),
                     isEnabled: invitationCode.count == 6,
                     action: {
                         isNameStepActive = true
@@ -57,6 +52,7 @@ struct EnterCodeStepView: View {
         .background(Color(.systemGroupedBackground).ignoresSafeArea())
         .ignoresSafeArea(.container, edges: .bottom)
         .ignoresSafeArea(.keyboard, edges: .bottom)
+        .navigationDestination(isPresented: $isNameStepActive, destination: { EnterGenderStepView(invitationCode: invitationCode)})
     }
 }
 

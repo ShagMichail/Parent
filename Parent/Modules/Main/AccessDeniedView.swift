@@ -16,16 +16,16 @@ struct AccessDeniedView: View {
                 .font(.system(size: 60))
                 .foregroundColor(.orange)
             
-            Text("Требуется доступ")
+            Text("Access is required")
                 .font(.title)
                 .fontWeight(.bold)
             
-            Text("Для работы приложения необходимо предоставить доступ к управлению устройствами.")
+            Text("For the application to work, you must provide access to device management.")
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
                 .padding(.horizontal)
             
-            Button("Настройки") {
+            Button("Settings") {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
                     UIApplication.shared.open(url)
                 }
@@ -35,7 +35,7 @@ struct AccessDeniedView: View {
             .foregroundColor(.white)
             .cornerRadius(10)
             
-            Button("Выйти") {
+            Button("Exit") {
 //                authManager.userRole = .unknown
 //                authManager.appState = .roleSelection
             }

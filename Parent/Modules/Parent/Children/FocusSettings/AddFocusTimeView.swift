@@ -31,7 +31,6 @@ struct AddFocusTimeView: View {
         self.scheduleToEdit = scheduleToEdit
         self.onSave = onSave
         
-        // Инициализируем состояние в зависимости от режима
         switch mode {
         case .add:
             _startTime = State(initialValue: Calendar.current.date(bySettingHour: 7, minute: 0, second: 0, of: Date()) ?? Date())
@@ -55,8 +54,8 @@ struct AddFocusTimeView: View {
                     chevronBackward: true,
                     subTitle: {
                         switch mode {
-                        case .add: return "Добавить время фокусировки"
-                        case .edit: return "Редактировать время фокусировки"
+                        case .add: return String(localized: "Add focus time")
+                        case .edit: return String(localized: "Edit focus time")
                         }
                     }(),
                     hasConfirm: true,
@@ -77,7 +76,7 @@ struct AddFocusTimeView: View {
                     VStack(alignment: .leading) {
                         
                         VStack(spacing: 0) {
-                            TimeRow(title: "Начало", time: $startTime)
+                            TimeRow(title: String(localized: "Start"), time: $startTime)
                                 .padding(.top, 20)
                                 .padding(.bottom, 15)
                                 .padding(.horizontal, 10)
@@ -85,7 +84,7 @@ struct AddFocusTimeView: View {
                             Divider()
                                 .padding(.horizontal, 10)
                             
-                            TimeRow(title: "Конец", time: $endTime)
+                            TimeRow(title: String(localized: "End"), time: $endTime)
                                 .padding(.bottom, 20)
                                 .padding(.top, 15)
                                 .padding(.horizontal, 10)
@@ -103,7 +102,7 @@ struct AddFocusTimeView: View {
                         Button(action: { showingDaysSheet = true }) {
                             HStack {
                                 
-                                    Text("Дни недели")
+                                Text("Weekday")
                                     .font(.custom("Inter-Regular", size: 16))
                                         .foregroundColor(.blackText)
                                     Spacer()
@@ -128,19 +127,19 @@ struct AddFocusTimeView: View {
                         // Быстрые кнопки
                         HStack(spacing: 12) {
                             PresetButton(
-                                title: "пн-пт",
+                                title: String(localized: "mon-fri"),
                                 isActive: isWeekdaysSelected,
                                 action: { selectedDays = [.monday, .tuesday, .wednesday, .thursday, .friday] }
                             )
                             
                             PresetButton(
-                                title: "сб-вс",
+                                title: String(localized: "sat-sun"),
                                 isActive: isWeekendSelected,
                                 action: { selectedDays = [.saturday, .sunday] }
                             )
                             
                             PresetButton(
-                                title: "Все",
+                                title: String(localized: "All"),
                                 isActive: isAllDaysSelected,
                                 action: { selectedDays = Set(FocusSchedule.Weekday.allCases) }
                             )
@@ -150,7 +149,7 @@ struct AddFocusTimeView: View {
                     // Переключатель активности
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Text("Активно")
+                            Text("Actively")
                                 .foregroundColor(.blackText)
                             
                             Spacer()
@@ -177,8 +176,8 @@ struct AddFocusTimeView: View {
         .sheet(isPresented: $showingDaysSheet) {
             DaysSelectionSheet(selectedDays: $selectedDays)
         }
-        .alert("Ошибка времени", isPresented: $showingAlert) {
-            Button("ОК", role: .cancel) { }
+        .alert("Time error", isPresented: $showingAlert) {
+            Button("Continue", role: .cancel) { }
         } message: {
             Text(alertMessage)
         }
@@ -200,10 +199,10 @@ struct AddFocusTimeView: View {
     }
     
     private func formatSelectedDays() -> String {
-        if selectedDays.isEmpty { return "Не выбрано" }
-        if isAllDaysSelected { return "Каждый день" }
-        if isWeekdaysSelected { return "пн-пт" }
-        if isWeekendSelected { return "сб-вс" }
+        if selectedDays.isEmpty { return String(localized: "Not selected") }
+        if isAllDaysSelected { return String(localized: "Every day") }
+        if isWeekdaysSelected { return String(localized: "mon-fri") }
+        if isWeekendSelected { return String(localized: "sat-sun") }
         
         let sortedDays = selectedDays.sorted { $0.rawValue < $1.rawValue }
         return sortedDays.map { $0.shortName }.joined(separator: ", ")
@@ -230,19 +229,19 @@ struct AddFocusTimeView: View {
         
         // Сама проверка (15 минут = 15)
         if diff < 15 {
-            alertMessage = "Минимальное время фокусировки — 15 минут."
+            alertMessage = String(localized: "The minimum time limit is 15 minutes.")
             showingAlert = true
             return // 🛑 Прерываем сохранение
         }
         
-        // 2. ПРОВЕРКА ДНЕЙ (Опционально, но полезно)
+        // 2. ПРОВЕРКА ДНЕЙ
         if selectedDays.isEmpty {
-            alertMessage = "Выберите хотя бы один день недели."
+            alertMessage = String(localized: "Choose at least one day of the week.")
             showingAlert = true
             return
         }
         
-        // 3. СОХРАНЕНИЕ (Если все ок)
+        // 3. СОХРАНЕНИЕ
         let schedule: FocusSchedule
         
         switch mode {
@@ -255,7 +254,6 @@ struct AddFocusTimeView: View {
             )
             
         case .edit(let originalSchedule):
-            // Для редактирования важно сохранить старый ID
             schedule = FocusSchedule(
                 id: originalSchedule.id,
                 startTime: startTime,

@@ -13,7 +13,7 @@ struct ErrorView: View {
 
     var body: some View {
         VStack(alignment: .center, spacing: 25) {
-            Text("Ошибка создания приглашения")
+            Text("Invitation creation error")
                 .font(.custom("Inter-SemiBold", size: 20))
                 .frame(maxWidth: .infinity, alignment: .center)
             
@@ -30,7 +30,7 @@ struct ErrorView: View {
             Button(action: onRetry) {
                 ContinueButton(
                     model: ContinueButtonModel(
-                        title: "Попробовать снова",
+                        title: String(localized: "Try again"),
                         isEnabled: true,
                         action: {
                             

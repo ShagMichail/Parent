@@ -8,28 +8,19 @@
 import SwiftUI
 
 struct AppLimitRow: View {
-    // Binding к нашему лимиту
     @Binding var limit: AppLimit
     
-    // State для показа/скрытия пикера
     @State private var showTimePicker = false
 
-    /// "Прокси" Binding, который конвертирует TimeInterval в Date и обратно
     private var timeBinding: Binding<Date> {
         Binding<Date>(
-            // GET: Превращаем секунды в Date
             get: {
-                // Создаем "нулевую" дату (начало сегодняшнего дня)
                 let calendar = Calendar.current
                 let today = calendar.startOfDay(for: Date())
-                // Прибавляем к ней наш лимит в секундах
                 return today.addingTimeInterval(limit.time)
             },
-            // SET: Превращаем Date из пикера обратно в секунды
             set: { newDate in
                 let calendar = Calendar.current
-                let today = calendar.startOfDay(for: Date())
-                // Вычисляем разницу в секундах между выбранным временем и началом дня
                 let components = calendar.dateComponents([.hour, .minute], from: newDate)
                 let newTimeInSeconds = TimeInterval((components.hour ?? 0) * 3600 + (components.minute ?? 0) * 60)
                 limit.time = newTimeInSeconds
@@ -68,7 +59,7 @@ struct AppLimitRow: View {
         .contentShape(Rectangle())
         .sheet(isPresented: $showTimePicker) {
             VStack {
-                Text("Установить дневной лимит")
+                Text("Set a daily limit")
                     .font(.custom("Inter-Regular", size: 16))
                     .foregroundColor(.strokeTextField)
                     .padding(.top, 60)
@@ -81,7 +72,7 @@ struct AppLimitRow: View {
                 .datePickerStyle(.wheel)
                 .labelsHidden()
                 
-                Button("Готово") {
+                Button("Done") {
                     showTimePicker = false
                 }
                 .buttonStyle(.borderedProminent)
@@ -97,10 +88,11 @@ struct AppLimitRow: View {
         formatter.unitsStyle = .abbreviated // "1ч 30м"
         formatter.allowedUnits = [.hour, .minute]
         var calendar = Calendar.current
+        // НАДО предусмотреть локализацию от страны
         calendar.locale = Locale(identifier: "ru_RU")
         formatter.calendar = calendar
         if duration == 0 {
-            return "Без лимита"
+            return String(localized: "No limit")
         }
         
         return formatter.string(from: duration) ?? ""

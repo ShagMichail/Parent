@@ -11,12 +11,7 @@ struct WebBlockCardView: View {
     let block: WebBlock
     
     var body: some View {
-        HStack {
-            // Можно добавить иконку, например "globe"
-            Image(systemName: "globe")
-                .font(.title2)
-                .foregroundColor(.accentColor)
-            
+        HStack {            
             Text(block.domain)
                 .font(.custom("Inter-Regular", size: 16))
                 .foregroundStyle(.blackText)

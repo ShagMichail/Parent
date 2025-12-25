@@ -20,27 +20,28 @@ struct FocusSchedule: Identifiable, Codable {
         case sunday = 1, monday, tuesday, wednesday, thursday, friday, saturday
         
         var id: Int { self.rawValue }
+
         var shortName: String {
             switch self {
-            case .monday: return "ПН"
-            case .tuesday: return "ВТ"
-            case .wednesday: return "СР"
-            case .thursday: return "ЧТ"
-            case .friday: return "ПТ"
-            case .saturday: return "СБ"
-            case .sunday: return "ВС"
+            case .monday: return String(localized: "Mon")
+            case .tuesday: return String(localized: "Tue")
+            case .wednesday: return String(localized: "Wed")
+            case .thursday: return String(localized: "Thu")
+            case .friday: return String(localized: "Fri")
+            case .saturday: return String(localized: "Sat")
+            case .sunday: return String(localized: "Sun")
             }
         }
         
         var fullName: String {
             switch self {
-            case .monday: return "Понедельник"
-            case .tuesday: return "Вторник"
-            case .wednesday: return "Среда"
-            case .thursday: return "Четверг"
-            case .friday: return "Пятница"
-            case .saturday: return "Суббота"
-            case .sunday: return "Воскресенье"
+            case .monday: return String(localized: "Monday")
+            case .tuesday: return String(localized: "Tuesday")
+            case .wednesday: return String(localized: "Wednesday")
+            case .thursday: return String(localized: "Thursday")
+            case .friday: return String(localized: "Friday")
+            case .saturday: return String(localized: "Saturday")
+            case .sunday: return String(localized: "Sunday")
             }
         }
     }
@@ -53,14 +54,14 @@ struct FocusSchedule: Identifiable, Codable {
     }
     
     var daysString: String {
-        if daysOfWeek.isEmpty { return "Никогда" }
-        if daysOfWeek.count == 7 { return "Каждый день" }
+        if daysOfWeek.isEmpty { return String(localized: "Never") }
+        if daysOfWeek.count == 7 { return String(localized: "Every day") }
         
         // Проверяем, если выбраны только рабочие дни (пн-пт)
         let weekdays: Set<Weekday> = [.monday, .tuesday, .wednesday, .thursday, .friday]
         let selectedSet = Set(daysOfWeek)
         if selectedSet == weekdays && daysOfWeek.count == 5 {
-            return "ПН–ПТ"
+            return String(localized: "Mon–Fri")
         }
         
         // Сортируем дни по порядку недели

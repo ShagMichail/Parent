@@ -29,14 +29,14 @@ struct AppsActivityReportView: View {
             NavigationBar(
                 model: NavigationBarModel(
                     chevronBackward: true,
-                    subTitle: "Приложения",
+                    subTitle: String(localized: "Applications"),
                     onBackTap: { dismiss() },
                     onNotificationTap: {},
                     onConfirmTap: {}
                 )
             )
             
-            CustomSegmentedControl(selection: $selectedTab, options: ["День", "Неделя"])
+            CustomSegmentedControl(selection: $selectedTab, options: [String(localized: "Day"), String(localized: "Week")])
                 .frame(height: 34)
                 .padding(.horizontal, 90)
                 .padding(.vertical, 16)

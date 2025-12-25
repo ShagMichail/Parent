@@ -28,10 +28,6 @@ class AuthViewModel: ObservableObject {
     }
     
     // MARK: - Public Methods
-    
-    // Убедись, что у тебя есть доступ к этим свойствам в View или ViewModel
-    // @EnvironmentObject var authService: AuthenticationService
-    // @EnvironmentObject var stateManager: AppStateManager
 
     func submit(authService: AuthenticationService, stateManager: AppStateManager) {
         showValidationErrors = true
@@ -44,7 +40,7 @@ class AuthViewModel: ObservableObject {
                 serverError = nil
             }
             
-            do {
+//            do {
                 let token: String
                 
                 // 1. Выполняем запрос к API (раскомментируй свои вызовы)
@@ -62,11 +58,11 @@ class AuthViewModel: ObservableObject {
                 
                 await stateManager.initializeApp()
 //                stateManager.parentDidAuthenticate()
-            } catch {
-                await MainActor.run {
-                    serverError = error.localizedDescription
-                }
-            }
+//            } catch {
+//                await MainActor.run {
+//                    serverError = error.localizedDescription
+//                }
+//            }
             
             await MainActor.run {
                 isLoading = false
@@ -81,7 +77,7 @@ class AuthViewModel: ObservableObject {
             .map(\.email)
             .sink { [weak self] email in
                 if email.isEmpty {
-                    self?.emailValidation = FieldValidationState(isValid: false, error: "Поле E-mail не может быть пустым")
+                    self?.emailValidation = FieldValidationState(isValid: false, error: String(localized: "The Mail field cannot be empty"))
                 }
                 // В будущем можно добавить проверку формата
                 // else if !email.isValidEmailFormat() {
@@ -127,7 +123,7 @@ class AuthViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
-    // --- НОВЫЙ КОД: Функция валидации Email ---
+    // --- Функция валидации Email ---
     //    private func validateEmail(_ email: String) {
     //        // Просто проверяем на пустоту. В будущем можно добавить проверку формата.
     //        validationState.isEmailValid = !email.isEmpty

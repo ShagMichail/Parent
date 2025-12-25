@@ -14,8 +14,8 @@ struct AppUsageView: View {
     @State private var selectedAppDetail: AppUsageDetail?
     
     enum TimeSegment: String, CaseIterable {
-        case day = "День"
-        case week = "Неделя"
+        case day = "Day"
+        case week = "Week"
     }
     
     var body: some View {
@@ -23,7 +23,7 @@ struct AppUsageView: View {
                 VStack {
                     // --- Блок "Экранное время" ---
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Экранное время")
+                        Text("Screen time")
                             .font(.custom("Inter-SemiBold", size: 20))
                             .foregroundColor(.blackText)
                         
@@ -83,9 +83,21 @@ struct AppUsageView: View {
                 .font(.custom("Inter-SemiBold", size: 18))
                 .foregroundColor(.blackText)
             Spacer()
-            Text(viewModel.isWeekView ? "Последние 7 дней" : "Сегодня, \(getDateString())")
+            // надо придумать правильный перевод
                 .font(.custom("Inter-Regular", size: 14))
                 .foregroundColor(.data)
+            if viewModel.isWeekView {
+                Text("The last 7 days")
+                    .font(.custom("Inter-Regular", size: 14))
+                    .foregroundColor(.data)
+            } else {
+                HStack(spacing: 4) {
+                    Text("Today,")
+                    Text("\(getDateString())")
+                }
+                .font(.custom("Inter-Regular", size: 14))
+                .foregroundColor(.data)
+            }
         }
         .padding(.horizontal, 10)
     }
@@ -95,8 +107,8 @@ struct AppUsageView: View {
         Chart {
             ForEach(viewModel.dailyData) { item in
                 BarMark(
-                    x: .value("День", item.dateString),
-                    y: .value("Секунды", item.duration)
+                    x: .value("Day", item.dateString),
+                    y: .value("Seconds", item.duration)
                 )
                 .foregroundStyle(.accent)
                 .cornerRadius(3)
@@ -127,8 +139,8 @@ struct AppUsageView: View {
         Chart {
             ForEach(viewModel.hourlyData) { item in
                 BarMark(
-                    x: .value("Час", item.hour),
-                    y: .value("Секунды", item.duration)
+                    x: .value("Hour", item.hour),
+                    y: .value("Seconds", item.duration)
                 )
                 .foregroundStyle(.accent)
                 .cornerRadius(3)
@@ -178,7 +190,7 @@ struct AppUsageView: View {
     // --- Список приложений ---
     private var appsListView: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Используемые приложения")
+            Text("Applications used")
                 .font(.custom("Inter-SemiBold", size: 20))
                 .foregroundColor(.blackText)
             
@@ -213,7 +225,7 @@ struct AppUsageView: View {
                 }
                 if viewModel.apps.isEmpty {
                     HStack {
-                        Text("Нет данных")
+                        Text("No data available")
                             .foregroundColor(.gray)
                             .multilineTextAlignment(.leading)
                             .padding(.vertical, 20)
@@ -237,14 +249,27 @@ struct AppUsageView: View {
         let yesterday = viewModel.yesterdayTotalDuration
         
         if yesterday == 0 {
-            Text("Нет данных за вчера")
-                .foregroundColor(.gray)
+            Text("No data for yesterday")
+                .foregroundColor(.timestamps)
         } else {
             let diff = today - yesterday
             let percent = Int(abs((diff / yesterday) * 100))
-            if diff > 0 { Text("+ \(percent)% в сравнении со вчера").foregroundColor(.red) }
-            else if diff < 0 { Text("- \(percent)% в сравнении со вчера").foregroundColor(.green) }
-            else { Text("Столько же, сколько вчера").foregroundColor(.gray) }
+            if diff > 0 {
+                HStack(spacing: 4) {
+                    Text("+ \(percent)%")
+                    Text("compared to yesterday")
+                }
+                .foregroundColor(.redStat)
+            } else if diff < 0 {
+                HStack(spacing: 4) {
+                    Text("- \(percent)%")
+                    Text("compared to yesterday")
+                }
+                .foregroundColor(.greenStat)
+            } else {
+                Text("The same amount as yesterday")
+                    .foregroundColor(.timestamps)
+            }
         }
     }
 }

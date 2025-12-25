@@ -65,13 +65,13 @@ class WebBlockViewModel: ObservableObject {
                 
                 self.originalBlocks = self.blocks // Обновляем "снимок"
                 self.savingState = .success
-                self.alertTitle = "Успешно"
-                self.alertMessage = "Настройки блокировки сайтов сохранены."
+                self.alertTitle = String(localized: "Successfully")
+                self.alertMessage = String(localized: "The site blocking settings are saved.")
                 self.showAlert = true
             } catch {
                 self.savingState = .error(error.localizedDescription)
-                self.alertTitle = "Ошибка"
-                self.alertMessage = "Не удалось сохранить настройки."
+                self.alertTitle = String(localized: "Error")
+                self.alertMessage = String(localized: "Couldn't save settings.")
                 self.showAlert = true
             }
         }
@@ -87,7 +87,7 @@ class WebBlockViewModel: ObservableObject {
         blocks.append(WebBlock(domain: cleanedDomain))
     }
     
-    /// Удаляет домен по свайпу
+    /// Удаляет домен
     func deleteBlock(_ blockToDelete: WebBlock) {
         blocks.removeAll { $0.id == blockToDelete.id }
     }

@@ -19,13 +19,13 @@ struct EnterGenderStepView: View {
     
     var body: some View {
         VStack(spacing: 25) {
-            Text("Выберете пол ребенка")
+            Text("Choose the gender of the child")
                 .font(.custom("Inter-Medium", size: 24))
             
             VStack(spacing: 20) {
                 RoleCardView(
                     model: RoleCardViewModel(
-                        title: "Мальчик",
+                        title: String(localized: "Boy"),
                         imageName: "men",
                         isSelected: selectedRole == .men
                     )
@@ -38,7 +38,7 @@ struct EnterGenderStepView: View {
                 
                 RoleCardView(
                     model: RoleCardViewModel(
-                        title: "Девочка",
+                        title: String(localized: "Girl"),
                         imageName: "girl",
                         isSelected: selectedRole == .girl
                     )
@@ -52,18 +52,13 @@ struct EnterGenderStepView: View {
             
             Spacer()
             
-            NavigationLink(
-                destination: EnterNameStepView(invitationCode: invitationCode, childGender: selectedRole?.rawValue ?? "unknown"),
-                isActive: $isGenderStepActive
-            ) { EmptyView() }
-            
             if isLoading {
                 ProgressView()
                     .frame(height: 50)
             } else {
                 ContinueButton(
                     model: ContinueButtonModel(
-                        title: "Продолжить",
+                        title: String(localized: "Continue"),
                         isEnabled: selectedRole != nil,
                         action: {
                             isGenderStepActive = true
@@ -94,5 +89,6 @@ struct EnterGenderStepView: View {
                 }
             }
         }
+        .navigationDestination(isPresented: $isGenderStepActive, destination: { EnterNameStepView(invitationCode: invitationCode, childGender: selectedRole?.rawValue ?? "unknown")})
     }
 }

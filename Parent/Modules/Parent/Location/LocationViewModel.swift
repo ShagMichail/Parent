@@ -42,7 +42,7 @@ class LocationViewModel: ObservableObject {
     // MARK: - Public Methods
 
     func getStreetName(for childID: String) -> String {
-        return childStreetNames[childID, default: "Обновление..."]
+        return childStreetNames[childID, default: String(localized: "Update...")]
     }
 
     func getBatteryText(for childID: String) -> String {
@@ -135,19 +135,19 @@ class LocationViewModel: ObservableObject {
             .store(in: &cancellables)
             
         // При смене ребенка или при первом запуске - обновляем данные
-        $selectedChild
-            .sink { [weak self] _ in
+//        $selectedChild
+//            .sink { [weak self] _ in
                 // Можно добавить логику обновления только для выбранного,
                 // но fetchAllStatuses уже достаточно оптимизирован.
-            }
-            .store(in: &cancellables)
+//            }
+//            .store(in: &cancellables)
     }
     
     /// Главная логика загрузки и обработки данных для ОДНОГО ребенка
     private func fetchAndProcessStatus(for child: Child) async {
         do {
             guard let status = try await cloudKitManager.fetchDeviceStatus(for: child.recordID) else {
-                self.childStreetNames[child.recordID] = "Нет данных о местоположении"
+                self.childStreetNames[child.recordID] = String(localized: "No location data available")
                 return
             }
             
@@ -156,12 +156,12 @@ class LocationViewModel: ObservableObject {
                 self.childCoordinates[child.recordID] = location.coordinate
                 await self.reverseGeocode(location: location, for: child.recordID)
             } else {
-                self.childStreetNames[child.recordID] = "Координаты не определены"
+                self.childStreetNames[child.recordID] = String(localized: "Coordinates are not defined")
             }
             
         } catch {
             print("❌ Ошибка загрузки статуса для \(child.name): \(error)")
-            self.childStreetNames[child.recordID] = "Ошибка загрузки"
+            self.childStreetNames[child.recordID] = String(localized: "Download error")
         }
     }
     
@@ -174,7 +174,7 @@ class LocationViewModel: ObservableObject {
             }
         } catch {
             print("❌ Ошибка геокодирования: \(error.localizedDescription)")
-            self.childStreetNames[childID] = "Не удалось определить адрес"
+            self.childStreetNames[childID] = String(localized: "Couldn't determine the address")
         }
     }
     
@@ -188,7 +188,7 @@ class LocationViewModel: ObservableObject {
         } else if let poi = placemark.name {
             addressParts.append(poi)
         } else {
-            return placemark.locality ?? "Неизвестное место"
+            return placemark.locality ?? String(localized: "Unknown location")
         }
         return addressParts.joined(separator: ", ")
     }

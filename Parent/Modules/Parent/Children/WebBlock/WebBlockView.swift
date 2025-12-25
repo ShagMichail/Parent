@@ -16,7 +16,6 @@ struct WebBlockView: View {
     @State private var showUnsavedChangesAlert = false
     @Environment(\.dismiss) var dismiss
     
-    // ✅ Namespace для анимации
     @Namespace private var animationNamespace
 
     var body: some View {
@@ -53,7 +52,7 @@ struct WebBlockView: View {
                     } label: {
                         HStack {
                             Image(systemName: "trash")
-                            Text("Удалить")
+                            Text("Remove")
                         }
                         .font(.custom("Inter-Medium", size: 16))
                         .foregroundColor(.red)
@@ -87,11 +86,16 @@ struct WebBlockView: View {
                 }
             )
         }
-        .alert("Несохраненные изменения", isPresented: $showUnsavedChangesAlert) {
-            Button("Выйти", role: .destructive) { dismiss() }
-            Button("Остаться", role: .cancel) {}
+        .alert("Unsaved changes", isPresented: $showUnsavedChangesAlert) {
+            Button("Exit without saving", role: .destructive) {
+                showNavigationBar.toggle()
+                dismiss()
+            }
+            Button("Continue editing", role: .cancel) {
+                
+            }
         } message: {
-            Text("У вас есть несохраненные изменения. Они не будут сохранены.")
+            Text("You have unsaved changes. If you exit, they will be lost.")
         }
     }
     
@@ -101,7 +105,7 @@ struct WebBlockView: View {
             NavigationBar(
                 model: NavigationBarModel(
                     chevronBackward: true,
-                    subTitle: "Блокировка сайтов",
+                    subTitle: String(localized: "Website blocking"),
                     hasConfirm: viewModel.hasChanges,
                     onBackTap: {
                         handleBackButton()
@@ -115,17 +119,17 @@ struct WebBlockView: View {
             
             if viewModel.isLoadingInitialBlocks {
                 Spacer()
-                ProgressView("Загрузка...")
+                ProgressView("Loading...")
                     .frame(maxWidth: .infinity)
                 Spacer()
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 10) {
                         if viewModel.blocks.isEmpty {
-                            Text("Добавьте домен, чтобы заблокировать сайт.")
+                            Text("Add a domain to block the site.")
                         } else {
                             ForEach(viewModel.blocks) { block in
-                                // ✅ ИЗМЕНЕНИЕ: Логика для анимации
+                                // Логика для анимации
                                 if viewModel.selectedBlockForActions?.id == block.id {
                                     // Оставляем "дырку", пока карточка "летает"
                                     Rectangle().fill(Color.clear).frame(height: 70)
@@ -166,7 +170,7 @@ struct WebBlockView: View {
                             Image(systemName: "plus.circle.fill")
                                 .resizable()
                                 .frame(width: 16, height: 16)
-                            Text("Добавить")
+                            Text("Add a domain")
                                 .font(.custom("Inter-Regular", size: 16))
                         }
                         .foregroundColor(.white)

@@ -57,15 +57,15 @@ struct SecureAuthTextField: View {
             if viewModel.showValidationErrors {
                 if validationField == .password {
                     if !viewModel.passwordValidation.isLongEnough {
-                        ValidationErrorView(text: "Пароль должен быть не короче 8 символов")
+                        ValidationErrorView(text: String(localized: "Password must be no shorter than 8 characters"))
                     }
                     if !viewModel.passwordValidation.hasCapitalAndDigit {
-                        ValidationErrorView(text: "Пароль должен содержать хотя бы одну заглавную букву и одну цифру")
+                        ValidationErrorView(text: String(localized: "Password must contain at least one capital letter and one number"))
                     }
                 }
                 
                 if validationField == .confirmPassword && !text.isEmpty && !viewModel.passwordValidation.passwordsMatch {
-                    ValidationErrorView(text: "Пароли должны совпадать")
+                    ValidationErrorView(text: String(localized: "Passwords must match"))
                 }
             }
         }

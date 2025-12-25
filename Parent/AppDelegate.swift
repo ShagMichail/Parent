@@ -166,7 +166,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             }
             
             Task {
-                await FocusScheduleManager.shared.syncWithDeviceActivityFromCache()
+                FocusScheduleManager.shared.syncWithDeviceActivityFromCache()
                 print("✅ [AppDelegate] Синхронизация расписаний завершена.")
                 completionHandler(.newData)
                 if bgTaskID != .invalid {

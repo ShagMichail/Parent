@@ -33,7 +33,6 @@ class LocationManager: NSObject, ObservableObject {
         super.init()
         
         setupLocationManager()
-        // ✅ Включаем мониторинг батареи
         UIDevice.current.isBatteryMonitoringEnabled = true
         
         print("📍 LocationManager инициализирован. Статус: \(authorizationStatus.rawValue)")
@@ -120,6 +119,7 @@ class LocationManager: NSObject, ObservableObject {
     
     private func addToHistory(_ location: CLLocation) {
         let historyItem = LocationHistory(
+            id: String(UUID().uuidString),
             latitude: location.coordinate.latitude,
             longitude: location.coordinate.longitude,
             timestamp: Date(),
@@ -193,7 +193,6 @@ extension LocationManager: CLLocationManagerDelegate {
             self.addToHistory(location)
         }
         
-        // ✅ ЛОГИКА ОТПРАВКИ (Троттлинг)
         // Проверяем, прошло ли достаточно времени с последней отправки
         let now = Date()
         if let lastTime = lastUploadTime, now.timeIntervalSince(lastTime) < uploadInterval {

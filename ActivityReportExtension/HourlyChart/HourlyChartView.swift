@@ -22,16 +22,19 @@ struct HourlyChartView: View {
                     .font(.custom("Inter-SemiBold", size: 18))
                     .foregroundColor(.blackText)
                 Spacer()
-                Text("Сегодня, \(getDateString())")
-                    .font(.custom("Inter-Regular", size: 14))
-                    .foregroundColor(.data)
+                HStack(spacing: 4) {
+                    Text("Today,")
+                    Text("\(getDateString())")
+                }
+                .font(.custom("Inter-Regular", size: 14))
+                .foregroundColor(.data)
             }
             .padding(.horizontal, 10)
             
             Chart(viewModel.hourlyData) { item in
                 BarMark(
-                    x: .value("Час", item.hour),
-                    y: .value("Секунды", item.duration)
+                    x: .value("Hour", item.hour),
+                    y: .value("Seconds", item.duration)
                 )
                 .foregroundStyle(.accent)
                 .cornerRadius(3)
@@ -80,21 +83,25 @@ struct HourlyChartView: View {
         let yesterday = viewModel.yesterdayTotalDuration
         
         if yesterday == 0 {
-            Text("Нет данных за вчерашний день")
+            Text("No data for yesterday")
                 .foregroundColor(.timestamps)
         } else {
-            let difference = today - yesterday
-            let percentage = yesterday > 0 ? (difference / yesterday) * 100 : 0
-            let percentInt = Int(abs(percentage))
-            
-            if difference > 0 {
-                Text("+ \(percentInt)% в сравнении со вчерашним днём")
-                    .foregroundColor(.redStat)
-            } else if difference < 0 {
-                Text("- \(percentInt)% в сравнении со вчерашним днём")
-                    .foregroundColor(.greenStat)
+            let diff = today - yesterday
+            let percent = Int(abs((diff / yesterday) * 100))
+            if diff > 0 {
+                HStack(spacing: 4) {
+                    Text("+ \(percent)%")
+                    Text("compared to yesterday")
+                }
+                .foregroundColor(.redStat)
+            } else if diff < 0 {
+                HStack(spacing: 4) {
+                    Text("- \(percent)%")
+                    Text("compared to yesterday")
+                }
+                .foregroundColor(.greenStat)
             } else {
-                Text("Столько же, сколько вчера")
+                Text("The same amount as yesterday")
                     .foregroundColor(.timestamps)
             }
         }

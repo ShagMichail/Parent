@@ -32,7 +32,6 @@ struct WebUsageReport: DeviceActivityReportScene {
         
         let calendar = Calendar.current
         let now = Date()
-        let todayStart = calendar.startOfDay(for: now)
         var showWeeklyReport = false
         
         for await deviceActivity in data {

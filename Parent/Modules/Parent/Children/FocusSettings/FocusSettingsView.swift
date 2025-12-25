@@ -78,7 +78,7 @@ struct FocusSettingsView: View {
                         } label: {
                             HStack {
                                 Image(systemName: "pencil")
-                                Text("Изменить")
+                                Text("Edit")
                             }
                             .font(.custom("Inter-Medium", size: 16))
                             .foregroundColor(.black)
@@ -100,7 +100,7 @@ struct FocusSettingsView: View {
                         } label: {
                             HStack {
                                 Image(systemName: "trash")
-                                Text("Удалить")
+                                Text("Remove")
                             }
                             .font(.custom("Inter-Medium", size: 16))
                             .foregroundColor(.red)
@@ -119,11 +119,10 @@ struct FocusSettingsView: View {
         }
         .background(Color.roleBackground.ignoresSafeArea())
         .navigationBarHidden(true)
-        
-        // --- Навигационные ссылки (скрытые) ---
-        .background(
-            NavigationLink(
-                destination: AddFocusTimeView(
+        .navigationDestination(
+            isPresented: $navigateToAddSchedule,
+            destination: {
+                AddFocusTimeView(
                     mode: .add,
                     scheduleToEdit: nil,
                     onSave: { newSchedule in
@@ -134,13 +133,16 @@ struct FocusSettingsView: View {
                         }
                         navigateToAddSchedule = false
                     }
-                ),
-                isActive: $navigateToAddSchedule
-            ) { EmptyView() }.hidden()
+                )
+            }
         )
-        .background(
-            NavigationLink(
-                destination: Group {
+        .navigationDestination(
+            isPresented: Binding(
+                get: { scheduleToEdit != nil },
+                set: { if !$0 { scheduleToEdit = nil } }
+            ),
+            destination: {
+                Group {
                     if let schedule = scheduleToEdit {
                         AddFocusTimeView(
                             mode: .edit(schedule),
@@ -151,12 +153,8 @@ struct FocusSettingsView: View {
                             }
                         )
                     }
-                },
-                isActive: Binding(
-                    get: { scheduleToEdit != nil },
-                    set: { if !$0 { scheduleToEdit = nil } }
-                )
-            ) { EmptyView() }.hidden()
+                }
+            }
         )
     }
     
@@ -166,7 +164,7 @@ struct FocusSettingsView: View {
             NavigationBar(
                 model: NavigationBarModel(
                     chevronBackward: true,
-                    subTitle: "Фокусировка",
+                    subTitle: String(localized: "Focusing"),
                     onBackTap: {
                         dismiss()
                         showNavigationBar.toggle()
@@ -179,7 +177,7 @@ struct FocusSettingsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     
-                    Text("Когда функция включена, пользователь сможет проверять только время, звонить родителям и использовать экстренные сигналы")
+                    Text("When the feature is enabled, the user will only be able to check the time, call parents and use emergency alerts")
                         .font(.custom("Inter-Regular", size: 14))
                         .foregroundColor(.strokeTextField)
                     
@@ -202,7 +200,7 @@ struct FocusSettingsView: View {
                                             // 1. Локальное переключение (для мгновенной реакции UI)
                                             scheduleManager.toggleSchedule(schedule)
                                             
-                                            // 2. ВАЖНО: Получаем уже обновленную версию расписания из менеджера
+                                            // 2. Получаем уже обновленную версию расписания из менеджера
                                             // (так как schedule в замыкании — это старая копия до переключения)
                                             if let updatedSchedule = scheduleManager.schedules.first(where: { $0.id == schedule.id }) {
                                                 
@@ -236,7 +234,7 @@ struct FocusSettingsView: View {
                                 Image("focus-command")
                                     .resizable()
                                     .frame(width: 16, height: 16)
-                                Text("Добавить время")
+                                Text("Add time")
                                     .font(.custom("Inter-Regular", size: 16))
                             }
                             .foregroundColor(.focus)

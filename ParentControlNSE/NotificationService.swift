@@ -37,8 +37,8 @@ class NotificationService: UNNotificationServiceExtension {
                 Task {
                     await syncAndApplyWebBlocks()
                     
-                    bestAttemptContent.title = "Блокировки обновлены"
-                    bestAttemptContent.body = "Родитель изменил правила использования Web ресурсами."
+                    bestAttemptContent.title = String(localized: "Locks have been updated")
+                    bestAttemptContent.body = String(localized: "The parent has changed the rules for using Web resources.")
                     
                     contentHandler(bestAttemptContent)
                 }
@@ -53,8 +53,8 @@ class NotificationService: UNNotificationServiceExtension {
                 Task {
                     await syncAndApplyAppLimits()
                     
-                    bestAttemptContent.title = "Лимиты обновлены"
-                    bestAttemptContent.body = "Родитель изменил правила использования приложений."
+                    bestAttemptContent.title = String(localized: "Limits updated")
+                    bestAttemptContent.body = String(localized: "The parent has changed the app usage rules.")
                     
                     contentHandler(bestAttemptContent)
                 }
@@ -69,8 +69,8 @@ class NotificationService: UNNotificationServiceExtension {
                 Task {
                     await fetchAndApplyAppBlocks()
                     
-                    bestAttemptContent.title = "Блокировки обновлены"
-                    bestAttemptContent.body = "Родитель изменил правила использования приложений."
+                    bestAttemptContent.title = String(localized: "Locks have been updated")
+                    bestAttemptContent.body = String(localized: "The parent has changed the app usage rules.")
                     
                     contentHandler(bestAttemptContent)
                 }
@@ -96,21 +96,20 @@ class NotificationService: UNNotificationServiceExtension {
             if commandName == "block_all" {
                 store.shield.applicationCategories = .all()
                 store.shield.webDomainCategories = .all()
-                //                store.shield.webDomains = .all() // Если нужно блокировать и веб
-                bestAttemptContent.body = "Устройство заблокировано родителем"
+                bestAttemptContent.body = String(localized: "The device is locked by the parent")
                 updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
                 return
             }
             else if commandName == "unblock_all" {
                 store.shield.applicationCategories = nil
                 store.shield.webDomainCategories = nil
-                bestAttemptContent.body = "Устройство разблокировано"
+                bestAttemptContent.body = String(localized: "The device is unlocked by the parent")
                 // Обновляем статус на executed
                 updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
                 return
             }
             else if commandName == "request_location_update" {
-                bestAttemptContent.body = "Обновление геолокации..."
+                bestAttemptContent.body = String(localized: "Updating geolocation...")
                 contentHandler(bestAttemptContent)
                 return
             }
@@ -121,14 +120,14 @@ class NotificationService: UNNotificationServiceExtension {
             // Это расписание (создание или обновление)
             if let newSchedule = createSchedule(from: fields, recordID: recordIDString) {
                 updateSchedulesCache(with: newSchedule)
-                bestAttemptContent.title = "Расписание обновлено"
-                bestAttemptContent.body = "Настройки времени изменены родителем."
+                bestAttemptContent.title = String(localized: "The schedule has been updated")
+                bestAttemptContent.body = String(localized: "The time settings have been changed by the parent.")
             }
         } else {
             // Это удаление расписания (полей нет, но пуш пришел)
             removeScheduleFromCache(withID: recordIDString)
-            bestAttemptContent.title = "Расписание удалено"
-            bestAttemptContent.body = "Ограничение времени снято."
+            bestAttemptContent.title = String(localized: "The schedule has been deleted")
+            bestAttemptContent.body = String(localized: "The time limit has been lifted.")
         }
         
         contentHandler(bestAttemptContent)
@@ -429,7 +428,7 @@ class NotificationService: UNNotificationServiceExtension {
                 WebDomain(domain: $0)
             })
             
-            // 5. ✅ ПРИМЕНЯЕМ БЛОКИРОВКУ ПРАВИЛЬНЫМ СПОСОБОМ
+            // 5. ПРИМЕНЯЕМ БЛОКИРОВКУ ПРАВИЛЬНЫМ СПОСОБОМ
             
             if domainsToBlock.isEmpty {
                 // Если список пуст, отключаем фильтрацию

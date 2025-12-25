@@ -23,7 +23,7 @@ struct AddChildView: View {
         VStack(spacing: 30) {
             switch state {
             case .generatingCode:
-                ProgressView("Генерация кода...")
+                ProgressView("Code generation...")
             case .waitingForChild:
                 if let code = invitationCode {
                     WaitingForChildView(invitationCode: code)

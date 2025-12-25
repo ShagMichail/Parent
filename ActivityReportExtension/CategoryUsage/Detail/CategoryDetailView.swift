@@ -38,7 +38,7 @@ struct CategoryDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("Количество уведомлений")
+                    Text("Number of notifications")
                         .font(.custom("Inter-SemiBold", size: 20))
                         .foregroundColor(.blackText)
                     
@@ -46,7 +46,7 @@ struct CategoryDetailView: View {
                         Text("\(detail.totalNotifications)")
                             .font(.custom("Inter-SemiBold", size: 18))
                             .foregroundColor(.redStat)
-                        Text(chartType == .daily ? "за неделю" : "за сегодня")
+                        Text(chartType == .daily ? "in a week" : "for today")
                             .font(.custom("Inter-Regular", size: 18))
                             .foregroundColor(.timestamps)
                     }
@@ -68,7 +68,7 @@ struct CategoryDetailView: View {
                 
                 // --- 2: Статистика по УВЕДОМЛЕНИЯМ ---
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Приложения")
+                    Text("Applications")
                         .font(.custom("Inter-SemiBold", size: 20))
                         .foregroundColor(.blackText)
                     
@@ -76,7 +76,7 @@ struct CategoryDetailView: View {
                         // Список приложений с количеством уведомлений
                         if detail.totalNotifications == 0 {
                             HStack {
-                                Text("Нет данных")
+                                Text("No data available")
                                     .foregroundColor(.gray)
                                     .multilineTextAlignment(.leading)
                                     .padding(.vertical, 20)
@@ -91,7 +91,7 @@ struct CategoryDetailView: View {
                                     HStack {
                                         Label(appDetail.token).labelStyle(.iconOnly)
                                             .frame(width: 24, height: 24)
-                                        Text(appDetail.application.localizedDisplayName ?? "Приложение")
+                                        Text(appDetail.application.localizedDisplayName ?? "Application")
                                         Spacer()
                                         Text("\(appDetail.totalNotifications)")
                                             .fontWeight(.semibold)
@@ -135,9 +135,18 @@ struct CategoryDetailView: View {
                 .font(.custom("Inter-SemiBold", size: 18))
                 .foregroundColor(.blackText)
             Spacer()
-            Text(chartType == .daily ? "Последние 7 дней" : "Сегодня, \(getDateString())")
+            if chartType == .daily {
+                Text("The last 7 days")
+                    .font(.custom("Inter-Regular", size: 14))
+                    .foregroundColor(.data)
+            } else {
+                HStack(spacing: 4) {
+                    Text("Today,")
+                    Text("\(getDateString())")
+                }
                 .font(.custom("Inter-Regular", size: 14))
                 .foregroundColor(.data)
+            }
         }
         .padding(.horizontal, 10)
     }
@@ -145,8 +154,10 @@ struct CategoryDetailView: View {
     private var dayChartView: some View {
         Chart(hourlyChartData) { item in
             BarMark(
-                x: .value("Час", item.hour),
-                y: .value("Секунды", item.duration)
+//                x: .value("Час", item.hour),
+//                y: .value("Секунды", item.duration)
+                x: .value("Hour", item.hour),
+                y: .value("Seconds", item.duration)
             )
             .foregroundStyle(.accent)
             .cornerRadius(3)
@@ -183,8 +194,10 @@ struct CategoryDetailView: View {
     private var weekChartView: some View {
         Chart(dailyChartData) { dataPoint in
             BarMark(
-                x: .value("День", dataPoint.dateString),
-                y: .value("Секунды", dataPoint.duration)
+//                x: .value("День", dataPoint.dateString),
+//                y: .value("Секунды", dataPoint.duration)
+                x: .value("Day", dataPoint.dateString),
+                y: .value("Seconds", dataPoint.duration)
             )
             .foregroundStyle(.accent)
             .cornerRadius(3)

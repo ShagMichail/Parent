@@ -12,11 +12,11 @@ struct ChildCompletedView: View {
     
     var body: some View {
         VStack(alignment: .center, spacing: 25) {
-            Text("Аккаунт готов")
+            Text("Account is ready")
                 .font(.custom("Inter-SemiBold", size: 24))
                 .frame(maxWidth: .infinity, alignment: .center)
             
-            Text("Завершите настройку на вашем устройстве")
+            Text("Complete setup on your device")
                 .font(.custom("Inter-Regular", size: 16))
                 .frame(maxWidth: .infinity, alignment: .center)
             
@@ -29,7 +29,7 @@ struct ChildCompletedView: View {
             
             ContinueButton(
                 model: ContinueButtonModel(
-                    title: "Продолжить",
+                    title: String(localized: "Continue"),
                     isEnabled: true,
                     action: {
                         Task {

@@ -44,9 +44,10 @@ struct AuthFormView: View {
             Image("lock")
                 .frame(width: 120, height: 120)
             
-            Text(mode == .register ? "Регистрация\nвашего аккаунта" : "Вход в ваш аккаунт")
+            Text(mode == .register ? "Registering your account" : "Login to your account")
                 .font(.custom("Inter-Medium", size: 36))
                 .foregroundColor(.white)
+                .lineLimit(2)
                 .multilineTextAlignment(.center)
                 .lineSpacing(4)
         }
@@ -58,7 +59,7 @@ struct AuthFormView: View {
     private var formView: some View {
         VStack(spacing: 24) {
             AuthTextField(
-                model: .init(title: "Почта", placeholder: "Введите почту"),
+                model: .init(title: String(localized: "Mail"), placeholder: String(localized: "Enter your email")),
                 text: $viewModel.credentials.email,
                 viewModel: viewModel
             )
@@ -70,8 +71,8 @@ struct AuthFormView: View {
             SecureAuthTextField(
                 viewModel: viewModel,
                 text: $viewModel.credentials.password,
-                title: "Пароль",
-                placeholder: mode == .register ? "Придумайте пароль" : "Введите пароль",
+                title: String(localized: "Password"),
+                placeholder: mode == .register ? String(localized: "Create a password") : String(localized: "Enter your password"),
                 validationField: (mode == .register) ? .password : .none
             )
             
@@ -79,8 +80,8 @@ struct AuthFormView: View {
                 SecureAuthTextField(
                     viewModel: viewModel,
                     text: $viewModel.credentials.confirmPassword,
-                    title: "Повторите пароль",
-                    placeholder: "Повторите пароль",
+                    title: String(localized: "Repeat password"),
+                    placeholder: String(localized: "Repeat password"),
                     validationField: .confirmPassword
                 )
             }
@@ -94,7 +95,7 @@ struct AuthFormView: View {
                 }) {
                     MainButton(model:
                                 MainButtonModel(
-                                    title: mode == .register ? "Зарегистрироваться" : "Авторизоваться",
+                                    title: mode == .register ? String(localized: "Register") : String(localized: "Login"),
                                     font: .custom("Inter-Regular", size: 18),
                                     foregroundColor: .white,
                                     cornerRadius: 12,
@@ -108,7 +109,7 @@ struct AuthFormView: View {
                 .disabled(viewModel.isLoading)
                 
                 HStack {
-                    Text(mode == .register ? "Есть аккаунт?" : "Нет аккаунтa?")
+                    Text(mode == .register ? "Do you have an account?" : "No account?")
                         .font(.custom("Inter-Regular", size: 16))
                         .foregroundColor(.strokeTextField)
                     
@@ -117,7 +118,7 @@ struct AuthFormView: View {
                             mode = (mode == .login) ? .register : .login
                         }
                     }) {
-                        Text(mode == .register ? "Войти" : "Зарегистрироваться")
+                        Text(mode == .register ? "Login" : "Register")
                             .font(.custom("Inter-Regular", size: 16))
                             .foregroundColor(.accent)
                     }

@@ -15,7 +15,7 @@ struct SplashScreenView: View {
                 Image("lock")
                     .font(.system(size: 120))
                     .foregroundColor(.white)
-                Text("Родительский контроль")
+                Text("Parental control")
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(.white)

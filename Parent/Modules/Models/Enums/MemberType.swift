@@ -13,8 +13,8 @@ enum MemberType: String, Codable, CaseIterable, Identifiable {
     
     var description: String {
         switch self {
-        case .parent: return "Родитель"
-        case .child: return "Ребенок"
+        case .parent: return String(localized: "Parent")
+        case .child: return String(localized: "Child")
         }
     }
 }

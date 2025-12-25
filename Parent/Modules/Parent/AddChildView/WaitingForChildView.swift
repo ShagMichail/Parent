@@ -14,12 +14,12 @@ struct WaitingForChildView: View {
         VStack {
             
             VStack(alignment: .leading, spacing: 25) {
-                Text("Вход с помощью кода")
+                Text("Login using code")
                     .font(.custom("Inter-SemiBold", size: 24))
                     .foregroundColor(.primary)
                     .frame(maxWidth: .infinity, alignment: .center)
                 
-                Text("Чтобы начать мониторинг и помочь вашему ребёнку оставаться в безопасности, подключите его устройство:")
+                Text("To start monitoring and help your child stay safe, connect their device:")
                     .font(.custom("Inter-Regular", size: 16))
                     .lineSpacing(4)
                     .fixedSize(horizontal: false, vertical: true)
@@ -27,25 +27,25 @@ struct WaitingForChildView: View {
                 InstructionRow(
                     model: InstructionRowModel(
                         number: "1",
-                        text: "Скачайте приложение на телефон ребёнка.\n(Можно установить из App Store или Google Play.)"
+                        text: String(localized: "Download the application to your child’s phone.(Can be installed from the App Store or Google Play.)")
                     )
                 )
                 InstructionRow(
                     model: InstructionRowModel(
                         number: "2",
-                        text: "Откройте приложение и выберите роль «Ребёнок»"
+                        text: String(localized: "Open the application and select the “Child” role»")
                     )
                 )
                 InstructionRow(
                     model: InstructionRowModel(
                         number: "3",
-                        text: "Введите уникальный код подключения, который отображается"
+                        text: String(localized: "Enter the unique connection code that is displayed")
                     )
                 )
                 InstructionRow(
                     model: InstructionRowModel(
                         number: "4",
-                        text: "После ввода кода устройство автоматически подключится"
+                        text: String(localized: "After entering the code, the device will automatically connect")
                     )
                 )
             }
@@ -67,7 +67,7 @@ struct WaitingForChildView: View {
                 
                 ContinueButton(
                     model: ContinueButtonModel(
-                        title: "или отсканировать код",
+                        title: String(localized: "or scan the code"),
                         isEnabled: false,
                         action: {
                             print("Hey hey")

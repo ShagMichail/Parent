@@ -16,13 +16,13 @@ struct AiSummaryCard: View {
                     .frame(width: 24, height: 24)
                     .foregroundStyle(.white)
                 
-                Text("AI Сводка за сегодня")
+                Text("AI Summary for today")
                     .font(.custom("Inter-Medium", size: 18))
                     .foregroundStyle(.white)
             }
             .foregroundColor(.white)
             
-            Text("Маша провела весь день продуктивно. Экранное время снизилось на 12% по сравнению со вчерашним днём. Основное время было потрачено на образовательные приложения.")
+            Text("Masha spent the whole day productively. Screen time decreased by 12% compared to yesterday. Most of the time was spent on educational applications.")
                 .font(.custom("Inter-Regular", size: 16))
                 .frame(maxWidth: .infinity)
                 .foregroundStyle(.white)

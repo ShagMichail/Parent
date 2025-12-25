@@ -13,7 +13,7 @@ struct PairingSuccessView: View {
     
     var body: some View {
         VStack {
-            Text("Аккаунт ребёнка соединён")
+            Text("Child's account is connected")
                 .font(.custom("Inter-SemiBold", size: 24))
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.horizontal, 20)
@@ -28,7 +28,7 @@ struct PairingSuccessView: View {
             
             ContinueButton(
                 model: ContinueButtonModel(
-                    title: "Продолжить",
+                    title: String(localized: "Begin"),
                     isEnabled: true,
                     action: {
                         Task {

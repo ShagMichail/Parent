@@ -13,23 +13,20 @@ struct AppInfoCardView: View {
     let detail: AppUsageDetail
     
     private var installedDate: String {
-        return "Неизвестно"
+        return String(localized: "Is unknown")
     }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Общие сведения")
+            Text("General information")
                 .font(.custom("Inter-SemiBold", size: 20))
                 .foregroundColor(.blackText)
             
             VStack(spacing: 0) {
-                InfoRow(title: "Название", value: detail.application.localizedDisplayName ?? "Неизвестно")
+                InfoRow(title: String(localized: "Title"), value: detail.application.localizedDisplayName ?? String(localized: "Is unknown"))
                 Divider()
                     .padding(.horizontal, 10)
-                InfoRow(title: "Категория", value: detail.category.localizedDisplayName ?? "Неизвестно")
-                Divider()
-                    .padding(.horizontal, 10)
-                InfoRow(title: "Bundle ID", value: detail.application.bundleIdentifier ?? "Неизвестно")
+                InfoRow(title: String(localized: "Category"), value: detail.category.localizedDisplayName ?? String(localized: "Is unknown"))
             }
             .background(Color.white)
             .cornerRadius(20)

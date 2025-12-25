@@ -8,11 +8,19 @@
 import SwiftUI
 
 enum ActionCategory: String, CaseIterable, Identifiable {
-    case communication = "Общение"
-    case chart = "Режим"
-    case question = "Подозрительные действия"
-    case warning = "Критические действия"
+    case communication
+    case chart
+    case question
+    case warning
     
+    var name: String {
+        switch self {
+        case .communication: return String(localized: "Communication")
+        case .chart: return String(localized: "Mode")
+        case .question: return String(localized: "Suspicious activities")
+        case .warning: return String(localized: "Critical Actions")
+        }
+    }
     var id: String { rawValue }
     
     // Цвет для тега и иконки
@@ -47,10 +55,10 @@ enum ActionCategory: String, CaseIterable, Identifiable {
     // Текст заглушки, если действий нет
     var emptyStateText: String {
         switch self {
-        case .communication: return "В норме"
-        case .chart: return "Список событий пуст"
-        case .question: return "Важных уведомлений нет"
-        case .warning: return "Критических угроз не обнаружено"
+        case .communication: return String(localized: "Normal")
+        case .chart: return String(localized: "The list of events is empty")
+        case .question: return String(localized: "There are no important notifications")
+        case .warning: return String(localized: "No critical threats detected")
         }
     }
 }

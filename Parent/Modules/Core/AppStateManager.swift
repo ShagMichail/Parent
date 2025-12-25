@@ -155,9 +155,6 @@ class AppStateManager: ObservableObject {
     private func handleScreenTimeAuthStatus(_ status: AuthorizationStatus) {
         print("🛡 ScreenTime Status changed: \(status)")
         
-        // 🛑 ГЛАВНОЕ ИЗМЕНЕНИЕ 🛑
-        // Если мы сейчас на экране выбора роли, НЕ НУЖНО перехватывать управление.
-        // Пусть RoleSelectionView сама решит, куда идти после запроса.
         if appState == .roleSelection {
             print("Находимся на RoleSelection, игнорируем автоматическую навигацию.")
             return
@@ -216,16 +213,24 @@ class AppStateManager: ObservableObject {
         }
     }
     
-    func requestNotificationPermission() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+    @MainActor // Помечаем, чтобы безопасно работать с UIApplication
+    func requestNotificationPermission() async -> Bool {
+        let center = UNUserNotificationCenter.current()
+        do {
+            let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
+            
             if granted {
-                print("✅ Разрешение на уведомления получено")
-                DispatchQueue.main.async {
-                    UIApplication.shared.registerForRemoteNotifications()
-                }
+                print("✅ Разрешение на уведомления получено.")
+                UIApplication.shared.registerForRemoteNotifications()
             } else {
-                print("❌ Пользователь запретил уведомления: \(String(describing: error))")
+                print("❌ Пользователь запретил уведомления.")
             }
+            
+            return granted
+            
+        } catch {
+            print("🚨 Ошибка при запросе уведомлений: \(error)")
+            return false
         }
     }
 }

@@ -20,7 +20,7 @@ struct AppBlockView: View {
         VStack {
             if viewModel.isLoadingInitialBlocks {
                 Spacer()
-                ProgressView("Загрузка блокировок...")
+                ProgressView("Loading locks...")
                     .frame(maxWidth: .infinity)
                 Spacer()
             } else {
@@ -28,7 +28,7 @@ struct AppBlockView: View {
                     NavigationBar(
                         model: NavigationBarModel(
                             chevronBackward: true,
-                            subTitle: "Блокировка",
+                            subTitle: String(localized: "Blocking apps"),
                             hasConfirm: viewModel.hasChanges,
                             onBackTap: {
                                 handleBackButton()
@@ -42,7 +42,7 @@ struct AppBlockView: View {
                     ScrollView {
                         VStack(alignment: .leading) {
                             if viewModel.blocks.isEmpty {
-                                Text("Нажмите 'Выбрать приложения', чтобы добавить ограничения.")
+                                Text("Click on 'Select Applications' to add restrictions.")
                                     .font(.custom("Inter-Regular", size: 14))
                                     .foregroundColor(.strokeTextField)
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -50,7 +50,6 @@ struct AppBlockView: View {
                                 ForEach($viewModel.blocks) { $block in
                                     AppBlockRow(block: $block)
                                 }
-                                .onDelete(perform: viewModel.deleteBlock)
                             }
                         }
                         .padding(.horizontal, 20)
@@ -66,7 +65,7 @@ struct AppBlockView: View {
                                 Image(systemName: "plus.circle.fill")
                                     .resizable()
                                     .frame(width: 16, height: 16)
-                                Text("Выбрать приложения")
+                                Text("Select Applications")
                                     .font(.custom("Inter-Regular", size: 16))
                             }
                             .foregroundColor(.white)
@@ -109,16 +108,16 @@ struct AppBlockView: View {
                 }
             )
         }
-        .alert("Несохраненные изменения", isPresented: $showUnsavedChangesAlert) {
-            Button("Выйти без сохранения", role: .destructive) {
+        .alert("Unsaved changes", isPresented: $showUnsavedChangesAlert) {
+            Button("Exit without saving", role: .destructive) {
                 showNavigationBar.toggle()
                 dismiss()
             }
-            Button("Продолжить редактирование", role: .cancel) {
+            Button("Continue editing", role: .cancel) {
                 
             }
         } message: {
-            Text("У вас есть несохраненные изменения. Если вы выйдете, они будут потеряны.")
+            Text("You have unsaved changes. If you exit, they will be lost.")
         }
     }
 

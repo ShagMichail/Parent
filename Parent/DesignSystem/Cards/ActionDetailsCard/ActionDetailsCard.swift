@@ -21,7 +21,7 @@ struct ActionDetailsCard: View {
                     .frame(width: 20, height: 20)
                     .foregroundColor(category.startColor)
                 
-                Text(category.rawValue)
+                Text(category.name)
                     .font(.custom("Inter-Medium", size: 16))
                     .foregroundColor(category.startColor)
                 

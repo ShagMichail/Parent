@@ -39,7 +39,7 @@ struct ChildDashboardDetailView: View {
             let childStatus = viewModel.getOnlineStatus(for: viewModel.selectedChild?.recordID ?? "")
             InfoCard(
                 model: InfoCardModel(
-                    title: "Местоположение",
+                    title: String(localized: "Location"),
                     icon: "current-location",
                     location: viewModel.getStreetName(for: viewModel.selectedChild?.recordID ?? ""),
                     status: childStatus.text,
@@ -56,7 +56,7 @@ struct ChildDashboardDetailView: View {
             .onAppear { updateReport() }
             
             // Действия
-            Text("Действия")
+            Text("Actions")
                 .font(.custom("Inter-Medium", size: 16))
                 .foregroundColor(.primary)
             
@@ -68,9 +68,9 @@ struct ChildDashboardDetailView: View {
                     Rectangle().fill(Color.clear).frame(height: 100)
                 } else {
                     ActionCard(model: ActionCardModel(
-                        title: "Блокировать",
+                        title: String(localized: "Block"),
                         icon: "lock-command",
-                        status: viewModel.isSelectedChildBlocked ? "Вкл." : "Выкл.",
+                        status: viewModel.isSelectedChildBlocked ? String(localized: "On.") : String(localized: "Off."),
                         action: {
                             // Просто переключаем флаг родителя
                             withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
@@ -78,7 +78,7 @@ struct ChildDashboardDetailView: View {
                             }
                         }
                     ))
-                    // ✅ СВЯЗЫВАЕМ С РОДИТЕЛЕМ ЧЕРЕЗ NAMESPACE
+                    // СВЯЗЫВАЕМ С РОДИТЕЛЕМ ЧЕРЕЗ NAMESPACE
                     .matchedGeometryEffect(id: "blockCard", in: animation)
                     .disabled(viewModel.isCommandInProgressForSelectedChild)
                     .opacity(viewModel.isCommandInProgressForSelectedChild ? 0.6 : 1.0)
@@ -86,9 +86,9 @@ struct ChildDashboardDetailView: View {
                 
                 // Кнопка Фокусировать
                 ActionCard(model: ActionCardModel(
-                    title: "Фокусировать",
+                    title: String(localized: "Focusing"),
                     icon: "focus-command",
-                    status: viewModel.isFocusActiveForSelectedChild ? "Вкл." : "Выкл.",
+                    status: viewModel.isFocusActiveForSelectedChild ? String(localized: "On.") : String(localized: "Off."),
                     action: {
                         navigateToFocus = true
                         showNavigationBar.toggle()
@@ -96,8 +96,8 @@ struct ChildDashboardDetailView: View {
                 ))
                 
                 ActionCard(model: ActionCardModel(
-                    title: "Лимиты",
-                    icon: "timer-command", // Пример иконки, замените на свою
+                    title: String(localized: "Limits"),
+                    icon: "timer-command",
                     showsArrow: true,
                     action: {
                         navigateToLimits = true
@@ -106,7 +106,7 @@ struct ChildDashboardDetailView: View {
                 ))
                 
                 ActionCard(model: ActionCardModel(
-                    title: "Приложения",
+                    title: String(localized: "Applications"),
                     icon: "apps-command",
                     showsArrow: true,
                     action: {
@@ -115,7 +115,7 @@ struct ChildDashboardDetailView: View {
                     }
                 ))
                 ActionCard(model: ActionCardModel(
-                    title: "Сайты",
+                    title: String(localized: "Websites"),
                     icon: "web-command",
                     showsArrow: true,
                     action: {
@@ -126,33 +126,23 @@ struct ChildDashboardDetailView: View {
             }
         }
         .padding(.horizontal, 20)
-        
-        // Скрытая навигация для Фокусировки
-        .background(
-            Group {
-                // Ссылка на "Фокусировку"
-                NavigationLink(
-                    destination: FocusSettingsView(showNavigationBar: $showNavigationBar, childID: viewModel.selectedChild?.recordID ?? ""),
-                    isActive: $navigateToFocus
-                ) { EmptyView() }.hidden()
-                
-                // ✅ НОВАЯ ССЫЛКА на "Лимиты"
-                NavigationLink(
-                    destination: AppLimitsView(showNavigationBar: $showNavigationBar, child: viewModel.selectedChild),
-                    isActive: $navigateToLimits
-                ) { EmptyView() }
-                
-                NavigationLink(
-                    destination: AppBlockView(showNavigationBar: $showNavigationBar, child: viewModel.selectedChild),
-                    isActive: $navigateToBlocks
-                ) { EmptyView() }
-                
-                NavigationLink(
-                    destination: WebBlockView(showNavigationBar: $showNavigationBar, child: viewModel.selectedChild),
-                    isActive: $navigateToWebBlocks
-                ) { EmptyView() }
-            }.hidden()
+        .navigationDestination(
+            isPresented: $navigateToFocus,
+            destination: { FocusSettingsView(showNavigationBar: $showNavigationBar, childID: viewModel.selectedChild?.recordID ?? "") }
         )
+        .navigationDestination(
+            isPresented: $navigateToLimits,
+            destination: { AppLimitsView(showNavigationBar: $showNavigationBar, child: viewModel.selectedChild) }
+        )
+        .navigationDestination(
+            isPresented: $navigateToBlocks,
+            destination: { AppBlockView(showNavigationBar: $showNavigationBar, child: viewModel.selectedChild) }
+        )
+        .navigationDestination(
+            isPresented: $navigateToWebBlocks,
+            destination: { WebBlockView(showNavigationBar: $showNavigationBar, child: viewModel.selectedChild) }
+        )
+
         .toolbar(showNavigationBar ? .visible : .hidden, for: .tabBar)
     }
     

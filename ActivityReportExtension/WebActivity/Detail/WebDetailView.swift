@@ -44,7 +44,7 @@ struct WebDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Экранное время")
+                    Text("Screen time")
                         .font(.custom("Inter-SemiBold", size: 20))
                         .foregroundColor(.blackText)
                     
@@ -92,9 +92,18 @@ struct WebDetailView: View {
                 .font(.custom("Inter-SemiBold", size: 18))
                 .foregroundColor(.blackText)
             Spacer()
-            Text(chartType == .daily ? "Последние 7 дней" : "Сегодня, \(getDateString())")
+            if chartType == .daily {
+                Text("The last 7 days")
+                    .font(.custom("Inter-Regular", size: 14))
+                    .foregroundColor(.data)
+            } else {
+                HStack(spacing: 4) {
+                    Text("Today,")
+                    Text("\(getDateString())")
+                }
                 .font(.custom("Inter-Regular", size: 14))
                 .foregroundColor(.data)
+            }
         }
         .padding(.horizontal, 10)
     }
@@ -102,8 +111,8 @@ struct WebDetailView: View {
     private var dayChartView: some View {
         Chart(hourlyChartData) { item in
             BarMark(
-                x: .value("Час", item.hour),
-                y: .value("Секунды", item.duration)
+                x: .value("Hour", item.hour),
+                y: .value("Seconds", item.duration)
             )
             .foregroundStyle(.accent)
             .cornerRadius(3)
@@ -140,8 +149,8 @@ struct WebDetailView: View {
     private var weekChartView: some View {
         Chart(dailyChartData) { dataPoint in
             BarMark(
-                x: .value("День", dataPoint.dateString),
-                y: .value("Секунды", dataPoint.duration)
+                x: .value("Day", dataPoint.dateString),
+                y: .value("Seconds", dataPoint.duration)
             )
             .foregroundStyle(.accent)
             .cornerRadius(3)

@@ -31,7 +31,6 @@ struct AppUsageReport: DeviceActivityReportScene {
         
         var hourlyData = (0..<24).map { HourlyActivityModel(hour: $0, duration: 0) }
         var dailyDataDict: [String: TimeInterval] = [:]
-        var appsDict: [ApplicationToken: TimeInterval] = [:]
         
         var todayTotal: TimeInterval = 0
         var yesterdayTotal: TimeInterval = 0
@@ -89,6 +88,8 @@ struct AppUsageReport: DeviceActivityReportScene {
                 let dateKey = String(dayStart.timeIntervalSince1970)
                 dailyDataDict[dateKey, default: 0] += duration
                 
+                
+                // bundle ID - убираем из детальной информации
                 // --- 3. ПРИЛОЖЕНИЯ ---
                 for await category in segment.categories {
                     for await app in category.applications {

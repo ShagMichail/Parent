@@ -16,15 +16,15 @@ enum OnlineStatus {
     var text: String {
         switch self {
         case .online:
-            return "Онлайн"
+            return String(localized: "Online")
         case .recent(let lastSeen):
             let formatter = RelativeDateTimeFormatter()
             formatter.unitsStyle = .full
-            return "Был(а) в сети \(formatter.localizedString(for: lastSeen, relativeTo: Date()))"
+            return String(localized: "Was online \(formatter.localizedString(for: lastSeen, relativeTo: Date()))")
         case .offline:
-            return "Офлайн"
+            return String(localized: "Offline")
         case .unknown:
-            return "Обновление..."
+            return String(localized: "Update...")
         }
     }
     

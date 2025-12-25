@@ -9,7 +9,7 @@ import Foundation
 import CoreLocation
 
 struct LocationHistory: Identifiable, Codable {
-    let id = UUID()
+    let id: String
     let latitude: Double
     let longitude: Double
     let timestamp: Date

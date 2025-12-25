@@ -88,6 +88,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		0F0397CD2EFD5E170061A9C2 /* Exceptions for "Parent" folder in "ActivityReportExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Resources/Localizable.xcstrings,
+			);
+			target = FC4656BA2EC766E100BBCD62 /* ActivityReportExtension */;
+		};
 		0F7BD59D2EEC55FA00FFBDDD /* Exceptions for "ParentControlNSE" folder in "ParentControlNSE" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -99,6 +106,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Modules/Models/FocusSchedule.swift,
+				Resources/Localizable.xcstrings,
 			);
 			target = 0F7BD5912EEC55FA00FFBDDD /* ParentControlNSE */;
 		};
@@ -136,6 +144,7 @@
 				Modules/Models/Child.swift,
 				Modules/Models/ChildLocation.swift,
 				Modules/Models/Enums/MemberType.swift,
+				Resources/Localizable.xcstrings,
 			);
 			target = FC8124CE2EE02EBB0085AD05 /* ActivityMonitorExtension */;
 		};
@@ -171,6 +180,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				FC8A8A6E2EC1D937009A90EF /* Exceptions for "Parent" folder in "Parent" target */,
+				0F0397CD2EFD5E170061A9C2 /* Exceptions for "Parent" folder in "ActivityReportExtension" target */,
 				FC999DAF2EE2D981007359DC /* Exceptions for "Parent" folder in "ActivityMonitorExtension" target */,
 				0FD520882EEC6AFB007AB816 /* Exceptions for "Parent" folder in "ParentControlNSE" target */,
 			);
@@ -451,6 +461,7 @@
 			knownRegions = (
 				en,
 				Base,
+				ru,
 			);
 			mainGroup = FC8A8A092EC1499C009A90EF;
 			minimizedProjectReferenceProxies = 1;
@@ -813,6 +824,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -869,6 +881,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
