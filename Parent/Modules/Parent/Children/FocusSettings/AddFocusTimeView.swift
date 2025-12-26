@@ -35,8 +35,8 @@ struct AddFocusTimeView: View {
         
         switch mode {
         case .add:
-            _startTime = State(initialValue: .now) //State(initialValue: Calendar.current.date(bySettingHour: 7, minute: 0, second: 0, of: Date()) ?? Date())
-            _endTime = State(initialValue: .now.addingTimeInterval(minimumInterval)) //State(initialValue: Calendar.current.date(bySettingHour: 12, minute: 0, second: 0, of: Date()) ?? Date())
+            _startTime = State(initialValue: .now)
+            _endTime = State(initialValue: .now.addingTimeInterval(minimumInterval))
             _selectedDays = State(initialValue: [.monday, .tuesday, .wednesday, .thursday, .friday])
             _isEnabled = State(initialValue: true)
             
@@ -98,10 +98,10 @@ struct AddFocusTimeView: View {
                         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
                         // ✅ ГЛАВНОЕ ИЗМЕНЕНИЕ: Добавляем два .onChange
                         .onChange(of: startTime) { _, newStartTime in
-//                            validateAndAdjustEndTime(basedOn: newStartTime)
+                            validateAndAdjustEndTime(basedOn: newStartTime)
                         }
                         .onChange(of: endTime) { _, newEndTime in
-//                            validateAndAdjustStartTime(basedOn: newEndTime)
+                            validateAndAdjustStartTime(basedOn: newEndTime)
                         }
                     }
                     
@@ -273,5 +273,27 @@ struct AddFocusTimeView: View {
         }
         
         onSave(schedule)
+    }
+    
+    /// Проверяет и корректирует ВРЕМЯ КОНЦА, если оно стало некорректным
+    private func validateAndAdjustEndTime(basedOn newStartTime: Date) {
+        // Сравниваем время конца с новым временем начала + 15 минут
+        if endTime <= newStartTime.addingTimeInterval(minimumInterval - 1) {
+            // Если время конца раньше (или слишком близко),
+            // устанавливаем его на 15 минут позже времени начала
+            endTime = newStartTime.addingTimeInterval(minimumInterval)
+            print("⏰ Время конца скорректировано!")
+        }
+    }
+    
+    /// Проверяет и корректирует ВРЕМЯ НАЧАЛА, если оно стало некорректным
+    private func validateAndAdjustStartTime(basedOn newEndTime: Date) {
+        // Сравниваем время начала с новым временем конца - 15 минут
+        if startTime >= newEndTime.addingTimeInterval(-minimumInterval + 1) {
+            // Если время начала позже (или слишком близко),
+            // устанавливаем его на 15 минут раньше времени конца
+            startTime = newEndTime.addingTimeInterval(-minimumInterval)
+            print("⏰ Время начала скорректировано!")
+        }
     }
 }

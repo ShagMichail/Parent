@@ -10,7 +10,7 @@ import CloudKit
 
 struct ChildPairingView: View {
     var body: some View {
-        NavigationView {
+        NavigationStack {
             EnterCodeStepView()
         }
     }
