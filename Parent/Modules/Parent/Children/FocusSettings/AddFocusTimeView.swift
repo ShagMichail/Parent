@@ -23,6 +23,8 @@ struct AddFocusTimeView: View {
     @State private var showingAlert = false
     @State private var alertMessage = ""
     
+    private let minimumInterval: TimeInterval = 15 * 60 // 15 минут в секундах
+    
     init(mode: FocusTimeMode,
          scheduleToEdit: FocusSchedule? = nil,
          onSave: @escaping (FocusSchedule) -> Void
@@ -33,8 +35,8 @@ struct AddFocusTimeView: View {
         
         switch mode {
         case .add:
-            _startTime = State(initialValue: Calendar.current.date(bySettingHour: 7, minute: 0, second: 0, of: Date()) ?? Date())
-            _endTime = State(initialValue: Calendar.current.date(bySettingHour: 12, minute: 0, second: 0, of: Date()) ?? Date())
+            _startTime = State(initialValue: .now) //State(initialValue: Calendar.current.date(bySettingHour: 7, minute: 0, second: 0, of: Date()) ?? Date())
+            _endTime = State(initialValue: .now.addingTimeInterval(minimumInterval)) //State(initialValue: Calendar.current.date(bySettingHour: 12, minute: 0, second: 0, of: Date()) ?? Date())
             _selectedDays = State(initialValue: [.monday, .tuesday, .wednesday, .thursday, .friday])
             _isEnabled = State(initialValue: true)
             
@@ -94,6 +96,13 @@ struct AddFocusTimeView: View {
                                 .fill(Color.white)
                         )
                         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+                        // ✅ ГЛАВНОЕ ИЗМЕНЕНИЕ: Добавляем два .onChange
+                        .onChange(of: startTime) { _, newStartTime in
+//                            validateAndAdjustEndTime(basedOn: newStartTime)
+                        }
+                        .onChange(of: endTime) { _, newEndTime in
+//                            validateAndAdjustStartTime(basedOn: newEndTime)
+                        }
                     }
                     
                     // Секция повторения

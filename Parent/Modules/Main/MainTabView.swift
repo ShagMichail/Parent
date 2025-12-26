@@ -83,7 +83,7 @@ struct MainTabView: View {
                     VStack(spacing: 24) {
                         ActionCard(model: ActionCardModel(
                             title: String(localized: "Block"),
-                            icon: "lock-command",
+                            icon: viewModel.isSelectedChildBlocked ? "lock-command" : "unlock-command",
                             status: viewModel.isSelectedChildBlocked ? String(localized: "On.") : String(localized: "Off."),
                             action: { closeOverlay() }
                         ))
@@ -97,8 +97,6 @@ struct MainTabView: View {
                                 closeOverlay()
                             } label: {
                                 HStack(spacing: 6) {
-                                    Image(viewModel.isSelectedChildBlocked ? "unlock-command" : "lock-command")
-                                        .resizable().frame(width: 16, height: 16)
                                     Text(viewModel.isSelectedChildBlocked ? "Unblock" : "Block")
                                         .font(.custom("Inter-Regular", size: 16))
                                 }

@@ -36,8 +36,9 @@ struct NavigationBar: View {
                     if let subTitle = model.subTitle {
                         Text(subTitle)
                             .font(.custom("Inter-Regular", size: 16))
-                            .frame(maxWidth: .infinity, alignment: .center)
                             .foregroundColor(.blackText)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .multilineTextAlignment(.center)
                     }
                 }
                 
@@ -91,22 +92,24 @@ struct NavigationBar: View {
     }
 }
 
-//#Preview {
-//    NavigationBar(
-//        model: NavigationBarModel(
-//            mainTitle: "Дети",
-//            hasNotification: true,
-//            hasNewNotification: true,
-//            onBackTap: {},
-//            onNotificationTap: {}
-//        )
-//    )
-//    NavigationBar(
-//        model: NavigationBarModel(
-//            chevronBackward: true,
-//            subTitle: "Ltnb",
-//            onBackTap: {},
-//            onNotificationTap: {}
-//        )
-//    )
-//}
+#Preview {
+    NavigationBar(
+        model: NavigationBarModel(
+            mainTitle: "Дети",
+            hasNotification: true,
+            hasNewNotification: true,
+            onBackTap: {},
+            onNotificationTap: {},
+            onConfirmTap: {}
+        )
+    )
+    NavigationBar(
+        model: NavigationBarModel(
+            chevronBackward: true,
+            subTitle: "Редактирование времени фокусировки",
+            onBackTap: {},
+            onNotificationTap: {},
+            onConfirmTap: {}
+        )
+    )
+}

@@ -20,7 +20,7 @@ struct FocusScheduleCard: View {
                 Text(model.schedule.daysString)
                     .font(.custom("Inter-Regular", size: 16))
                     .foregroundColor(.strokeTextField)
-                    .textCase(.uppercase)
+                    .textCase(.lowercase)
             }
             
             Spacer()

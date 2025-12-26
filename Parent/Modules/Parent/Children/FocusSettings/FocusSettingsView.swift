@@ -99,7 +99,9 @@ struct FocusSettingsView: View {
                             }
                         } label: {
                             HStack {
-                                Image(systemName: "trash")
+                                Image("trash")
+                                    .resizable()
+                                    .frame(width: 16, height: 16)
                                 Text("Remove")
                             }
                             .font(.custom("Inter-Medium", size: 16))
@@ -233,13 +235,13 @@ struct FocusSettingsView: View {
                             HStack(spacing: 6) {
                                 Image("focus-command")
                                     .resizable()
-                                    .frame(width: 16, height: 16)
+                                    .frame(width: 25, height: 26)
                                 Text("Add time")
                                     .font(.custom("Inter-Regular", size: 16))
                             }
                             .foregroundColor(.focus)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.vertical, 20)
+                            .padding(.vertical, 12)
                             .padding(.horizontal, 10)
                             .background(
                                 RoundedRectangle(cornerRadius: 20).fill(.white)

@@ -15,26 +15,29 @@ struct ActionCard: View {
             VStack(alignment: .leading) {
                 Image(model.icon)
                     .resizable()
-                    .frame(width: 26, height: 26)
-                    .padding(.bottom, 20)
+                    .frame(width: 45, height: 45)
+                    .padding(.bottom, 16)
                 VStack(alignment: .leading, spacing: 5) {
                     HStack {
                         Text(model.title)
                             .font(.custom("Inter-Medium", size: 16))
                             .foregroundColor(.blackText)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                        if model.showsArrow ?? false {
-                            Image(systemName: "chevron.right")
-                                .resizable()
-                                .frame(width: 10, height: 16)
-                                .foregroundStyle(.plusForderground)
-                        }
                     }
                     if let status = model.status {
                         Text(status)
                             .font(.custom("Inter-Medium", size: 16))
                             .foregroundColor(.plusForderground)
                     }
+                }
+                if model.showsArrow ?? false {
+                    VStack(alignment: .trailing) {
+                        Image(systemName: "chevron.right")
+                            .resizable()
+                            .frame(width: 10, height: 16)
+                            .foregroundStyle(.plusForderground)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .trailing)
                 }
             }
             .padding(.vertical, 20)

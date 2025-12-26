@@ -69,7 +69,7 @@ struct ChildDashboardDetailView: View {
                 } else {
                     ActionCard(model: ActionCardModel(
                         title: String(localized: "Block"),
-                        icon: "lock-command",
+                        icon: viewModel.isSelectedChildBlocked ? "lock-command" : "unlock-command",
                         status: viewModel.isSelectedChildBlocked ? String(localized: "On.") : String(localized: "Off."),
                         action: {
                             // Просто переключаем флаг родителя

@@ -28,19 +28,37 @@ struct TimeRow: View {
         }
         .sheet(isPresented: $showingTimePicker) {
             VStack {
-                DatePicker("", selection: $time, displayedComponents: .hourAndMinute)
-                    .datePickerStyle(WheelDatePickerStyle())
-                    .labelsHidden()
-                    .frame(maxWidth: .infinity)
-                    .padding()
+                Text("Start")
+                    .font(.custom("Inter-SemiBold", size: 18))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                CustomTimePicker(
+                            time: $time,
+                            selectedColor: .accent,
+                            unselectedColor: .strokeTextField
+                        )
+                        .frame(height: 200)
                 
-                Button("Done") {
-                    showingTimePicker = false
-                }
-                .padding()
+                Spacer()
+
+                ContinueButton(
+                    model: ContinueButtonModel(
+                        title: String(localized: "Done"),
+                        isEnabled: true,
+                        action: {
+                            showingTimePicker = false
+                        }
+                    )
+                )
             }
-            .presentationDetents([.height(300)])
-            .presentationDragIndicator(.visible)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 20)
+            .presentationDetents([.height(350)])
+            .presentationDragIndicator(.hidden)
+            .presentationBackground(.clear)
+            .background(Color.white)
+            .cornerRadius(30)
+            .ignoresSafeArea(edges: .bottom)
         }
     }
 }
