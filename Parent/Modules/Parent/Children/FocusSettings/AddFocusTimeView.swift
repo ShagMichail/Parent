@@ -11,8 +11,9 @@ struct AddFocusTimeView: View {
     let mode: FocusTimeMode
     let scheduleToEdit: FocusSchedule?
     let onSave: (FocusSchedule) -> Void
+    let onDismiss: () -> Void
     
-    @Environment(\.dismiss) private var dismiss
+//    @Environment(\.dismiss) private var dismiss
     
     @State private var startTime: Date
     @State private var endTime: Date
@@ -27,11 +28,13 @@ struct AddFocusTimeView: View {
     
     init(mode: FocusTimeMode,
          scheduleToEdit: FocusSchedule? = nil,
-         onSave: @escaping (FocusSchedule) -> Void
+         onSave: @escaping (FocusSchedule) -> Void,
+         onDismiss: @escaping () -> Void
     ) {
         self.mode = mode
         self.scheduleToEdit = scheduleToEdit
         self.onSave = onSave
+        self.onDismiss = onDismiss
         
         switch mode {
         case .add:
@@ -62,7 +65,7 @@ struct AddFocusTimeView: View {
                     }(),
                     hasConfirm: true,
                     onBackTap: {
-                        dismiss()
+                        onDismiss()
                     },
                     onNotificationTap: {},
                     onConfirmTap: {

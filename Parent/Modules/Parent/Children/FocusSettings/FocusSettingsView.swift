@@ -134,6 +134,9 @@ struct FocusSettingsView: View {
                             try? await CloudKitManager.shared.saveFocusSchedule(newSchedule, for: childID)
                         }
                         navigateToAddSchedule = false
+                    },
+                    onDismiss: {
+                        navigateToAddSchedule = false
                     }
                 )
             }
@@ -151,6 +154,9 @@ struct FocusSettingsView: View {
                             scheduleToEdit: schedule,
                             onSave: { updated in
                                 scheduleManager.updateSchedule(updated)
+                                scheduleToEdit = nil
+                            },
+                            onDismiss: {
                                 scheduleToEdit = nil
                             }
                         )
