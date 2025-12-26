@@ -1,0 +1,51 @@
+# ===================================================================
+# Файл сгенерирован https://github.com/github/gitignore/blob/main/Swift.gitignore
+# ===================================================================
+
+# Xcode
+#
+# Отслеживайте файл project.xcworkspace, но не его содержимое.
+# Это позволяет каждому разработчику иметь свои собственные настройки пользователя.
+*.xcworkspace/*
+!*.xcworkspace/contents.xcworkspacedata
+
+# Настройки пользователя Xcode
+*.xcuserdata/
+*.xccheckout
+
+# Кэш Swift Package Manager
+/.swiftpm
+/Packages/
+
+# Файлы сборки
+/build/
+/DerivedData/
+
+# Исключаем временные файлы Playground
+timeline.xctimeline
+playground.xcworkspace
+
+# Файлы настроек IDE (AppCode, VSCode)
+.idea/
+.vscode/
+
+# CocoaPods
+#
+# Запускайте `pod install` после клонирования.
+/Pods/
+# Исключаем Podfile.lock, если вы хотите, чтобы `pod install` всегда ставил последние версии.
+# Но обычно его оставляют, чтобы у всех разработчиков были одинаковые версии.
+# Podfile.lock
+
+# Carthage
+/Carthage/Build/
+
+# Системные файлы macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Временные файлы
+*.swp
+*~.nib
+local.xcconfig
