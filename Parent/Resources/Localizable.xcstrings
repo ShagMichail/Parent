@@ -1835,12 +1835,12 @@
         }
       }
     },
-    "Update..." : {
+    "Update" : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Обновление..."
+            "value" : "Обновление"
           }
         }
       }

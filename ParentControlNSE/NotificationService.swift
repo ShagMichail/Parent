@@ -9,6 +9,7 @@ import UserNotifications
 import ManagedSettings
 import CloudKit
 import DeviceActivity
+import UIKit
 
 class NotificationService: UNNotificationServiceExtension {
     
@@ -16,10 +17,13 @@ class NotificationService: UNNotificationServiceExtension {
     var bestAttemptContent: UNMutableNotificationContent?
     
     let store = ManagedSettingsStore()
+    let locationManager = CLLocationManager()
     
     let database = CKContainer(identifier: "iCloud.com.laborato.Parent").publicCloudDatabase
     
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
+        UIDevice.current.isBatteryMonitoringEnabled = true
+        
         self.contentHandler = contentHandler
         bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
         
@@ -109,8 +113,9 @@ class NotificationService: UNNotificationServiceExtension {
                 return
             }
             else if commandName == "request_location_update" {
+                forceSendStatus()
                 bestAttemptContent.body = String(localized: "Updating geolocation...")
-                contentHandler(bestAttemptContent)
+                updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
                 return
             }
         }
@@ -449,9 +454,96 @@ class NotificationService: UNNotificationServiceExtension {
 //            store.webContent.filterPolicy = .allowAll
         }
     }
+    
+    
+    
+    func forceSendStatus() {
+        print("📍 Получен запрос на принудительную отправку статуса.")
+        
+        // Используем последнюю известную локацию, которая уже есть у менеджера.
+        // `locationManager.location` хранит самое свежее значение.
+        guard let location = locationManager.location else {
+            print("⚠️ Невозможно принудительно отправить статус: последняя локация неизвестна.")
+            return
+        }
+        
+        // Вызываем вашу существующую функцию сбора и отправки
+        collectAndSendStatus(location: location)
+    }
+    
+    
+    private func collectAndSendStatus(location: CLLocation) {
+        // 1. Получаем инфо о батарее
+        let batteryLevel = UIDevice.current.batteryLevel
+        let batteryState = getBatteryStateString()
+        
+        // 2. Формируем пакет
+        let status = ChildDeviceStatus(
+            location: location,
+            batteryLevel: batteryLevel,
+            batteryState: batteryState,
+            timestamp: Date()
+        )
+        
+        print("🔋 Батарея: \(Int(status.batteryLevel * 100))%, \(status.batteryState)")
+        print("📍 Локация: \(location.coordinate.latitude), \(location.coordinate.longitude)")
+        
+        // 3. Отправляем в CloudKit
+        Task {
+            do {
+                try await sendDeviceStatus(status)
+            } catch {
+                print("❌ Ошибка отправки статуса в CloudKit: \(error)")
+            }
+        }
+    }
+    
+    func sendDeviceStatus(_ status: ChildDeviceStatus) async throws {
+        guard let defaults = UserDefaults(suiteName: "group.com.laborato.test.Parent"),
+              let childID = defaults.string(forKey: "myChildRecordID") else {
+            print("❌ [NSE] WebBlocks: Не удалось получить ID ребенка из AppGroup.")
+            return
+        }
+        
+        let record = CKRecord(recordType: "DeviceStatus")
+        
+        record["location"] = status.location
+        record["batteryLevel"] = status.batteryLevel
+        record["batteryState"] = status.batteryState
+        record["timestamp"] = status.timestamp
+        
+        let userRecordID = CKRecord.ID(recordName: childID)
+        record["userRef"] = CKRecord.Reference(recordID: userRecordID, action: .none)
+        
+        do {
+            print("▶️ [Child] Пытаемся сохранить статус...")
+            try await database.save(record)
+            print("✅ [Child] Статус успешно сохранен.")
+        } catch {
+            print("🛑 [Child] КРИТИЧЕСКАЯ ОШИБКА: Не удалось сохранить статус: \(error)")
+        }
+    }
+    
+    private func getBatteryStateString() -> String {
+        switch UIDevice.current.batteryState {
+        case .charging: return "charging"
+        case .full: return "full"
+        case .unplugged: return "unplugged"
+        case .unknown: return "unknown"
+        @unknown default: return "unknown"
+        }
+    }
+    
 }
 
 struct AppLimit: Codable {
     let token: ApplicationToken
     var time: TimeInterval
+}
+
+struct ChildDeviceStatus {
+    let location: CLLocation
+    let batteryLevel: Float      // от 0.0 до 1.0
+    let batteryState: String     // "charging", "unplugged", "full", "unknown"
+    let timestamp: Date
 }

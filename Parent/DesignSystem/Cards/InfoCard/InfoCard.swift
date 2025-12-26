@@ -10,6 +10,7 @@ import SwiftUI
 struct InfoCard: View {
     
     let model: InfoCardModel
+    @Binding var isPinging: Bool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -27,13 +28,25 @@ struct InfoCard: View {
                 
                 Spacer()
                 
-                HStack(spacing: 4) {
-                    Circle()
-                        .fill(model.statusColor)
-                        .frame(width: 8, height: 8)
-                    Text(model.status)
-                        .font(.custom("Inter-Regular", size: 16))
-                        .foregroundColor(.blackText)
+                HStack(spacing: 10) {
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(model.statusColor)
+                            .frame(width: 8, height: 8)
+                        Text(model.status)
+                            .font(.custom("Inter-Regular", size: 16))
+                            .foregroundColor(.blackText)
+                    }
+                    if isPinging {
+                        ProgressView()
+                            .frame(width: 24, height: 24)
+                    } else {
+                        Button(action: model.onRefresh) {
+                            Image("refresh")
+                                .frame(width: 24, height: 24)
+                                .foregroundColor(.accent)
+                        }
+                    }
                 }
             }
             .padding(.horizontal, 10)

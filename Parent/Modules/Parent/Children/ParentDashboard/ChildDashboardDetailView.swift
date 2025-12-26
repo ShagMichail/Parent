@@ -37,14 +37,22 @@ struct ChildDashboardDetailView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             let childStatus = viewModel.getOnlineStatus(for: viewModel.selectedChild?.recordID ?? "")
+            let isPingingBinding = Binding<Bool>(
+                get: { viewModel.isPinging[viewModel.selectedChild?.recordID ?? "", default: false] },
+                set: { _ in }
+            )
             InfoCard(
                 model: InfoCardModel(
                     title: String(localized: "Location"),
                     icon: "current-location",
                     location: viewModel.getStreetName(for: viewModel.selectedChild?.recordID ?? ""),
                     status: childStatus.text,
-                    statusColor: childStatus.color
-                )
+                    statusColor: childStatus.color,
+                    onRefresh: {
+                        viewModel.requestLocationUpdateForSelectedChild()
+                    }
+                ),
+                isPinging: isPingingBinding
             )
             
             ZStack {

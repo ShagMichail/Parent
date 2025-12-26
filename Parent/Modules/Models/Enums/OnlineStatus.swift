@@ -24,7 +24,7 @@ enum OnlineStatus {
         case .offline:
             return String(localized: "Offline")
         case .unknown:
-            return String(localized: "Update...")
+            return String(localized: "Update")
         }
     }
     

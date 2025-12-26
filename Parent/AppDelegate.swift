@@ -95,26 +95,31 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                     print("📍 AppDelegate: Пришел запрос локации! Запускаем Background Task.")
                     
                     // Просим у системы время на работу
-                    var bgTaskID: UIBackgroundTaskIdentifier = .invalid
-                    bgTaskID = application.beginBackgroundTask(withName: "ForceLocationUpdate") {
-                        // Если время вышло
-                        application.endBackgroundTask(bgTaskID)
-                        bgTaskID = .invalid
-                    }
+//                    var bgTaskID: UIBackgroundTaskIdentifier = .invalid
+//                    bgTaskID = application.beginBackgroundTask(withName: "ForceLocationUpdate") {
+//                        // Если время вышло
+//                        application.endBackgroundTask(bgTaskID)
+//                        bgTaskID = .invalid
+//                    }
+//                    
+//                    // Запускаем обновление координат
+//                    LocationManager.shared.forceSendStatus()
+//                    
+//                    // Даем системе понять, что мы обработали данные
+//                    completionHandler(.newData)
+//                    
+//                    // Завершаем задачу чуть позже (даем пару секунд на отправку)
+//                    DispatchQueue.global().asyncAfter(deadline: .now() + 10) {
+//                        if bgTaskID != .invalid {
+//                            application.endBackgroundTask(bgTaskID)
+//                            bgTaskID = .invalid
+//                        }
+//                    }
+//                    return
                     
-                    // Запускаем обновление координат
-                    LocationManager.shared.forceSendStatus()
-                    
-                    // Даем системе понять, что мы обработали данные
-                    completionHandler(.newData)
-                    
-                    // Завершаем задачу чуть позже (даем пару секунд на отправку)
-                    DispatchQueue.global().asyncAfter(deadline: .now() + 10) {
-                        if bgTaskID != .invalid {
-                            application.endBackgroundTask(bgTaskID)
-                            bgTaskID = .invalid
-                        }
-                    }
+                    print("🔔 AppDelegate: Определение локации пропустили (ее делает NSE). Просто обновляем UI.")
+                    NotificationCenter.default.post(name: NSNotification.Name("RefreshUI"), object: nil)
+                    completionHandler(.noData)
                     return
                 }
                 

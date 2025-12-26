@@ -28,6 +28,7 @@ class ParentDashboardViewModel: ObservableObject {
     @Published var onlineStatuses: [String: OnlineStatus] = [:]
     @Published var isCommandInProgressForSelectedChild = false
     @Published var isLoadingInitialState = false
+    @Published var isPinging: [String: Bool] = [:]
     
     private var cancellables = Set<AnyCancellable>()
     private var stateManager: AppStateManager
@@ -68,6 +69,58 @@ class ParentDashboardViewModel: ObservableObject {
     
     
     // MARK: - Public Method
+    
+    // запрос на новую геолокацию
+    func requestLocationUpdateForSelectedChild() {
+        guard let child = selectedChild else { return }
+        
+        // Проверяем, не идет ли уже запрос для этого ребенка
+        guard isPinging[child.recordID, default: false] == false else { return }
+        
+        print("📍->PING: Запрос на обновление локации для \(child.name)...")
+        isPinging[child.recordID] = true
+        
+        Task {
+            do {
+                // 1. Отправляем "пинг" команду через CloudKitManager
+                try await cloudKitManager.sendCommand(name: "request_location_update", to: child.recordID)
+                await MainActor.run {
+                    self.onlineStatuses[child.recordID] = .unknown
+                }
+                // 2. Ждем 10-15 секунд, чтобы дать ребенку время получить GPS и ответить
+                try await Task.sleep(for: .seconds(15))
+                
+                print("PONG->📍: Время ожидания вышло. Запрашиваем свежий статус...")
+                // 3. Запрашиваем обновление статуса ТОЛЬКО для этого ребенка
+                await updateChildDetails(for: child)
+                
+            } catch {
+                print("❌ Ошибка отправки 'ping' команды: \(error)")
+            }
+        }
+    }
+    
+    /// Главная логика загрузки и обработки данных для ОДНОГО ребенка
+//    private func fetchAndProcessStatus(for child: Child) async {
+//        do {
+//            guard let status = try await cloudKitManager.fetchDeviceStatus(for: child.recordID) else {
+//                self.childStreetNames[child.recordID] = String(localized: "No location data available")
+//                return
+//            }
+//            
+//            self.batteryStatuses[child.recordID] = (status.batteryLevel, status.batteryState)
+//            if let location = status.location {
+//                self.childCoordinates[child.recordID] = location.coordinate
+//                await self.reverseGeocode(location: location, for: child.recordID)
+//            } else {
+//                self.childStreetNames[child.recordID] = String(localized: "Coordinates are not defined")
+//            }
+//            
+//        } catch {
+//            print("❌ Ошибка загрузки статуса для \(child.name): \(error)")
+//            self.childStreetNames[child.recordID] = String(localized: "Download error")
+//        }
+//    }
     
     /// Загружает последнюю команду и выставляет UI
     func refreshChildStatus() {
@@ -176,9 +229,11 @@ class ParentDashboardViewModel: ObservableObject {
             guard let status = try await cloudKitManager.fetchDeviceStatus(for: child.recordID) else {
                 await MainActor.run {
                     self.childStreetNames[child.recordID] = String(localized: "Location unknown")
+                    self.isPinging[child.recordID] = false
                 }
                 await MainActor.run {
                     self.onlineStatuses[child.recordID] = .unknown
+                    self.isPinging[child.recordID] = false
                 }
                 return
             }
@@ -188,11 +243,13 @@ class ParentDashboardViewModel: ObservableObject {
             await MainActor.run {
                 self.batteryStatuses[child.recordID] = (status.batteryLevel, status.batteryState)
                 self.onlineStatuses[child.recordID] = onlineStatus
+                self.isPinging[child.recordID] = false
             }
             
             guard let location = status.location else {
                 await MainActor.run {
                     self.childStreetNames[child.recordID] = String(localized: "Coordinates are not defined")
+                    self.isPinging[child.recordID] = false
                 }
                 return
             }
@@ -204,6 +261,7 @@ class ParentDashboardViewModel: ObservableObject {
                     let addressString = self.formatAddress(from: placemark)
                     await MainActor.run {
                         self.childStreetNames[child.recordID] = addressString
+                        self.isPinging[child.recordID] = false
                         print("📍 Адрес для \(child.name): \(addressString)")
                     }
                 }
@@ -211,12 +269,16 @@ class ParentDashboardViewModel: ObservableObject {
                 print("❌ Ошибка геокодирования: \(error.localizedDescription)")
                 await MainActor.run {
                     self.childStreetNames[child.recordID] = String(localized: "Couldn't determine the address")
+                    self.isPinging[child.recordID] = false
                 }
             }
             
         } catch {
             print("❌ Ошибка загрузки статуса для \(child.name): \(error)")
-            await MainActor.run { self.onlineStatuses[child.recordID] = .offline }
+            await MainActor.run {
+                self.onlineStatuses[child.recordID] = .offline
+                self.isPinging[child.recordID] = false
+            }
         }
     }
     
@@ -279,6 +341,9 @@ class ParentDashboardViewModel: ObservableObject {
                 } else if commandName == "unblock_all" {
                     blockStatuses[childID] = false
                 }
+//                else if commandName == "request_location_update" {
+//                    isPinging[childID] = false
+//                }
                 self.saveCachedStatuses()
             }
         }

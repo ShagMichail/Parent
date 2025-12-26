@@ -14,13 +14,15 @@ struct InfoCardModel {
     let location: String
     let status: String
     let statusColor: Color
-    
-    init(title: String, icon: String, location: String, status: String, statusColor: Color) {
+    let onRefresh: () -> Void
+
+    init(title: String, icon: String, location: String, status: String, statusColor: Color, onRefresh: @escaping () -> Void) {
         self.title = title
         self.icon = icon
         self.location = location
         self.status = status
         self.statusColor = statusColor
+        self.onRefresh = onRefresh
     }
 }
 

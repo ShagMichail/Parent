@@ -32,17 +32,17 @@ class LocationViewModel: ObservableObject {
         self.cloudKitManager = cloudKitManager
         setupBindings()
         
-        NotificationCenter.default.publisher(for: .commandUpdated)
-            .sink { [weak self] notification in
-                self?.handleCommandUpdate(notification)
-            }
-            .store(in: &cancellables)
+//        NotificationCenter.default.publisher(for: .commandUpdated)
+//            .sink { [weak self] notification in
+//                self?.handleCommandUpdate(notification)
+//            }
+//            .store(in: &cancellables)
     }
     
     // MARK: - Public Methods
 
     func getStreetName(for childID: String) -> String {
-        return childStreetNames[childID, default: String(localized: "Update...")]
+        return childStreetNames[childID, default: String(localized: "Update")]
     }
 
     func getBatteryText(for childID: String) -> String {
@@ -71,7 +71,9 @@ class LocationViewModel: ObservableObject {
             do {
                 // 1. Отправляем "пинг" команду через CloudKitManager
                 try await cloudKitManager.sendCommand(name: "request_location_update", to: child.recordID)
-                
+                await MainActor.run {
+                    self.childStreetNames[child.recordID] = String(localized: "Update")
+                }
                 // 2. Ждем 10-15 секунд, чтобы дать ребенку время получить GPS и ответить
                 try await Task.sleep(for: .seconds(15))
                 
@@ -148,6 +150,7 @@ class LocationViewModel: ObservableObject {
         do {
             guard let status = try await cloudKitManager.fetchDeviceStatus(for: child.recordID) else {
                 self.childStreetNames[child.recordID] = String(localized: "No location data available")
+                self.isPinging[child.recordID] = false
                 return
             }
             
@@ -155,13 +158,16 @@ class LocationViewModel: ObservableObject {
             if let location = status.location {
                 self.childCoordinates[child.recordID] = location.coordinate
                 await self.reverseGeocode(location: location, for: child.recordID)
+                self.isPinging[child.recordID] = false
             } else {
                 self.childStreetNames[child.recordID] = String(localized: "Coordinates are not defined")
+                self.isPinging[child.recordID] = false
             }
             
         } catch {
             print("❌ Ошибка загрузки статуса для \(child.name): \(error)")
             self.childStreetNames[child.recordID] = String(localized: "Download error")
+            self.isPinging[child.recordID] = false
         }
     }
     
