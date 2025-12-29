@@ -41,7 +41,8 @@ struct AuthFormView: View {
     @ViewBuilder
     private var headerView: some View {
         VStack(spacing: 20) {
-            Image("lock")
+            Image("logocontrol")
+                .resizable()
                 .frame(width: 120, height: 120)
             
             Text(mode == .register ? "Registering your account" : "Login to your account")

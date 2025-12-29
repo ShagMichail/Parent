@@ -74,6 +74,16 @@
         }
       }
     },
+    "Access to websites is blocked:" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Заблокирован доступ к сайтам:"
+          }
+        }
+      }
+    },
     "Account is ready" : {
       "localizations" : {
         "ru" : {
@@ -134,22 +144,22 @@
         }
       }
     },
-    "Add a domain to block the site." : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add a domain to block the site."
-          }
-        }
-      }
-    },
     "Add focus time" : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Добавить время фокусировки"
+          }
+        }
+      }
+    },
+    "Add the domains below that need to be blocked" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавьте домены ниже, которые необходимо заблокировать"
           }
         }
       }
@@ -260,6 +270,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Блокировать"
+          }
+        }
+      }
+    },
+    "Blocked apps" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Заблокированные приложения"
           }
         }
       }
@@ -694,6 +714,16 @@
         }
       }
     },
+    "Focus modes" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Режимы фокусировки"
+          }
+        }
+      }
+    },
     "Focusing" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -801,6 +831,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "за неделю"
+          }
+        }
+      }
+    },
+    "Internet Restrictions" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ограничения в интернете"
           }
         }
       }
@@ -1395,6 +1435,16 @@
         }
       }
     },
+    "Set up schedules for concentration:" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настроено расписаний для концентрации:"
+          }
+        }
+      }
+    },
     "Settings" : {
       "localizations" : {
         "ru" : {
@@ -1585,6 +1635,16 @@
         }
       }
     },
+    "The parent did not set any restrictions" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Родитель не установил никакие ограничения"
+          }
+        }
+      }
+    },
     "The parent has changed the app usage rules." : {
       "localizations" : {
         "ru" : {
@@ -1601,6 +1661,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Родитель изменил правила использования Web ресурсами."
+          }
+        }
+      }
+    },
+    "The parent has restricted access to the apps:" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Родитель ограничил доступ к приложениям:"
           }
         }
       }
@@ -1675,12 +1745,32 @@
         }
       }
     },
+    "There are daily limits for applications:" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There are daily limits for applications:"
+          }
+        }
+      }
+    },
     "There are no important notifications" : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Важных уведомлений нет"
+          }
+        }
+      }
+    },
+    "There are no restrictions" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ограничения отсутствуют"
           }
         }
       }
@@ -1711,6 +1801,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ошибка времени"
+          }
+        }
+      }
+    },
+    "Time limits" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Лимиты времени"
           }
         }
       }
@@ -1861,6 +1961,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Обновление настроек и сбор информации"
+          }
+        }
+      }
+    },
+    "Uploading rules..." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Загрузка правил…"
           }
         }
       }

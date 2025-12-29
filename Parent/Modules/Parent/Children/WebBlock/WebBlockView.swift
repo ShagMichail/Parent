@@ -126,7 +126,10 @@ struct WebBlockView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 10) {
                         if viewModel.blocks.isEmpty {
-                            Text("Add a domain to block the site.")
+                            Text("Click on 'Select Applications' to add restrictions.")
+                                .font(.custom("Inter-Regular", size: 14))
+                                .foregroundColor(.strokeTextField)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         } else {
                             ForEach(viewModel.blocks) { block in
                                 // Логика для анимации

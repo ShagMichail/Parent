@@ -122,16 +122,25 @@ class AppBlockViewModel: ObservableObject {
     }
     
     func syncBlocksWithSelection() {
+        
+        // понять, можно ли как-то обработать все выделенные категории
+        
         // Удаляем те лимиты, которых больше нет в selection
-        let currentSelectionTokens = selection.applicationTokens
+        let allTokens = selection.applicationTokens
+        
+//        for category in selection.categoryTokens {
+//            // "Раскрываем" каждую категорию, получая `Set`
+//            // входящих в нее токенов приложений.
+//            allTokens.formUnion(category.applications)
+//        }
         
         // `removeAll` удалит из `blocks` все элементы, для которых условие истинно
         blocks.removeAll { block in
-            !currentSelectionTokens.contains(block.token)
+            !allTokens.contains(block.token)
         }
         
         // Добавляем новые приложения, которых еще нет в списке
-        for token in currentSelectionTokens {
+        for token in allTokens {
             if !blocks.contains(where: { $0.token == token }) {
                 let newBlock = AppBlock(token: token) // Лимит по умолчанию 1 час
                 blocks.append(newBlock)

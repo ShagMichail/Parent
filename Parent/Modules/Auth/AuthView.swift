@@ -45,7 +45,8 @@ struct AuthView: View {
                 VStack {
                     Spacer()
                     
-                    Image("lock")
+                    Image("logocontrol")
+                        .resizable()
                         .frame(width: 120, height: 120)
                         .padding(.bottom, 30)
                     

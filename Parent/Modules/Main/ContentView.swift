@@ -16,17 +16,16 @@ struct ContentView: View {
     var body: some View {
         Group {
             if showingSplash {
-                SplashScreenView()
-                    .task {
-                        await stateManager.initializeApp()
-                    }
-                    .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                            withAnimation {
-                                showingSplash = false
-                            }
+                SplashScreenView() {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        withAnimation {
+                            showingSplash = false
                         }
                     }
+                }
+                .task {
+                    await stateManager.initializeApp()
+                }
             } else {
                 mainContentView
             }

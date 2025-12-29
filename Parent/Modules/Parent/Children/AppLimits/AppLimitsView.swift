@@ -45,7 +45,7 @@ struct AppLimitsView: View {
                     ScrollView {
                         VStack(alignment: .leading) {
                             if viewModel.limits.isEmpty {
-                                Text("Click on 'Select Applications' to add restrictions.")
+                                Text("Add the domains below that need to be blocked")
                                     .font(.custom("Inter-Regular", size: 14))
                                     .foregroundColor(.strokeTextField)
                                     .frame(maxWidth: .infinity, alignment: .leading)
