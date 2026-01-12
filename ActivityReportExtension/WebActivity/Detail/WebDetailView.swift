@@ -69,7 +69,7 @@ struct WebDetailView: View {
         .scrollIndicators(.hidden)
         .background(.backgroundApps)
         .toolbar {
-            ToolbarItem(placement: .principal) {
+            ToolbarItem(placement: .automatic) {
                 HStack(spacing: 8) {
                     Label(detail.token)
                         .labelStyle(.iconOnly)

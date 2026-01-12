@@ -17,9 +17,9 @@ struct ChildRowView: View {
                     .stroke(model.childGender == "men" ? Color.backgroundMen.opacity(0.5) : Color.backgroundGirl.opacity(0.5), lineWidth: 10)
                 Circle()
                     .fill(model.childGender == "men" ? Color.backgroundMen : Color.backgroundGirl)
-                    .frame(width: 36, height: 36)
+                    .frame(width: 22, height: 22)
             }
-            .frame(width: 40, height: 40)
+            .frame(width: 25, height: 25)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(model.childName)

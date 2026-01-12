@@ -17,62 +17,65 @@ struct MainTabView: View {
     @EnvironmentObject var stateManager: AppStateManager
     @EnvironmentObject var cloudKitManager: CloudKitManager
     
-    @State private var selectedTab: Tab = .location
-    
+//    @State private var selectedTab: Tab = .location
+    @State private var selectedTab: CustomTab = .location
+    @State private var isTabBarVisible: Bool = true
     // --- ГЛАВНЫЕ СОСТОЯНИЯ (ЖИВУТ ЗДЕСЬ) ---
     @State private var showBlockOverlay = false
     @Namespace private var animation
     
-    init() {
-        let appearance = UITabBarAppearance()
-        
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = .white
-        
-        appearance.shadowImage = nil
-        appearance.shadowColor = UIColor.black.withAlphaComponent(0.1)
-        
-        let itemAppearance = UITabBarItemAppearance()
-        
-        itemAppearance.normal.iconColor = UIColor.gray
-        itemAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.gray]
-        
-        let activeColor = UIColor(named: "accent")
-        itemAppearance.selected.iconColor = activeColor
-        itemAppearance.selected.titleTextAttributes = [.foregroundColor: activeColor ?? .accent]
-        
-        appearance.stackedLayoutAppearance = itemAppearance
-        appearance.inlineLayoutAppearance = itemAppearance
-        appearance.compactInlineLayoutAppearance = itemAppearance
-        
-        UITabBar.appearance().standardAppearance = appearance
-        UITabBar.appearance().scrollEdgeAppearance = appearance
-    }
-    
     var body: some View {
-        ZStack {
-            TabView(selection: $selectedTab) {
-                LocationView(stateManager: stateManager, cloudKitManager: cloudKitManager)
-                    .tabItem { Label("Location", image: "location-tab") }
-                    .tag(Tab.location)
-                
-                AISummaryView()
-                    .tabItem { Label("AI-Summary", image: "shield-tick-tab") }
-                    .tag(Tab.summary)
-                
-                ParentDashboardView(
-                    showBlockOverlay: $showBlockOverlay,
-                    animation: animation
-                )
-                .tabItem { Label("Children", image: "profile-user-tab") }
-                .tag(Tab.children)
-                
-                Text("Settings")
-                    .tabItem { Label("Settings", image: "setting-tab") }
-                    .tag(Tab.settings)
+        ZStack(alignment: .bottom) {
+//            TabView(selection: $selectedTab) {
+//                LocationView(stateManager: stateManager, cloudKitManager: cloudKitManager)
+//                    .tabItem { Label("Location", image: "location-tab") }
+//                    .tag(Tab.location)
+//                
+//                AISummaryView()
+//                    .tabItem { Label("AI-Summary", image: "shield-tick-tab") }
+//                    .tag(Tab.summary)
+//                
+//                ParentDashboardView(
+//                    showBlockOverlay: $showBlockOverlay,
+//                    animation: animation
+//                )
+//                .tabItem { Label("Children", image: "profile-user-tab") }
+//                .tag(Tab.children)
+//                
+//                Text("Settings")
+//                    .tabItem { Label("Settings", image: "setting-tab") }
+//                    .tag(Tab.settings)
+//            }
+//            .accentColor(.accent)
+//            .blur(radius: showBlockOverlay ? 5 : 0)
+            
+            
+            Group {
+                switch selectedTab {
+                case .location:
+                    LocationView(stateManager: stateManager, cloudKitManager: cloudKitManager)
+                case .summary:
+                    AISummaryView()
+                case .children:
+                    ParentDashboardView(
+                        isTabBarVisible: $isTabBarVisible,
+                        showBlockOverlay: $showBlockOverlay,
+                        animation: animation
+                    )
+                case .settings:
+                    Text("Экран Настроек")
+                }
             }
-            .accentColor(.accent)
-            .blur(radius: showBlockOverlay ? 5 : 0)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            
+            if isTabBarVisible {
+                CustomTabBar(selectedTab: $selectedTab)
+                    .transition(.move(edge: .bottom)) // Добавим анимацию появления/исчезновения
+            }
+            
+            // --- СЛОЙ 2: НАШ КАСТОМНЫЙ TABBAR ---
+//            CustomTabBar(selectedTab: $selectedTab)
+            
             
             if showBlockOverlay {
                 Color.black.opacity(0.4)

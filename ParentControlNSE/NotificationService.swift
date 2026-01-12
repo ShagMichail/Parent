@@ -30,109 +30,119 @@ class NotificationService: UNNotificationServiceExtension {
         guard let bestAttemptContent = bestAttemptContent else { return }
         let userInfo = request.content.userInfo
         
-        if let ckInfo = userInfo["ck"] as? [String: Any],
-           let query = ckInfo["qry"] as? [String: Any],
-           let subscriptionID = query["sid"] as? String {
-            if subscriptionID.starts(with: "web-block-updates-") {
-                
-                print("🔔 [NSE] Получен пуш на обновление web блокировок! Запускаем синхронизацию...")
-                
-                // Запускаем асинхронную задачу
-                Task {
-                    await syncAndApplyWebBlocks()
+        if let notification = CKQueryNotification(fromRemoteNotificationDictionary: userInfo) {
+            
+            if let ckInfo = userInfo["ck"] as? [String: Any],
+               let query = ckInfo["qry"] as? [String: Any],
+               let subscriptionID = query["sid"] as? String {
+                if subscriptionID.starts(with: "web-block-updates-") {
                     
-                    bestAttemptContent.title = String(localized: "Locks have been updated")
-                    bestAttemptContent.body = String(localized: "The parent has changed the rules for using Web resources.")
+                    print("🔔 [NSE] Получен пуш на обновление web блокировок! Запускаем синхронизацию...")
                     
-                    contentHandler(bestAttemptContent)
+                    // Запускаем асинхронную задачу
+                    Task {
+                        await syncAndApplyWebBlocks()
+                        
+                        bestAttemptContent.title = String(localized: "Locks have been updated")
+                        bestAttemptContent.body = String(localized: "The parent has changed the rules for using Web resources.")
+                        
+                        contentHandler(bestAttemptContent)
+                    }
+                    return
                 }
-                return
-            }
-            
-            if subscriptionID.starts(with: "app-limits-updates-") {
                 
-                print("🔔 [NSE] Получен пуш на обновление лимитов! Запускаем синхронизацию...")
-                
-                // Запускаем асинхронную задачу
-                Task {
-                    await syncAndApplyAppLimits()
+                if subscriptionID.starts(with: "app-limits-updates-") {
                     
-                    bestAttemptContent.title = String(localized: "Limits updated")
-                    bestAttemptContent.body = String(localized: "The parent has changed the app usage rules.")
+                    print("🔔 [NSE] Получен пуш на обновление лимитов! Запускаем синхронизацию...")
                     
-                    contentHandler(bestAttemptContent)
+                    // Запускаем асинхронную задачу
+                    Task {
+                        await syncAndApplyAppLimits()
+                        
+                        bestAttemptContent.title = String(localized: "Limits updated")
+                        bestAttemptContent.body = String(localized: "The parent has changed the app usage rules.")
+                        
+                        contentHandler(bestAttemptContent)
+                    }
+                    return
                 }
-                return
-            }
-            
-            if subscriptionID.starts(with: "app-block-updates-") {
                 
-                print("🔔 [NSE] Получен пуш на обновление Блокировок! Запускаем синхронизацию...")
-                
-                // Запускаем асинхронную задачу
-                Task {
-                    await fetchAndApplyAppBlocks()
+                if subscriptionID.starts(with: "app-block-updates-") {
                     
-                    bestAttemptContent.title = String(localized: "Locks have been updated")
-                    bestAttemptContent.body = String(localized: "The parent has changed the app usage rules.")
+                    print("🔔 [NSE] Получен пуш на обновление Блокировок! Запускаем синхронизацию...")
                     
-                    contentHandler(bestAttemptContent)
+                    // Запускаем асинхронную задачу
+                    Task {
+                        await fetchAndApplyAppBlocks()
+                        
+                        bestAttemptContent.title = String(localized: "Locks have been updated")
+                        bestAttemptContent.body = String(localized: "The parent has changed the app usage rules.")
+                        
+                        contentHandler(bestAttemptContent)
+                    }
+                    return
                 }
-                return
             }
-        }
-        
-        // 1. Разбираем структуру CloudKit
-        guard let ckInfo = userInfo["ck"] as? [String: Any],
-              let query = ckInfo["qry"] as? [String: Any],
-              let recordIDString = query["rid"] as? String else {
-            contentHandler(bestAttemptContent)
-            return
-        }
-        
-        let apsFields = query["af"] as? [String: Any]
-        
-        // --- ВЕТКА 1: КОМАНДЫ (Блокировка / Разблокировка / Локация) ---
-        if let fields = apsFields, let commandName = fields["commandName"] as? String {
             
-            print("NSE: Получена команда: \(commandName)")
+            // 1. Разбираем структуру CloudKit
+            guard let ckInfo = userInfo["ck"] as? [String: Any],
+                  let query = ckInfo["qry"] as? [String: Any],
+                  let recordIDString = query["rid"] as? String else {
+                contentHandler(bestAttemptContent)
+                return
+            }
             
-            if commandName == "block_all" {
-                store.shield.applicationCategories = .all()
-                store.shield.webDomainCategories = .all()
-                bestAttemptContent.body = String(localized: "The device is locked by the parent")
-                updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
-                return
+            let apsFields = query["af"] as? [String: Any]
+            
+            // --- ВЕТКА 1: КОМАНДЫ (Блокировка / Разблокировка / Локация) ---
+            if let fields = apsFields, let commandName = fields["commandName"] as? String {
+                
+                print("NSE: Получена команда: \(commandName)")
+                
+                if commandName == "block_all" {
+                    store.shield.applicationCategories = .all()
+                    store.shield.webDomainCategories = .all()
+                    bestAttemptContent.body = String(localized: "The device is locked by the parent")
+                    updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
+                    return
+                }
+                else if commandName == "unblock_all" {
+                    store.shield.applicationCategories = nil
+                    store.shield.webDomainCategories = nil
+                    bestAttemptContent.body = String(localized: "The device is unlocked by the parent")
+                    // Обновляем статус на executed
+                    updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
+                    return
+                }
+                else if commandName == "request_location_update" {
+                    forceSendStatus()
+                    bestAttemptContent.body = String(localized: "Updating geolocation...")
+                    updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
+                    return
+                }
             }
-            else if commandName == "unblock_all" {
-                store.shield.applicationCategories = nil
-                store.shield.webDomainCategories = nil
-                bestAttemptContent.body = String(localized: "The device is unlocked by the parent")
-                // Обновляем статус на executed
-                updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
-                return
+            
+            // --- ВЕТКА 2: РАСПИСАНИЯ ---
+            
+            switch notification.queryNotificationReason {
+            case .recordCreated, .recordUpdated:
+                if let fields = apsFields, let _ = fields["startTimeString"] {
+                    // Это расписание (создание или обновление)
+                    if let newSchedule = createSchedule(from: fields, recordID: recordIDString) {
+                        updateSchedulesCache(with: newSchedule)
+                        bestAttemptContent.title = String(localized: "The schedule has been updated")
+                        bestAttemptContent.body = String(localized: "The time settings have been changed by the parent.")
+                    }
+                }
+                //                else {
+            case .recordDeleted:
+                // Это удаление расписания (полей нет, но пуш пришел)
+                removeScheduleFromCache(withID: recordIDString)
+                bestAttemptContent.title = String(localized: "The schedule has been deleted")
+                bestAttemptContent.body = String(localized: "The time limit has been lifted.")
+            @unknown default:
+                break
             }
-            else if commandName == "request_location_update" {
-                forceSendStatus()
-                bestAttemptContent.body = String(localized: "Updating geolocation...")
-                updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
-                return
-            }
-        }
-        
-        // --- ВЕТКА 2: РАСПИСАНИЯ ---
-        if let fields = apsFields, let _ = fields["startTimeString"] {
-            // Это расписание (создание или обновление)
-            if let newSchedule = createSchedule(from: fields, recordID: recordIDString) {
-                updateSchedulesCache(with: newSchedule)
-                bestAttemptContent.title = String(localized: "The schedule has been updated")
-                bestAttemptContent.body = String(localized: "The time settings have been changed by the parent.")
-            }
-        } else {
-            // Это удаление расписания (полей нет, но пуш пришел)
-            removeScheduleFromCache(withID: recordIDString)
-            bestAttemptContent.title = String(localized: "The schedule has been deleted")
-            bestAttemptContent.body = String(localized: "The time limit has been lifted.")
         }
         
         contentHandler(bestAttemptContent)

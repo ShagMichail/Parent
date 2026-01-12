@@ -15,6 +15,7 @@ struct ParentDashboardView: View {
     @State private var showDivider = false
     @State private var reportRefreshID = UUID()
     @EnvironmentObject var viewModel: ParentDashboardViewModel
+    @Binding var isTabBarVisible: Bool
     @Binding var showBlockOverlay: Bool
     var animation: Namespace.ID
 
@@ -45,7 +46,11 @@ struct ParentDashboardView: View {
                         .padding(.bottom, 10)
                         
                         if viewModel.selectedChild != nil {
-                            ChildDashboardDetailView(showBlockOverlay: $showBlockOverlay, animation: animation)
+                            ChildDashboardDetailView(
+                                showBlockOverlay: $showBlockOverlay,
+                                isTabBarVisible: $isTabBarVisible,
+                                animation: animation
+                            )
                                 .transition(.opacity.combined(with: .scale(scale: 0.95)))
                                 .id(reportRefreshID)
                                 .onAppear {
@@ -55,7 +60,7 @@ struct ParentDashboardView: View {
                             ContentUnavailableView("Add a child", systemImage: "person.3.fill", description: Text("Click on the '+' to add the first child."))
                         }
                     }
-                    .padding(.bottom, 20)
+                    .padding(.bottom, 80)
                 }
                 .sheet(isPresented: $isAddingChild) {
                     AddChildView()

@@ -55,7 +55,7 @@ struct AppUsageView: View {
                     appsListView
                 }
                 .padding(.horizontal, 20)
-                .padding(.bottom, 20)
+                .padding(.bottom, 80)
             }
             .background(.backgroundApps)
             .scrollIndicators(.hidden)
@@ -63,6 +63,7 @@ struct AppUsageView: View {
                 NavigationView {
                     AppDetailView(detail: detail, chartType: viewModel.isWeekView ? .daily : .hourly)
                 }
+                .presentationDetents([.fraction(0.9)])
             }
             .onChange(of: viewModel) { _, _ in
                 if selectedAppDetail != nil {

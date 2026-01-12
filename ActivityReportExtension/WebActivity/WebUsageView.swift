@@ -18,7 +18,6 @@ struct WebUsageView: View {
             VStack {
                 // --- Блок "Экранное время" ---
                 VStack(alignment: .leading, spacing: 10) {
-//                    Text("Экранное время")
                     Text("Screen time")
                         .font(.custom("Inter-SemiBold", size: 20))
                     
@@ -38,7 +37,8 @@ struct WebUsageView: View {
                 // --- Список сайтов ---
                 webListView
             }
-            .padding()
+            .padding(.horizontal, 20)
+            .padding(.bottom, 80)
         }
         .background(.backgroundApps)
         .scrollIndicators(.hidden)
@@ -49,6 +49,7 @@ struct WebUsageView: View {
                     chartType: viewModel.isWeekView ? .daily : .hourly
                 )
             }
+            .presentationDetents([.fraction(0.9)])
         }
         .onChange(of: viewModel) { _, _ in
             if selectedWebDetail != nil {

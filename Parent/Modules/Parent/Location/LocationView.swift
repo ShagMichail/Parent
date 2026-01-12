@@ -124,6 +124,7 @@ struct LocationView: View {
                         isExpanded: $isListExpanded,
                         viewModel: viewModel
                     )
+                    .padding(.bottom, 60)
                 }
                 
                 if viewModel.isLoading {

@@ -12,12 +12,12 @@ struct ChildDashboardDetailView: View {
     @EnvironmentObject var viewModel: ParentDashboardViewModel
     
     @Binding var showBlockOverlay: Bool
+    @Binding var isTabBarVisible: Bool
     
     @State private var navigateToFocus = false
     @State private var navigateToLimits = false
     @State private var navigateToBlocks = false
     @State private var navigateToWebBlocks = false
-    @State var showNavigationBar: Bool = true
     @State private var filter = DeviceActivityFilter(
         segment: .hourly(during: DateInterval(start: Calendar.current.startOfDay(for: Date()), end: Date())),
         users: .children,
@@ -99,7 +99,7 @@ struct ChildDashboardDetailView: View {
                     status: viewModel.isFocusActiveForSelectedChild ? String(localized: "On.") : String(localized: "Off."),
                     action: {
                         navigateToFocus = true
-                        showNavigationBar.toggle()
+                        isTabBarVisible.toggle()
                     }
                 ))
                 
@@ -109,7 +109,7 @@ struct ChildDashboardDetailView: View {
                     showsArrow: true,
                     action: {
                         navigateToLimits = true
-                        showNavigationBar.toggle()
+                        isTabBarVisible.toggle()
                     }
                 ))
                 
@@ -119,7 +119,7 @@ struct ChildDashboardDetailView: View {
                     showsArrow: true,
                     action: {
                         navigateToBlocks = true
-                        showNavigationBar.toggle()
+                        isTabBarVisible.toggle()
                     }
                 ))
                 ActionCard(model: ActionCardModel(
@@ -128,7 +128,7 @@ struct ChildDashboardDetailView: View {
                     showsArrow: true,
                     action: {
                         navigateToWebBlocks = true
-                        showNavigationBar.toggle()
+                        isTabBarVisible.toggle()
                     }
                 ))
             }
@@ -136,22 +136,20 @@ struct ChildDashboardDetailView: View {
         .padding(.horizontal, 20)
         .navigationDestination(
             isPresented: $navigateToFocus,
-            destination: { FocusSettingsView(showNavigationBar: $showNavigationBar, childID: viewModel.selectedChild?.recordID ?? "") }
+            destination: { FocusSettingsView(showNavigationBar: $isTabBarVisible, childID: viewModel.selectedChild?.recordID ?? "") }
         )
         .navigationDestination(
             isPresented: $navigateToLimits,
-            destination: { AppLimitsView(showNavigationBar: $showNavigationBar, child: viewModel.selectedChild) }
+            destination: { AppLimitsView(showNavigationBar: $isTabBarVisible, child: viewModel.selectedChild) }
         )
         .navigationDestination(
             isPresented: $navigateToBlocks,
-            destination: { AppBlockView(showNavigationBar: $showNavigationBar, child: viewModel.selectedChild) }
+            destination: { AppBlockView(showNavigationBar: $isTabBarVisible, child: viewModel.selectedChild) }
         )
         .navigationDestination(
             isPresented: $navigateToWebBlocks,
-            destination: { WebBlockView(showNavigationBar: $showNavigationBar, child: viewModel.selectedChild) }
+            destination: { WebBlockView(showNavigationBar: $isTabBarVisible, child: viewModel.selectedChild) }
         )
-
-        .toolbar(showNavigationBar ? .visible : .hidden, for: .tabBar)
     }
     
     private func updateReport() {

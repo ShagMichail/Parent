@@ -142,7 +142,7 @@ struct AISummaryView: View {
                             .shadow(color: .black.opacity(0.05), radius: 5, y: 2)
                         }
                     }
-                    .padding(.bottom, 20)
+                    .padding(.bottom, 80)
                 }
                 .scrollIndicators(.hidden)
                 .refreshable {

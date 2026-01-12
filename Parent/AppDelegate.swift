@@ -21,8 +21,51 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         }
         
         application.registerForRemoteNotifications()
+        setupGlobalTabBarAppearance()
         return true
     }
+    
+    private func setupGlobalTabBarAppearance() {
+            // 1. Создаем объект настроек
+            let appearance = UITabBarAppearance()
+            
+            // 2. Делаем фон НЕПРОЗРАЧНЫМ и задаем ему цвет.
+            // Это ключевой шаг, чтобы вернуть "старый" вид.
+            appearance.configureWithOpaqueBackground()
+            appearance.backgroundColor = .systemBackground // Используем системный белый/черный
+            
+            // 3. Настраиваем цвет тени (линии сверху)
+            appearance.shadowColor = UIColor.black.withAlphaComponent(0.1)
+            
+            // 4. Настраиваем внешний вид иконок и текста
+            let itemAppearance = UITabBarItemAppearance()
+            
+            // --- Неактивное состояние ---
+            itemAppearance.normal.iconColor = .gray
+            itemAppearance.normal.titleTextAttributes = [
+                .foregroundColor: UIColor.gray,
+                .font: UIFont.systemFont(ofSize: 10) // Можно явно задать шрифт и размер
+            ]
+            
+            // --- Активное состояние ---
+            // Предполагаем, что у вас в Assets есть цвет "accent"
+            let activeColor = UIColor(named: "accent") ?? .systemBlue
+            itemAppearance.selected.iconColor = activeColor
+            itemAppearance.selected.titleTextAttributes = [
+                .foregroundColor: activeColor,
+                .font: UIFont.systemFont(ofSize: 10, weight: .medium) // Можно сделать активный таб жирнее
+            ]
+            
+            // Применяем настройки к разным состояниям TabBar
+            appearance.stackedLayoutAppearance = itemAppearance
+            appearance.inlineLayoutAppearance = itemAppearance
+            appearance.compactInlineLayoutAppearance = itemAppearance
+            
+            // 5. Применяем эти настройки глобально для всего приложения
+            UITabBar.appearance().standardAppearance = appearance
+            // Эта строка важна для iOS 15+, она убирает прозрачность при скролле
+            UITabBar.appearance().scrollEdgeAppearance = appearance
+        }
     
     // 2. Обработка фоновой задачи (вызывается системой)
     func handleAppRefresh(task: BGAppRefreshTask) {

@@ -295,6 +295,8 @@ extension AppStateManager {
                     self.appState = .parentDashboard
                 }
                 
+                await FocusScheduleManager.shared.syncFromCloudKit()
+                
             } catch {
                 print("⚠️ Не удалось загрузить детей из CloudKit: \(error). Отправляем на добавление ребенка.")
                 // Если произошла ошибка, лучше отправить на экран добавления

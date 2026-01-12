@@ -18,7 +18,6 @@ struct CategoryUsageView: View {
                 VStack {
                     // --- Блок "Экранное время" ---
                     VStack(alignment: .leading, spacing: 10) {
-//                        Text("Экранное время")
                         Text("Screen time")
                             .font(.custom("Inter-SemiBold", size: 20))
                             .foregroundColor(.blackText)
@@ -51,7 +50,7 @@ struct CategoryUsageView: View {
                     categoriesListView
                 }
                 .padding(.horizontal, 20)
-                .padding(.bottom, 20)
+                .padding(.bottom, 80)
             }
             .background(.backgroundApps)
             .scrollIndicators(.hidden)
@@ -62,6 +61,7 @@ struct CategoryUsageView: View {
                         chartType: viewModel.isWeekView ? .daily : .hourly
                     )
                 }
+                .presentationDetents([.fraction(0.9)])
             }
             .onChange(of: viewModel) { _, _ in
                 if selectedCategoryDetail != nil {
@@ -82,7 +82,6 @@ struct CategoryUsageView: View {
                 .font(.custom("Inter-SemiBold", size: 18))
                 .foregroundColor(.blackText)
             Spacer()
-//            Text(viewModel.isWeekView ? "Последние 7 дней" : "Сегодня, \(getDateString())")
             Text(viewModel.isWeekView ? "The last 7 days" : "Today, \(getDateString())")
                 .font(.custom("Inter-Regular", size: 14))
                 .foregroundColor(.data)
@@ -95,8 +94,6 @@ struct CategoryUsageView: View {
         Chart {
             ForEach(viewModel.dailyData) { item in
                 BarMark(
-//                    x: .value("День", item.dateString),
-//                    y: .value("Секунды", item.duration)
                     x: .value("Day", item.dateString),
                     y: .value("Seconds", item.duration)
                 )
@@ -129,8 +126,6 @@ struct CategoryUsageView: View {
         Chart {
             ForEach(viewModel.hourlyData) { item in
                 BarMark(
-//                    x: .value("Час", item.hour),
-//                    y: .value("Секунды", item.duration)
                     x: .value("Hour", item.hour),
                     y: .value("Seconds", item.duration)
                 )

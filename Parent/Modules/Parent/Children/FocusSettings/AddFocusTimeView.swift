@@ -99,7 +99,6 @@ struct AddFocusTimeView: View {
                                 .fill(Color.white)
                         )
                         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
-                        // ✅ ГЛАВНОЕ ИЗМЕНЕНИЕ: Добавляем два .onChange
                         .onChange(of: startTime) { _, newStartTime in
                             validateAndAdjustEndTime(basedOn: newStartTime)
                         }
@@ -116,7 +115,8 @@ struct AddFocusTimeView: View {
                                 
                                 Text("Weekday")
                                     .font(.custom("Inter-Regular", size: 16))
-                                        .foregroundColor(.blackText)
+                                    .foregroundColor(.blackText)
+                                
                                     Spacer()
                                 HStack(spacing: 6) {
                                     Text(formatSelectedDays())
