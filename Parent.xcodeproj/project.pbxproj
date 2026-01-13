@@ -900,6 +900,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Parent/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Для сканирования QR-кода и быстрой привязки к устройству родителя.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Приложению нужен постоянный доступ к геолокации для отслеживания местоположения ребенка даже когда приложение закрыто";
 				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "Приложению нужен постоянный доступ к геолокации для отслеживания местоположения ребенка даже когда приложение закрыто";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Приложению нужен доступ к вашей геолокации для определения местоположения ребенка";
@@ -938,6 +939,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Parent/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Для сканирования QR-кода и быстрой привязки к устройству родителя.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Приложению нужен постоянный доступ к геолокации для отслеживания местоположения ребенка даже когда приложение закрыто";
 				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "Приложению нужен постоянный доступ к геолокации для отслеживания местоположения ребенка даже когда приложение закрыто";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Приложению нужен доступ к вашей геолокации для определения местоположения ребенка";

@@ -10,6 +10,9 @@ import SwiftUI
 struct WaitingForChildView: View {
     let invitationCode: String
     
+    @State private var showQRSheet = false
+    @State private var qrCodeImage: UIImage?
+    
     var body: some View {
         VStack {
             
@@ -51,30 +54,37 @@ struct WaitingForChildView: View {
             }
             
             VStack {
-                ZStack(alignment: .center) {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.accent)
+                VStack {
+                    ZStack(alignment: .center) {
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.accent)
+                        
+                        Text(invitationCode)
+                            .font(.custom("Inter-Medium", size: 36))
+                            .kerning(4)
+                            .foregroundColor(.white)
+                    }
+                    .frame(maxHeight: 75)
+                    .padding(.horizontal, 60)
                     
-                    Text(invitationCode)
-                        .font(.custom("Inter-Medium", size: 36))
-                        .kerning(4)
-                        .foregroundColor(.white)
-                }
-                .frame(maxHeight: 75)
-                .padding(.horizontal, 60)
-                
-                Spacer()
-                
-                ContinueButton(
-                    model: ContinueButtonModel(
-                        title: String(localized: "or scan the code"),
-                        isEnabled: false,
-                        action: {
-                            print("Hey hey")
-                        }
+                    Spacer()
+                    
+                    ContinueButton(
+                        model: ContinueButtonModel(
+                            title: String(localized: "or scan the code"),
+                            isEnabled: true,
+                            action: {
+                                action: do {
+                                    if qrCodeImage == nil {
+                                        qrCodeImage = QRCodeGenerator.generate(from: invitationCode)
+                                    }
+                                    showQRSheet = true
+                                }
+                            }
+                        )
                     )
-                )
-                .frame(height: 50)
+                    .frame(height: 50)
+                }
             }
             .padding(.top, 40)
             
@@ -83,5 +93,10 @@ struct WaitingForChildView: View {
         .padding(.bottom, 92)
         .padding(.horizontal, 20)
         .ignoresSafeArea(.container, edges: .bottom)
+        .sheet(isPresented: $showQRSheet) {
+            QRCodeSheetView(qrCodeImage: $qrCodeImage, invitationCode: invitationCode)
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+        }
     }
 }
