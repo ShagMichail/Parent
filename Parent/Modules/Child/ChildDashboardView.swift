@@ -69,6 +69,8 @@ struct ChildDashboardView: View {
     @EnvironmentObject var locationManager: LocationManager
     
     @StateObject private var viewModel = ChildDashboardViewModel()
+    @AppStorage("hasCompletedChildOnboarding") private var hasCompletedOnboarding = false
+    @State private var showOnboarding = false
     
     var body: some View {
         NavigationView {
@@ -123,17 +125,36 @@ struct ChildDashboardView: View {
                 }
             }
             .navigationBarHidden(true)
+//            .onAppear {
+//                Task {
+//                    await viewModel.fetchAllRestrictions()
+//                }
+//                
+//                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+//                    if locationManager.authorizationStatus == .notDetermined {
+//                        locationManager.requestPermission()
+//                    }
+//                    locationManager.startTracking()
+//                }
+//            }
+            
             .onAppear {
-                Task {
-                    await viewModel.fetchAllRestrictions()
-                }
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    if locationManager.authorizationStatus == .notDetermined {
-                        locationManager.requestPermission()
-                    }
+                // Если онбординг не пройден, показываем его
+                if !hasCompletedOnboarding {
+                    showOnboarding = true
+                } else {
+                    // Если уже пройден, просто грузим данные и запускаем локацию
+                    Task { await viewModel.fetchAllRestrictions() }
                     locationManager.startTracking()
                 }
+            }
+            // ✅ 3. Модальное окно на весь экран с онбордингом
+            .fullScreenCover(isPresented: $showOnboarding, onDismiss: {
+                // Вызывается, когда онбординг закрыт
+                Task { await viewModel.fetchAllRestrictions() }
+            }) {
+                ChildOnboardingView(isPresented: $showOnboarding)
+                    .environmentObject(locationManager)
             }
             
             .toolbar {

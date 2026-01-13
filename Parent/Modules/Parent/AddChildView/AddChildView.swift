@@ -64,8 +64,20 @@ struct AddChildView: View {
         guard let userInfo = notification.userInfo,
               let childID = userInfo["childUserRecordID"] as? String,
               let childName = userInfo["childName"] as? String,
-              let gender = userInfo["childGender"] as? String else {
+              let gender = userInfo["childGender"] as? String,
+              let acceptedCode = self.invitationCode else {
             return
+        }
+        
+        Task {
+            print("🗑️ Приглашение принято. Удаляем подписку для кода \(acceptedCode)...")
+            let subscriptionID = "invitation-accepted-\(acceptedCode)"
+            do {
+                try await CloudKitManager.shared.publicDatabase.deleteSubscription(withID: subscriptionID)
+                print("✅ Подписка на приглашение успешно удалена.")
+            } catch {
+                print("⚠️ Не удалось удалить подписку на приглашение: \(error)")
+            }
         }
         
         let newChild = Child(id: UUID(uuidString: childID) ?? UUID(), name: childName, recordID: childID, gender: gender)

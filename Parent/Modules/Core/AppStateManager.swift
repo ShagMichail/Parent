@@ -212,27 +212,6 @@ class AppStateManager: ObservableObject {
             print("Auth request failed: \(error)")
         }
     }
-    
-    @MainActor // Помечаем, чтобы безопасно работать с UIApplication
-    func requestNotificationPermission() async -> Bool {
-        let center = UNUserNotificationCenter.current()
-        do {
-            let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
-            
-            if granted {
-                print("✅ Разрешение на уведомления получено.")
-                UIApplication.shared.registerForRemoteNotifications()
-            } else {
-                print("❌ Пользователь запретил уведомления.")
-            }
-            
-            return granted
-            
-        } catch {
-            print("🚨 Ошибка при запросе уведомлений: \(error)")
-            return false
-        }
-    }
 }
 
 extension AppStateManager {

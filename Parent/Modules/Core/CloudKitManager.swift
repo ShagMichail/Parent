@@ -975,3 +975,34 @@ extension CloudKitManager {
         }
     }
 }
+
+extension CloudKitManager {
+    func deleteAllSubscriptions() async throws -> Int {
+        print("‼️ ЗАПУСК ПОЛНОЙ ОЧИСТКИ ВСЕХ ПОДПИСОК ‼️")
+        
+        let subscriptions = try await publicDatabase.allSubscriptions()
+        let subscriptionIDs = subscriptions.map { $0.subscriptionID }
+        
+        guard !subscriptionIDs.isEmpty else {
+            print("✅ Нет активных подписок для удаления.")
+            return 0
+        }
+        
+        let modifyOp = CKModifySubscriptionsOperation(subscriptionsToSave: nil, subscriptionIDsToDelete: subscriptionIDs)
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            modifyOp.modifySubscriptionsResultBlock = { result in
+                switch result {
+                case .success:
+                    let count = subscriptionIDs.count
+                    print("✅✅✅ ВСЕ \(count) ПОДПИСОК УСПЕШНО УДАЛЕНЫ.")
+                    continuation.resume(returning: count) // Возвращаем количество
+                case .failure(let error):
+                    print("🛑🛑🛑 ОШИКА ПОЛНОЙ ОЧИСТКИ: \(error)")
+                    continuation.resume(throwing: error)
+                }
+            }
+            publicDatabase.add(modifyOp)
+        }
+    }
+}

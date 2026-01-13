@@ -63,7 +63,7 @@ struct MainTabView: View {
                         animation: animation
                     )
                 case .settings:
-                    Text("Экран Настроек")
+                    SettingsView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

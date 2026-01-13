@@ -49,10 +49,10 @@ struct ChildCompletedView: View {
     }
     
     private func acceptInvitation() async {
-        let notificationsGranted = await stateManager.requestNotificationPermission()
-        
-        print("🔔 Статус разрешения уведомлений, полученный от менеджера: \(notificationsGranted)")
-        
+//        let notificationsGranted = await stateManager.requestNotificationPermission()
+//        
+//        print("🔔 Статус разрешения уведомлений, полученный от менеджера: \(notificationsGranted)")
+//        
         await MainActor.run {
             stateManager.didCompletePairing()
         }

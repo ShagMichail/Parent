@@ -17,6 +17,12 @@ struct PairingSuccessView: View {
                 .font(.custom("Inter-SemiBold", size: 24))
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.horizontal, 20)
+                .padding(.bottom, 25)
+            
+            Text("Do not forget to give all necessary permissions on the child's device for the correct operation of parental controls.")
+                .font(.custom("Inter-Regular", size: 16))
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.horizontal, 20)
 
             Spacer()
             
