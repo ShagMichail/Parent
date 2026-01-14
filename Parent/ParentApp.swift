@@ -15,6 +15,7 @@ struct ParentApp: App {
     @StateObject var stateManager: AppStateManager
     @StateObject var authService: AuthenticationService
     @StateObject var parentViewModel: ParentDashboardViewModel
+    @StateObject var notificationViewModel: NotificationViewModel
     @StateObject var locationManager: LocationManager
     
     init() {
@@ -30,6 +31,10 @@ struct ParentApp: App {
                     stateManager: stateManagerInstance,
                     cloudKitManager: cloudKitManager
                 ))
+        _notificationViewModel = StateObject(wrappedValue: NotificationViewModel(
+                    stateManager: stateManagerInstance,
+                    cloudKitManager: cloudKitManager
+                ))
         _locationManager = StateObject(wrappedValue: locManagerInstance)
     }
       
@@ -41,6 +46,7 @@ struct ParentApp: App {
                 .environmentObject(authService)
                 .environmentObject(cloudKitManager)
                 .environmentObject(parentViewModel)
+                .environmentObject(notificationViewModel)
                 .environmentObject(locationManager)
         }
         .onChange(of: scenePhase) { _, newPhase in

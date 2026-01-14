@@ -34,7 +34,8 @@ class NotificationService: UNNotificationServiceExtension {
             
             if let ckInfo = userInfo["ck"] as? [String: Any],
                let query = ckInfo["qry"] as? [String: Any],
-               let subscriptionID = query["sid"] as? String {
+               let subscriptionID = query["sid"] as? String,
+               let recordIDString = query["rid"] as? String {
                 if subscriptionID.starts(with: "web-block-updates-") {
                     
                     print("🔔 [NSE] Получен пуш на обновление web блокировок! Запускаем синхронизацию...")
@@ -45,7 +46,11 @@ class NotificationService: UNNotificationServiceExtension {
                         
                         bestAttemptContent.title = String(localized: "Locks have been updated")
                         bestAttemptContent.body = String(localized: "The parent has changed the rules for using Web resources.")
-                        
+                        updateCloudKitStatus(
+                            recordName: recordIDString,
+                            commandName: "web-block-update",
+                            completion: { contentHandler(bestAttemptContent) }
+                        )
                         contentHandler(bestAttemptContent)
                     }
                     return
@@ -61,7 +66,11 @@ class NotificationService: UNNotificationServiceExtension {
                         
                         bestAttemptContent.title = String(localized: "Limits updated")
                         bestAttemptContent.body = String(localized: "The parent has changed the app usage rules.")
-                        
+                        updateCloudKitStatus(
+                            recordName: recordIDString,
+                            commandName: "limits-app-update",
+                            completion: { contentHandler(bestAttemptContent) }
+                        )
                         contentHandler(bestAttemptContent)
                     }
                     return
@@ -77,7 +86,11 @@ class NotificationService: UNNotificationServiceExtension {
                         
                         bestAttemptContent.title = String(localized: "Locks have been updated")
                         bestAttemptContent.body = String(localized: "The parent has changed the app usage rules.")
-                        
+                        updateCloudKitStatus(
+                            recordName: recordIDString,
+                            commandName: "app-block-update",
+                            completion: { contentHandler(bestAttemptContent) }
+                        )
                         contentHandler(bestAttemptContent)
                     }
                     return
@@ -103,7 +116,11 @@ class NotificationService: UNNotificationServiceExtension {
                     store.shield.applicationCategories = .all()
                     store.shield.webDomainCategories = .all()
                     bestAttemptContent.body = String(localized: "The device is locked by the parent")
-                    updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
+                    updateCloudKitStatus(
+                        recordName: recordIDString,
+                        commandName: commandName,
+                        completion: { contentHandler(bestAttemptContent) }
+                    )
                     return
                 }
                 else if commandName == "unblock_all" {
@@ -111,13 +128,21 @@ class NotificationService: UNNotificationServiceExtension {
                     store.shield.webDomainCategories = nil
                     bestAttemptContent.body = String(localized: "The device is unlocked by the parent")
                     // Обновляем статус на executed
-                    updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
+                    updateCloudKitStatus(
+                        recordName: recordIDString,
+                        commandName: commandName,
+                        completion: { contentHandler(bestAttemptContent) }
+                    )
                     return
                 }
                 else if commandName == "request_location_update" {
                     forceSendStatus()
                     bestAttemptContent.body = String(localized: "Updating geolocation...")
-                    updateCloudKitStatus(recordName: recordIDString) { contentHandler(bestAttemptContent) }
+                    updateCloudKitStatus(
+                        recordName: recordIDString,
+                        commandName: commandName,
+                        completion: { contentHandler(bestAttemptContent) }
+                    )
                     return
                 }
             }
@@ -133,6 +158,11 @@ class NotificationService: UNNotificationServiceExtension {
                         bestAttemptContent.title = String(localized: "The schedule has been updated")
                         bestAttemptContent.body = String(localized: "The time settings have been changed by the parent.")
                     }
+                    updateCloudKitStatus(
+                        recordName: recordIDString,
+                        commandName: "update-schedule",
+                        completion: { contentHandler(bestAttemptContent) }
+                    )
                 }
                 //                else {
             case .recordDeleted:
@@ -140,6 +170,11 @@ class NotificationService: UNNotificationServiceExtension {
                 removeScheduleFromCache(withID: recordIDString)
                 bestAttemptContent.title = String(localized: "The schedule has been deleted")
                 bestAttemptContent.body = String(localized: "The time limit has been lifted.")
+                updateCloudKitStatus(
+                    recordName: recordIDString,
+                    commandName: "delete-schedule",
+                    completion: { contentHandler(bestAttemptContent) }
+                )
             @unknown default:
                 break
             }
@@ -149,7 +184,7 @@ class NotificationService: UNNotificationServiceExtension {
     }
     
     // Функция обновления статуса в CloudKit из Расширения
-    private func updateCloudKitStatus(recordName: String, completion: @escaping () -> Void) {
+    private func updateCloudKitStatus(recordName: String, commandName: String, completion: @escaping () -> Void) {
         let recordID = CKRecord.ID(recordName: recordName)
         
         // 1. Создаем "пустую" запись, зная только ID
@@ -166,7 +201,14 @@ class NotificationService: UNNotificationServiceExtension {
         modifyOp.modifyRecordsResultBlock = { result in
             switch result {
             case .success:
-                print("✅ NSE: Статус обновлен (Fast Mode)")
+//                print("✅ NSE: Статус обновлен (Fast Mode)")
+                Task {
+                    await self.sendNotificationToParent(
+                        recordName: recordName,
+                        commandName: commandName,
+                        status: "executed"
+                    )
+                }
             case .failure(let error):
                 print("❌ NSE: Ошибка обновления: \(error.localizedDescription)")
             }
@@ -174,6 +216,80 @@ class NotificationService: UNNotificationServiceExtension {
         }
         
         self.database.add(modifyOp)
+    }
+    
+    private func sendNotificationToParent(recordName: String, commandName: String, status: String) async {
+        // Получаем ID ребенка из UserDefaults
+        guard let defaults = UserDefaults(suiteName: "group.com.laborato.test.Parent"),
+              let childID = defaults.string(forKey: "myChildRecordID"),
+              let childName = defaults.string(forKey: "myChildName") else {
+            print("❌ Невозможно отправить уведомление: нет данных ребенка")
+            return
+        }
+        
+        // Создаем запись уведомления для родителя
+        let notificationRecord = CKRecord(recordType: "ParentNotification")
+        
+        // Определяем тип и сообщение
+        let notificationType: String
+        let title: String
+        let message: String
+        
+        switch commandName {
+        case "block_all":
+            notificationType = ChildNotification.NotificationType.blockAll.rawValue
+            title = "Устройство заблокировано"
+            message = "Заблокировали устройство \(childName)"
+        case "unblock_all":
+            notificationType = ChildNotification.NotificationType.unblockAll.rawValue
+            title = "Устройство разблокировано"
+            message = "Разблокировали устройство \(childName)"
+        case "request_location_update":
+            notificationType = ChildNotification.NotificationType.locationUpdated.rawValue
+            title = "Локация обновлена"
+            message = "\(childName) отправил(а) текущее местоположение"
+        case "update-schedule":
+            notificationType = ChildNotification.NotificationType.scheduleUpdated.rawValue
+            title = "Обновили расписание"
+            message = "Обновили/добавили расписание для \(childName)"
+        case "delete-schedule":
+            notificationType = ChildNotification.NotificationType.scheduleDelete.rawValue
+            title = "Удалили расписание"
+            message = "Удалили расписание для \(childName)"
+        case "web-block-update":
+            notificationType = ChildNotification.NotificationType.webBlockUpdate.rawValue
+            title = "Обновили ограничения"
+            message = "Обновили ограничения по WEB-доменам для \(childName)"
+        case "app-block-update":
+            notificationType = ChildNotification.NotificationType.appBlockUpdate.rawValue
+            title = "Обновили ограничения"
+            message = "Обновили ограничения по использованию приложений для \(childName)"
+        case "limits-app-update":
+            notificationType = ChildNotification.NotificationType.limitsAppUpdate.rawValue
+            title = "Обновили ограничения"
+            message = "Обновили лимиты по использованию приложений для \(childName)"
+        default:
+            notificationType = ChildNotification.NotificationType.commandExecuted.rawValue
+            title = "Команда выполнена"
+            message = "\(childName) выполнил(а) команду: \(commandName)"
+        }
+        
+        notificationRecord["type"] = notificationType as CKRecordValue
+        notificationRecord["title"] = title as CKRecordValue
+        notificationRecord["message"] = message as CKRecordValue
+        notificationRecord["date"] = Date() as CKRecordValue
+        notificationRecord["childId"] = childID as CKRecordValue
+        notificationRecord["childName"] = childName as CKRecordValue
+        notificationRecord["commandName"] = commandName as CKRecordValue
+        notificationRecord["commandStatus"] = status as CKRecordValue
+        notificationRecord["isRead"] = false as CKRecordValue
+        
+        do {
+            try await database.save(notificationRecord)
+            print("✅ Уведомление отправлено родителю: \(title)")
+        } catch {
+            print("❌ Ошибка отправки уведомления родителю: \(error)")
+        }
     }
     
     override func serviceExtensionTimeWillExpire() {
@@ -544,16 +660,4 @@ class NotificationService: UNNotificationServiceExtension {
         }
     }
     
-}
-
-struct AppLimit: Codable {
-    let token: ApplicationToken
-    var time: TimeInterval
-}
-
-struct ChildDeviceStatus {
-    let location: CLLocation
-    let batteryLevel: Float      // от 0.0 до 1.0
-    let batteryState: String     // "charging", "unplugged", "full", "unknown"
-    let timestamp: Date
 }

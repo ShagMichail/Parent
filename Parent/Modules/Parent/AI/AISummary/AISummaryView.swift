@@ -10,6 +10,7 @@ import DeviceActivity
 
 struct AISummaryView: View {
     @EnvironmentObject var viewModel: ParentDashboardViewModel
+    @EnvironmentObject var notificationViewModel: NotificationViewModel
     @State private var selectedCategory: ActionCategory = .communication
     @State private var context = DeviceActivityReport.Context(rawValue: "Hourly Activity Chart")
     @State private var filter = DeviceActivityFilter(
@@ -26,6 +27,9 @@ struct AISummaryView: View {
     @State private var navigateToAppReport = false
     @State private var navigateToWebReport = false
     @State private var navigateToCategoryReport = false
+    @State private var navigateToNotifications = false
+    
+    @Binding var isTabBarVisible: Bool
     
     var body: some View {
         NavigationStack {
@@ -34,9 +38,12 @@ struct AISummaryView: View {
                     model: NavigationBarModel(
                         mainTitle: String(localized: "AI summary"),
                         hasNotification: true,
-                        hasNewNotification: true,
+                        hasNewNotification: notificationViewModel.hasNewNotificationForSelectedChild,
                         onBackTap: {},
-                        onNotificationTap: {},
+                        onNotificationTap: {
+                            navigateToNotifications.toggle()
+                            isTabBarVisible.toggle()
+                        },
                         onConfirmTap: {}
                     )
                 )
@@ -156,6 +163,10 @@ struct AISummaryView: View {
             .navigationDestination(isPresented: $navigateToAppReport, destination: { AppsActivityReportView()})
             .navigationDestination(isPresented: $navigateToWebReport, destination: { WebActivityReportView()})
             .navigationDestination(isPresented: $navigateToCategoryReport, destination: { CategoryActivityReportView()})
+            .navigationDestination(
+                isPresented: $navigateToNotifications,
+                destination: { NotificationView(showNavigationBar: $isTabBarVisible) }
+            )
         }
         .onChange(of: viewModel.selectedChild) { _, _ in
             updateReport()

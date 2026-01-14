@@ -66,7 +66,7 @@ struct ChildDashboardDetailView: View {
             // Действия
             Text("Actions")
                 .font(.custom("Inter-Medium", size: 16))
-                .foregroundColor(.primary)
+                .foregroundColor(.blackText)
             
             LazyVGrid(columns: actionColumns, spacing: 16) {
                 
@@ -105,7 +105,7 @@ struct ChildDashboardDetailView: View {
                 
                 ActionCard(model: ActionCardModel(
                     title: String(localized: "Limits"),
-                    icon: "timer-command",
+                    icon: "limit-command",
                     showsArrow: true,
                     action: {
                         navigateToLimits = true

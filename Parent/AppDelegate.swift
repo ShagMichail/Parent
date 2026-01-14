@@ -199,6 +199,45 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             return
         }
         
+        if notification.subscriptionID?.starts(with: "parent-notifications-") == true {
+            print("🔔 [Parent] Получено новое уведомление от ребенка!")
+            
+            // Отправляем локальное уведомление
+            if let queryNotification = notification as? CKQueryNotification,
+               let recordFields = queryNotification.recordFields {
+                
+                let title = recordFields["title"] as? String ?? "Новое уведомление"
+                let message = recordFields["message"] as? String ?? ""
+                
+                // Создаем локальное уведомление
+                let content = UNMutableNotificationContent()
+                content.title = title
+                content.body = message
+                content.sound = .default
+                
+                let request = UNNotificationRequest(
+                    identifier: UUID().uuidString,
+                    content: content,
+                    trigger: nil // Доставляем немедленно
+                )
+                
+                UNUserNotificationCenter.current().add(request) { error in
+                    if let error = error {
+                        print("❌ Ошибка показа уведомления: \(error)")
+                    }
+                }
+                
+                // Обновляем список уведомлений в UI
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("ParentNotificationReceived"),
+                    object: nil
+                )
+            }
+            
+            completionHandler(.newData)
+            return
+        }
+        
         completionHandler(.noData)
     }
 }

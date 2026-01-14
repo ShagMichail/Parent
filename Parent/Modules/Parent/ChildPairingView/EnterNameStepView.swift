@@ -108,6 +108,9 @@ struct EnterNameStepView: View {
             
             // 2. Сохраняем имя локально
             UserDefaults.standard.set(trimmedName, forKey: childNameStorageKey)
+            if let defaults = UserDefaults(suiteName: "group.com.laborato.test.Parent") {
+                defaults.set(trimmedName, forKey: "myChildName")
+            }
             print("💾 Имя ребенка '\(trimmedName)' сохранено в UserDefaults.")
             // 3. Сохраняем гендер локально
             UserDefaults.standard.set(childGender, forKey: childGenderStorageKey)

@@ -1006,3 +1006,145 @@ extension CloudKitManager {
         }
     }
 }
+
+extension CloudKitManager {
+    /// Отправляет уведомление родителю при выполнении команды ребенком
+    func sendNotificationToParent(childId: String, childName: String, commandName: String, status: String) async throws {
+        let notificationType: ChildNotification.NotificationType =
+            status == "executed" ? .commandExecuted : .commandFailed
+        
+        let title: String
+        let message: String
+        
+        switch commandName {
+        case "block_all":
+            title = "Устройство заблокировано"
+            message = "\(childName) заблокировал(а) устройство"
+        case "unblock_all":
+            title = "Устройство разблокировано"
+            message = "\(childName) разблокировал(а) устройство"
+        case "request_location_update":
+            title = "Локация обновлена"
+            message = "\(childName) отправил(а) текущее местоположение"
+        default:
+            title = "Команда выполнена"
+            message = "\(childName) выполнил(а) команду: \(commandName)"
+        }
+        
+        let record = CKRecord(recordType: "ParentNotification")
+        
+        record["type"] = notificationType.rawValue as CKRecordValue
+        record["title"] = title as CKRecordValue
+        record["message"] = message as CKRecordValue
+        record["date"] = Date() as CKRecordValue
+        record["childId"] = childId as CKRecordValue
+        record["childName"] = childName as CKRecordValue
+        record["commandName"] = commandName as CKRecordValue
+        record["commandStatus"] = status as CKRecordValue
+        record["isRead"] = false as CKRecordValue
+        
+        try await publicDatabase.save(record)
+        print("✅ Уведомление отправлено родителю: \(title)")
+    }
+    
+    /// Получает уведомления для родителя
+    func fetchParentNotifications() async throws -> [ChildNotification] {
+        guard let parentID = await fetchUserRecordID() else { return [] }
+        
+        // Получаем всех детей родителя
+        let children = try await fetchExistingChildren()
+        let childIDs = children.map { $0.recordID }
+        
+        let predicate = NSPredicate(format: "childId IN %@", childIDs)
+        let sortDescriptor = NSSortDescriptor(key: "date", ascending: false)
+        
+        let query = CKQuery(recordType: "ParentNotification", predicate: predicate)
+        query.sortDescriptors = [sortDescriptor]
+        
+        let (matchResults, _) = try await publicDatabase.records(matching: query, resultsLimit: 50)
+        
+        var notifications: [ChildNotification] = []
+        
+        for (_, result) in matchResults {
+            guard let record = try? result.get(),
+                  let childId = record["childId"] as? String,
+                  let child = children.first(where: { $0.recordID == childId }) else {
+                continue
+            }
+            
+            if let notification = ChildNotification(record: record, child: child) {
+                notifications.append(notification)
+            }
+        }
+        
+        return notifications
+    }
+    
+    /// Отмечает уведомление как прочитанное
+    func markNotificationAsRead(recordID: CKRecord.ID) async throws {
+        let record = try await publicDatabase.record(for: recordID)
+        record["isRead"] = true as CKRecordValue
+        
+        
+        let modifyOp = CKModifyRecordsOperation(recordsToSave: [record], recordIDsToDelete: nil)
+        
+        modifyOp.savePolicy = .changedKeys
+        modifyOp.qualityOfService = .userInteractive
+        try await withCheckedThrowingContinuation { continuation in
+            modifyOp.modifyRecordsResultBlock = { result in
+                switch result {
+                case .success:
+                    print("✅ Статус обновлен в CloudKit")
+                    continuation.resume()
+                case .failure(let error):
+                    print("❌ Ошибка обновления: \(error.localizedDescription)")
+                    continuation.resume(throwing: error)
+                }
+            }
+            
+            publicDatabase.add(modifyOp)
+        }
+    }
+    
+    /// Удаляет уведомление
+    func deleteNotification(recordID: CKRecord.ID) async throws {
+        try await publicDatabase.deleteRecord(withID: recordID)
+    }
+    
+    /// Подписывает родителя на новые уведомления
+    func subscribeToParentNotifications() async throws {
+        guard let parentID = await fetchUserRecordID() else { return }
+        
+        let subscriptionID = "parent-notifications-\(parentID)"
+        
+        // Удаляем старую подписку
+        do {
+            try await publicDatabase.deleteSubscription(withID: subscriptionID)
+            print("✅ Удалена старая подписка на уведомления")
+        } catch {
+            // Игнорируем ошибку если подписка не найдена
+        }
+        
+        // Получаем ID всех детей для фильтра
+        let children = try await fetchExistingChildren()
+        let childIDs = children.map { $0.recordID }
+        
+        let predicate = NSPredicate(format: "childId IN %@", childIDs)
+        
+        let subscription = CKQuerySubscription(
+            recordType: "ParentNotification",
+            predicate: predicate,
+            subscriptionID: subscriptionID,
+            options: .firesOnRecordCreation
+        )
+        
+        let notificationInfo = CKSubscription.NotificationInfo()
+        notificationInfo.shouldSendContentAvailable = true
+        notificationInfo.desiredKeys = ["title", "message", "childId", "childName", "type"]
+        
+        subscription.notificationInfo = notificationInfo
+        
+        try await publicDatabase.save(subscription)
+        print("✅ Родитель подписан на уведомления")
+    }
+}

@@ -53,9 +53,15 @@ struct MainTabView: View {
             Group {
                 switch selectedTab {
                 case .location:
-                    LocationView(stateManager: stateManager, cloudKitManager: cloudKitManager)
+                    LocationView(
+                        stateManager: stateManager,
+                        cloudKitManager: cloudKitManager,
+                        isTabBarVisible: $isTabBarVisible
+                    )
                 case .summary:
-                    AISummaryView()
+                    AISummaryView(
+                        isTabBarVisible: $isTabBarVisible
+                    )
                 case .children:
                     ParentDashboardView(
                         isTabBarVisible: $isTabBarVisible,

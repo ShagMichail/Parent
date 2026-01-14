@@ -8,13 +8,16 @@
 import SwiftUI
 import FamilyControls
 import DeviceActivity
+import Combine
 
 struct ParentDashboardView: View {
     @EnvironmentObject var cloudKitManager: CloudKitManager
     @State private var isAddingChild = false
     @State private var showDivider = false
     @State private var reportRefreshID = UUID()
+    @State private var navigateToNotifications = false
     @EnvironmentObject var viewModel: ParentDashboardViewModel
+    @EnvironmentObject var notificationViewModel: NotificationViewModel
     @Binding var isTabBarVisible: Bool
     @Binding var showBlockOverlay: Bool
     var animation: Namespace.ID
@@ -26,9 +29,12 @@ struct ParentDashboardView: View {
                     model: NavigationBarModel(
                         mainTitle: String(localized: "Children"),
                         hasNotification: true,
-                        hasNewNotification: true,
+                        hasNewNotification: notificationViewModel.hasNewNotificationForSelectedChild,
                         onBackTap: {},
-                        onNotificationTap: {},
+                        onNotificationTap: {
+                            navigateToNotifications.toggle()
+                            isTabBarVisible.toggle()
+                        },
                         onConfirmTap: {}
                     )
                 )
@@ -73,7 +79,22 @@ struct ParentDashboardView: View {
             }
             .navigationBarHidden(true)
             .background(Color.roleBackground.ignoresSafeArea())
+            .navigationDestination(
+                isPresented: $navigateToNotifications,
+                destination: { NotificationView(showNavigationBar: $isTabBarVisible) }
+            )
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("ParentNotificationReceived"))) { _ in
+                handleCommandUpdate()
+            }
         }
         .id(viewModel.selectedChild?.id)
     }
+    
+    private func handleCommandUpdate() {
+            print("🔔 Получено уведомление, обновляем флаг...")
+            
+            Task {
+                await notificationViewModel.loadAllNotifications()
+            }
+        }
 }
