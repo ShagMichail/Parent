@@ -200,37 +200,29 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         }
         
         if notification.subscriptionID?.starts(with: "parent-notifications-") == true {
-            print("🔔 [Parent] Получено новое уведомление от ребенка!")
+            print("🔔 [Parent] Получено новое уведомление от ребенка из Push!")
             
-            // Отправляем локальное уведомление
             if let queryNotification = notification as? CKQueryNotification,
-               let recordFields = queryNotification.recordFields {
+               let recordFields = queryNotification.recordFields,
+               let recordID = queryNotification.recordID { 
                 
-                let title = recordFields["title"] as? String ?? "Новое уведомление"
-                let message = recordFields["message"] as? String ?? ""
+                let type = recordFields["type"] as? String ?? ""
+                let date = recordFields["date"] as? Date ?? Date()
+                let childId = recordFields["childId"] as? String ?? ""
+                let commandName = recordFields["commandName"] as? String ?? ""
+                let commandStatus = recordFields["commandStatus"] as? String ?? ""
                 
-                // Создаем локальное уведомление
-                let content = UNMutableNotificationContent()
-                content.title = title
-                content.body = message
-                content.sound = .default
-                
-                let request = UNNotificationRequest(
-                    identifier: UUID().uuidString,
-                    content: content,
-                    trigger: nil // Доставляем немедленно
-                )
-                
-                UNUserNotificationCenter.current().add(request) { error in
-                    if let error = error {
-                        print("❌ Ошибка показа уведомления: \(error)")
-                    }
-                }
-                
-                // Обновляем список уведомлений в UI
                 NotificationCenter.default.post(
                     name: NSNotification.Name("ParentNotificationReceived"),
-                    object: nil
+                    object: nil,
+                    userInfo: [
+                        "recordID": recordID.recordName,
+                        "type": type,
+                        "date": date,
+                        "childId": childId,
+                        "commandName": commandName,
+                        "commandStatus": commandStatus
+                    ]
                 )
             }
             

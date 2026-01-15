@@ -64,13 +64,10 @@ class NotificationViewModel: ObservableObject {
     private func setupSubscriptions() {
         // Обновляем уведомления при получении пуша
         NotificationCenter.default.publisher(for: NSNotification.Name("ParentNotificationReceived"))
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                Task {
-                    await self.loadAllNotifications()
-                    // После загрузки обновляем флаг
-                    self.updateHasNewNotificationFlag()
-                }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] notification in
+                // Вызываем новую функцию-обработчик с данными из пуша
+                self?.handleIncomingNotification(from: notification.userInfo)
             }
             .store(in: &cancellables)
         
@@ -101,6 +98,91 @@ class NotificationViewModel: ObservableObject {
         }
     }
     
+    private func handleIncomingNotification(from userInfo: [AnyHashable: Any]?) {
+        guard let userInfo = userInfo,
+              let recordID = userInfo["recordID"] as? String,
+              let childId = userInfo["childId"] as? String,
+              let date = userInfo["date"] as? Date else {
+            return
+        }
+        
+        let commandName = userInfo["commandName"] as? String
+        let commandStatus = userInfo["commandStatus"] as? String
+        
+        if notifications.contains(where: { $0.recordID == recordID }) { return }
+        
+        let childName = children.first(where: { $0.recordID == childId })?.name ?? "Ребенок"
+        
+        let (title, message, notificationType) = generateNotificationContent(commandName: commandName, childName: childName)
+        
+        let newNotification = ChildNotification(
+            childId: childId,
+            childName: childName,
+            type: notificationType,
+            title: title,
+            message: message,
+            date: date,
+            isRead: false,
+            commandName: commandName,
+            commandStatus: commandStatus,
+            recordID: recordID
+        )
+        
+        notifications.insert(newNotification, at: 0)
+        
+        unreadCount = notifications.filter { !$0.isRead }.count
+        updateHasNewNotificationFlag()
+        
+        print("✅ ViewModel обновлена данными из Push. Запрос в CloudKit не требуется.")
+    }
+    
+    private func generateNotificationContent(commandName: String?, childName: String) -> (title: String, message: String, notificationType: ChildNotification.NotificationType) {
+        let title: String
+        let message: String
+        let notificationType: ChildNotification.NotificationType
+        
+        switch commandName {
+        case "block_all":
+            notificationType = ChildNotification.NotificationType.blockAll
+            title = "Устройство заблокировано"
+            message = "Заблокировали устройство \(childName)"
+        case "unblock_all":
+            notificationType = ChildNotification.NotificationType.unblockAll
+            title = "Устройство разблокировано"
+            message = "Разблокировали устройство \(childName)"
+        case "request_location_update":
+            notificationType = ChildNotification.NotificationType.locationUpdated
+            title = "Локация обновлена"
+            message = "\(childName) отправил(а) текущее местоположение"
+        case "update-schedule":
+            notificationType = ChildNotification.NotificationType.scheduleUpdated
+            title = "Обновили расписание"
+            message = "Обновили/добавили расписание для \(childName)"
+        case "delete-schedule":
+            notificationType = ChildNotification.NotificationType.scheduleDelete
+            title = "Удалили расписание"
+            message = "Удалили расписание для \(childName)"
+        case "web-block-update":
+            notificationType = ChildNotification.NotificationType.webBlockUpdate
+            title = "Обновили ограничения"
+            message = "Обновили ограничения по WEB-доменам для \(childName)"
+        case "app-block-update":
+            notificationType = ChildNotification.NotificationType.appBlockUpdate
+            title = "Обновили ограничения"
+            message = "Обновили ограничения по использованию приложений для \(childName)"
+        case "limits-app-update":
+            notificationType = ChildNotification.NotificationType.limitsAppUpdate
+            title = "Обновили ограничения"
+            message = "Обновили лимиты по использованию приложений для \(childName)"
+        default:
+            notificationType = ChildNotification.NotificationType.commandExecuted
+            title = "Команда выполнена"
+            message = "\(childName) выполнил(а) команду: \(commandName)"
+        }
+        
+        return (title, message, notificationType)
+    }
+    
     func loadAllNotifications() async {
         await MainActor.run { isLoading = true }
         
@@ -111,7 +193,7 @@ class NotificationViewModel: ObservableObject {
                 self.notifications = allNotifications
                 self.unreadCount = allNotifications.filter { !$0.isRead }.count
                 self.isLoading = false
-                self.updateHasNewNotificationFlag() // Обновляем флаг после загрузки
+                self.updateHasNewNotificationFlag()
             }
         } catch {
             print("❌ Ошибка загрузки уведомлений: \(error)")
@@ -132,7 +214,7 @@ class NotificationViewModel: ObservableObject {
             await MainActor.run {
                 self.notifications = childNotifications
                 self.isLoading = false
-                self.updateHasNewNotificationFlag() // Обновляем флаг
+                self.updateHasNewNotificationFlag()
             }
         } catch {
             print("❌ Ошибка загрузки уведомлений: \(error)")
@@ -249,45 +331,7 @@ class NotificationViewModel: ObservableObject {
         pendingNotifications.removeAll()
         updateHasNewNotificationFlag()
     }
-    
-    func getCombinedNotifications() -> [AnyNotification] {
-        // Объединяем реальные и pending уведомления
-        var combined: [AnyNotification] = []
-        
-        // Добавляем pending (они всегда "непрочитанные")
-        combined.append(contentsOf: pendingNotifications.map { pending in
-            AnyNotification(
-                id: pending.id.uuidString,
-                childId: pending.childId,
-                childName: pending.childName,
-                title: pending.title,
-                message: pending.message,
-                date: pending.date,
-                isRead: false,
-                isPending: true,
-                commandName: pending.commandName
-            )
-        })
-        
-        // Добавляем реальные уведомления
-        combined.append(contentsOf: notifications.map { notification in
-            AnyNotification(
-                id: notification.id.uuidString,
-                childId: notification.childId,
-                childName: notification.childName,
-                title: notification.title,
-                message: notification.message,
-                date: notification.date,
-                isRead: notification.isRead,
-                isPending: false,
-                commandName: notification.commandName
-            )
-        })
-        
-        // Сортируем по дате
-        return combined.sorted { $0.date > $1.date }
-    }
-    
+
     private func updateHasNewNotificationFlag() {
         guard let selectedChild = selectedChild else {
             hasNewNotificationForSelectedChild = false
@@ -305,16 +349,4 @@ class NotificationViewModel: ObservableObject {
         
         hasNewNotificationForSelectedChild = hasRealUnread || hasPending
     }
-}
-
-struct AnyNotification: Identifiable {
-    let id: String
-    let childId: String
-    let childName: String
-    let title: String
-    let message: String
-    let date: Date
-    let isRead: Bool
-    let isPending: Bool
-    let commandName: String?
 }

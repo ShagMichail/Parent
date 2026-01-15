@@ -1112,20 +1112,18 @@ extension CloudKitManager {
     }
     
     /// Подписывает родителя на новые уведомления
+    // ✅ Убедитесь, что эта функция вызывается один раз при запуске на устройстве родителя
     func subscribeToParentNotifications() async throws {
-        guard let parentID = await fetchUserRecordID() else { return }
-        
-        let subscriptionID = "parent-notifications-\(parentID)"
-        
-        // Удаляем старую подписку
+        let subscriptionID = "parent-notifications-subscription" // Простое и единое имя
         do {
             try await publicDatabase.deleteSubscription(withID: subscriptionID)
-            print("✅ Удалена старая подписка на уведомления")
+            print("✅ [Parent] Подписка удалена parent-notifications-subscription")
         } catch {
-            // Игнорируем ошибку если подписка не найдена
+            print("🛑 ОШИБКА УДАЛЕНИЯ ПОДПИСКИ: \(error)")
         }
         
-        // Получаем ID всех детей для фильтра
+        // Предикат: мы хотим получать ВСЕ новые уведомления
+        // ВАЖНО: нужно добавить поле, по которому фильтровать, например, parentID
         let children = try await fetchExistingChildren()
         let childIDs = children.map { $0.recordID }
         
@@ -1139,12 +1137,25 @@ extension CloudKitManager {
         )
         
         let notificationInfo = CKSubscription.NotificationInfo()
-        notificationInfo.shouldSendContentAvailable = true
-        notificationInfo.desiredKeys = ["title", "message", "childId", "childName", "type"]
+        notificationInfo.shouldSendContentAvailable = true // Нам нужен тихий пуш
+        
+        // ✅ ГЛАВНОЕ: Запрашиваем ВСЕ поля, которые нам нужны
+        notificationInfo.desiredKeys = [
+            "childId",
+            "commandName",
+            "commandStatus",
+            "type",
+            "date"
+            // "title", "message", "childName", "type", "isRead" -- УБИРАЕМ
+        ]
         
         subscription.notificationInfo = notificationInfo
         
-        try await publicDatabase.save(subscription)
-        print("✅ Родитель подписан на уведомления")
+        do {
+            try await publicDatabase.save(subscription)
+            print("✅ [Parent] Успешно подписан на получение уведомлений.")
+        } catch {
+            print("🛑 [Parent] КРИТИЧЕСКАЯ ОШИБКА: Не удалось подписаться на получение уведомлений.: \(error)")
+        }
     }
 }
