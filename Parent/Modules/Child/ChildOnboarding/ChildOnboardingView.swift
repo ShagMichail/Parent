@@ -47,16 +47,77 @@ struct ChildOnboardingView: View {
                 }
                 .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
             }
+            if currentPage == 2 {
+                // --- ✅ ОБНОВЛЕННАЯ СТРАНИЦА 3: КЛАВИАТУРА ---
+                // Используем ScrollView, так как инструкция может быть длинной
+                ScrollView {
+                    VStack(spacing: 30) {
+                        Image(systemName: "keyboard.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 100, height: 100)
+                            .foregroundColor(.accentColor)
+                        
+                        Text("Включите клавиатуру")
+                            .font(.custom("Inter-SemiBold", size: 28))
+                        
+                        // --- Подробная инструкция ---
+                        VStack(alignment: .leading, spacing: 20) {
+                            InstructionStepView(number: "1", text: "Откройте **Настройки** вашего iPhone.")
+                            InstructionStepView(number: "2", text: "Перейдите в **Основные** > **Клавиатура** > **Клавиатуры**.")
+                            InstructionStepView(number: "3", text: "Нажмите **Новые клавиатуры...** и выберите **'Parental Control'** (название вашей клавиатуры).")
+                            InstructionStepView(number: "4", text: "Нажмите на добавленную клавиатуру и **включите 'Разрешить полный доступ'**.")
+                        }
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(12)
+                        
+                        Text("Это необходимо для анализа вводимого текста.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Spacer()
+                        
+                        // Кнопка "Я все сделал(а)!"
+                        Button(action: {
+                            // Просто завершаем онбординг
+                            completeOnboarding()
+                        }) {
+                            Text("Готово")
+                                .font(.custom("Inter-Medium", size: 18))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(RoundedRectangle(cornerRadius: 15).fill(Color.accentColor))
+                        }
+                    }
+                    .padding()
+                }
+                .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
+            }
         }
         .background(Color.roleBackground.ignoresSafeArea())
+        //        .onChange(of: locationManager.authorizationStatus) { _, newStatus in
+        //            if currentPage == 1 && newStatus != .notDetermined {
+        //                isRequestingPermission = false
+        //
+        //                if newStatus == .authorizedAlways || newStatus == .authorizedWhenInUse {
+        //                    completeOnboarding()
+        //                } else {
+        //                    print("❌ Пользователь отказал в доступе к геолокации.")
+        //                }
+        //            }
+        //        }
         .onChange(of: locationManager.authorizationStatus) { _, newStatus in
             if currentPage == 1 && newStatus != .notDetermined {
                 isRequestingPermission = false
-                
                 if newStatus == .authorizedAlways || newStatus == .authorizedWhenInUse {
-                    completeOnboarding()
+                    // ✅ ПЕРЕХОД НА СЛЕДУЮЩИЙ ШАГ
+                    withAnimation {
+                        currentPage = 2
+                    }
                 } else {
-                    print("❌ Пользователь отказал в доступе к геолокации.")
+                    showPermissionDeniedAlert(for: .location)
                 }
             }
         }
@@ -152,5 +213,23 @@ struct ChildOnboardingView: View {
         hasCompleted = true
         locationManager.startTracking()
         isPresented = false
+    }
+}
+
+struct InstructionStepView: View {
+    let number: String
+    let text: LocalizedStringKey // Используем LocalizedStringKey для поддержки Markdown
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 15) {
+            Text(number)
+                .font(.headline.bold())
+                .foregroundColor(.white)
+                .frame(width: 30, height: 30)
+                .background(Circle().fill(Color.accentColor))
+            
+            Text(text)
+                .font(.body)
+        }
     }
 }

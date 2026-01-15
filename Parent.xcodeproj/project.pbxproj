@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0F7BD5992EEC55FA00FFBDDD /* ParentControlNSE.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 0F7BD5922EEC55FA00FFBDDD /* ParentControlNSE.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		0FACFA3C2F190ED5004C0DB8 /* LoggingKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 0FACFA352F190ED5004C0DB8 /* LoggingKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		FC4656C72EC766E100BBCD62 /* ActivityReportExtension.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = FC4656BB2EC766E100BBCD62 /* ActivityReportExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		FC8124D02EE02EBB0085AD05 /* DeviceActivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FC6DAA302ED70D48000C582E /* DeviceActivity.framework */; };
 		FC8124D82EE02EBB0085AD05 /* ActivityMonitorExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FC8124CF2EE02EBB0085AD05 /* ActivityMonitorExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -20,6 +21,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 0F7BD5912EEC55FA00FFBDDD;
 			remoteInfo = ParentControlNSE;
+		};
+		0FACFA3A2F190ED5004C0DB8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FC8A8A0A2EC1499C009A90EF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0FACFA342F190ED5004C0DB8;
+			remoteInfo = LoggingKeyboard;
 		};
 		FC4656C52EC766E100BBCD62 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -58,6 +66,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				0FACFA3C2F190ED5004C0DB8 /* LoggingKeyboard.appex in Embed Foundation Extensions */,
 				FC8124D82EE02EBB0085AD05 /* ActivityMonitorExtension.appex in Embed Foundation Extensions */,
 				0F7BD5992EEC55FA00FFBDDD /* ParentControlNSE.appex in Embed Foundation Extensions */,
 			);
@@ -79,6 +88,7 @@
 
 /* Begin PBXFileReference section */
 		0F7BD5922EEC55FA00FFBDDD /* ParentControlNSE.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ParentControlNSE.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		0FACFA352F190ED5004C0DB8 /* LoggingKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LoggingKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC4656BB2EC766E100BBCD62 /* ActivityReportExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = ActivityReportExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC6DAA302ED70D48000C582E /* DeviceActivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DeviceActivity.framework; path = System/Library/Frameworks/DeviceActivity.framework; sourceTree = SDKROOT; };
 		FC8124CF2EE02EBB0085AD05 /* ActivityMonitorExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ActivityMonitorExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -101,6 +111,13 @@
 				Info.plist,
 			);
 			target = 0F7BD5912EEC55FA00FFBDDD /* ParentControlNSE */;
+		};
+		0FACFA402F190ED5004C0DB8 /* Exceptions for "LoggingKeyboard" folder in "LoggingKeyboard" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 0FACFA342F190ED5004C0DB8 /* LoggingKeyboard */;
 		};
 		0FD520882EEC6AFB007AB816 /* Exceptions for "Parent" folder in "ParentControlNSE" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -159,6 +176,14 @@
 			path = ParentControlNSE;
 			sourceTree = "<group>";
 		};
+		0FACFA362F190ED5004C0DB8 /* LoggingKeyboard */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				0FACFA402F190ED5004C0DB8 /* Exceptions for "LoggingKeyboard" folder in "LoggingKeyboard" target */,
+			);
+			path = LoggingKeyboard;
+			sourceTree = "<group>";
+		};
 		FC4656BC2EC766E100BBCD62 /* ActivityReportExtension */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -201,6 +226,13 @@
 
 /* Begin PBXFrameworksBuildPhase section */
 		0F7BD58F2EEC55FA00FFBDDD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0FACFA322F190ED5004C0DB8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -263,6 +295,7 @@
 				FC4656BC2EC766E100BBCD62 /* ActivityReportExtension */,
 				FC8124D12EE02EBB0085AD05 /* ActivityMonitorExtension */,
 				0F7BD5932EEC55FA00FFBDDD /* ParentControlNSE */,
+				0FACFA362F190ED5004C0DB8 /* LoggingKeyboard */,
 				FC6DAA2F2ED70D48000C582E /* Frameworks */,
 				FC8A8A132EC1499C009A90EF /* Products */,
 			);
@@ -277,6 +310,7 @@
 				FC4656BB2EC766E100BBCD62 /* ActivityReportExtension.appex */,
 				FC8124CF2EE02EBB0085AD05 /* ActivityMonitorExtension.appex */,
 				0F7BD5922EEC55FA00FFBDDD /* ParentControlNSE.appex */,
+				0FACFA352F190ED5004C0DB8 /* LoggingKeyboard.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -304,6 +338,28 @@
 			);
 			productName = ParentControlNSE;
 			productReference = 0F7BD5922EEC55FA00FFBDDD /* ParentControlNSE.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		0FACFA342F190ED5004C0DB8 /* LoggingKeyboard */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0FACFA3D2F190ED5004C0DB8 /* Build configuration list for PBXNativeTarget "LoggingKeyboard" */;
+			buildPhases = (
+				0FACFA312F190ED5004C0DB8 /* Sources */,
+				0FACFA322F190ED5004C0DB8 /* Frameworks */,
+				0FACFA332F190ED5004C0DB8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				0FACFA362F190ED5004C0DB8 /* LoggingKeyboard */,
+			);
+			name = LoggingKeyboard;
+			packageProductDependencies = (
+			);
+			productName = LoggingKeyboard;
+			productReference = 0FACFA352F190ED5004C0DB8 /* LoggingKeyboard.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 		FC4656BA2EC766E100BBCD62 /* ActivityReportExtension */ = {
@@ -366,6 +422,7 @@
 				FC4656C62EC766E100BBCD62 /* PBXTargetDependency */,
 				FC8124D72EE02EBB0085AD05 /* PBXTargetDependency */,
 				0F7BD5982EEC55FA00FFBDDD /* PBXTargetDependency */,
+				0FACFA3B2F190ED5004C0DB8 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				FC8A8A142EC1499C009A90EF /* Parent */,
@@ -430,11 +487,14 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1640;
+				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					0F7BD5912EEC55FA00FFBDDD = {
 						CreatedOnToolsVersion = 16.4;
+					};
+					0FACFA342F190ED5004C0DB8 = {
+						CreatedOnToolsVersion = 26.2;
 					};
 					FC4656BA2EC766E100BBCD62 = {
 						CreatedOnToolsVersion = 16.0;
@@ -476,12 +536,20 @@
 				FC4656BA2EC766E100BBCD62 /* ActivityReportExtension */,
 				FC8124CE2EE02EBB0085AD05 /* ActivityMonitorExtension */,
 				0F7BD5912EEC55FA00FFBDDD /* ParentControlNSE */,
+				0FACFA342F190ED5004C0DB8 /* LoggingKeyboard */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		0F7BD5902EEC55FA00FFBDDD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0FACFA332F190ED5004C0DB8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -533,6 +601,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		0FACFA312F190ED5004C0DB8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FC4656B72EC766E100BBCD62 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -576,6 +651,11 @@
 			target = 0F7BD5912EEC55FA00FFBDDD /* ParentControlNSE */;
 			targetProxy = 0F7BD5972EEC55FA00FFBDDD /* PBXContainerItemProxy */;
 		};
+		0FACFA3B2F190ED5004C0DB8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0FACFA342F190ED5004C0DB8 /* LoggingKeyboard */;
+			targetProxy = 0FACFA3A2F190ED5004C0DB8 /* PBXContainerItemProxy */;
+		};
 		FC4656C62EC766E100BBCD62 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = FC4656BA2EC766E100BBCD62 /* ActivityReportExtension */;
@@ -611,7 +691,7 @@
 				INFOPLIST_FILE = ParentControlNSE/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = ParentControlNSE;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -639,7 +719,7 @@
 				INFOPLIST_FILE = ParentControlNSE/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = ParentControlNSE;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -650,6 +730,68 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		0FACFA3E2F190ED5004C0DB8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = LoggingKeyboard/LoggingKeyboard.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 497Z5AY56K;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LoggingKeyboard/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = LoggingKeyboard;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.laborato.Parent.LoggingKeyboard;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		0FACFA3F2F190ED5004C0DB8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = LoggingKeyboard/LoggingKeyboard.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 497Z5AY56K;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LoggingKeyboard/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = LoggingKeyboard;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.laborato.Parent.LoggingKeyboard;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -667,6 +809,7 @@
 				INFOPLIST_FILE = ActivityReportExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = ActivityReportExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -695,6 +838,7 @@
 				INFOPLIST_FILE = ActivityReportExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = ActivityReportExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -723,6 +867,7 @@
 				INFOPLIST_FILE = ActivityMonitorExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = ActivityMonitorExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -750,6 +895,7 @@
 				INFOPLIST_FILE = ActivityMonitorExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = ActivityMonitorExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -972,7 +1118,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 497Z5AY56K;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = test.ParentTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -991,7 +1137,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 497Z5AY56K;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = test.ParentTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1009,6 +1155,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 497Z5AY56K;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = test.ParentUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1026,6 +1173,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 497Z5AY56K;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = test.ParentUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1044,6 +1192,15 @@
 			buildConfigurations = (
 				0F7BD59B2EEC55FA00FFBDDD /* Debug */,
 				0F7BD59C2EEC55FA00FFBDDD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0FACFA3D2F190ED5004C0DB8 /* Build configuration list for PBXNativeTarget "LoggingKeyboard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0FACFA3E2F190ED5004C0DB8 /* Debug */,
+				0FACFA3F2F190ED5004C0DB8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
