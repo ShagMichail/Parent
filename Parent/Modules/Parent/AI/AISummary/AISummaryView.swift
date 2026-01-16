@@ -28,6 +28,7 @@ struct AISummaryView: View {
     @State private var navigateToWebReport = false
     @State private var navigateToCategoryReport = false
     @State private var navigateToNotifications = false
+    @State private var showHelp = false
     
     @Binding var isTabBarVisible: Bool
     
@@ -39,12 +40,15 @@ struct AISummaryView: View {
                         mainTitle: String(localized: "AI summary"),
                         hasNotification: true,
                         hasNewNotification: notificationViewModel.hasNewNotificationForSelectedChild,
-                        onBackTap: {},
+                        hasQuestions: true,
                         onNotificationTap: {
                             navigateToNotifications.toggle()
                             isTabBarVisible.toggle()
                         },
-                        onConfirmTap: {}
+                        onQuestionsTap: {
+                            showHelp.toggle()
+                            isTabBarVisible.toggle()
+                        }
                     )
                 )
                 
@@ -133,13 +137,23 @@ struct AISummaryView: View {
                             .padding(.horizontal, 20)
 
                             VStack(spacing: 0) {
-                                NavigationLinkRow(title: String(localized: "Applications used"))  {
-                                    navigateToAppReport = true
-                                }
+                                NavigationLinkRow(
+                                    model: NavigationLinkRowModel(
+                                        title: String(localized: "Applications used"),
+                                        action: {
+                                            navigateToAppReport = true
+                                        }
+                                    )
+                                )
                                 Divider().padding(.horizontal, 10)
-                                NavigationLinkRow(title: String(localized: "Sites visited"))  {
-                                    navigateToWebReport = true
-                                }
+                                NavigationLinkRow(
+                                    model: NavigationLinkRowModel(
+                                        title: String(localized: "Sites visited"),
+                                        action: {
+                                            navigateToWebReport = true
+                                        }
+                                    )
+                                )
                             }
                             .background(
                                 RoundedRectangle(cornerRadius: 20)
@@ -166,6 +180,10 @@ struct AISummaryView: View {
             .navigationDestination(
                 isPresented: $navigateToNotifications,
                 destination: { NotificationView(showNavigationBar: $isTabBarVisible) }
+            )
+            .navigationDestination(
+                isPresented: $showHelp,
+                destination: { HelpView(showNavigationBar: $isTabBarVisible) }
             )
         }
         .onChange(of: viewModel.selectedChild) { _, _ in

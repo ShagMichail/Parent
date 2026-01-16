@@ -13,7 +13,6 @@ struct NavigationBar: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 16) {
-                // Аватарка и приветствие
                 HStack(spacing: 12) {
                     if let mainTitle = model.mainTitle {
                         Text(mainTitle)
@@ -44,10 +43,25 @@ struct NavigationBar: View {
                 
                 Spacer()
                 
-                // Кнопки действий
+                if model.hasQuestions ?? false {
+                    HStack(spacing: 12) {
+                        Button(action: model.onQuestionsTap) {
+                            ZStack {
+                                Image(systemName: "questionmark")
+                                    .font(.title3)
+                                    .foregroundColor(.accent)
+                            }
+                            .frame(width: 50, height: 50)
+                            .background(
+                                Circle()
+                                    .stroke(.accent, lineWidth: 1)
+                            )
+                        }
+                    }
+                }
+                
                 if model.hasNotification ?? false {
                     HStack(spacing: 12) {
-                        // Кнопка уведомлений
                         Button(action: model.onNotificationTap) {
                             ZStack {
                                 Image("notification")
@@ -98,18 +112,13 @@ struct NavigationBar: View {
             mainTitle: "Дети",
             hasNotification: true,
             hasNewNotification: true,
-            onBackTap: {},
-            onNotificationTap: {},
-            onConfirmTap: {}
+            hasQuestions: true
         )
     )
     NavigationBar(
         model: NavigationBarModel(
             chevronBackward: true,
-            subTitle: "Редактирование времени фокусировки",
-            onBackTap: {},
-            onNotificationTap: {},
-            onConfirmTap: {}
+            subTitle: "Редактирование времени фокусировки"
         )
     )
 }

@@ -176,9 +176,7 @@ struct FocusSettingsView: View {
                     onBackTap: {
                         dismiss()
                         showNavigationBar.toggle()
-                    },
-                    onNotificationTap: {},
-                    onConfirmTap: {}
+                    }
                 )
             )
             

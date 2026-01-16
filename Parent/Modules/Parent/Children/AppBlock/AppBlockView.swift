@@ -33,7 +33,6 @@ struct AppBlockView: View {
                             onBackTap: {
                                 handleBackButton()
                             },
-                            onNotificationTap: {},
                             onConfirmTap: {
                                 viewModel.saveBlocks()
                             }

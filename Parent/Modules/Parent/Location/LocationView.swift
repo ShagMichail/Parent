@@ -17,6 +17,7 @@ struct LocationView: View {
     @State private var isFirstUseMapCameraChange = false
     @State private var isFirstUseCamera = true
     @State private var navigateToNotifications = false
+    @State private var showHelp = false
     
     @Binding var isTabBarVisible: Bool
     
@@ -55,6 +56,19 @@ struct LocationView: View {
                         }
                     }
                     .mapStyle(.standard(elevation: .flat))
+                    .mapControls {
+                        MapCompass() // Компас
+                            .mapControlVisibility(.hidden)
+                        
+                        MapPitchToggle() // Переключатель наклона
+                            .mapControlVisibility(.hidden)
+                        
+                        MapScaleView() // Масштаб
+                            .mapControlVisibility(.hidden)
+                        
+                        MapUserLocationButton() // Кнопка местоположения пользователя
+                            .mapControlVisibility(.hidden)
+                    }
                     .ignoresSafeArea()
                     .onMapCameraChange(frequency: .onEnd) { context in
                         // КОСТЫЛЬ!!! - сделано для быстроты - ИСПРАВИТЬ
@@ -76,16 +90,34 @@ struct LocationView: View {
                     VStack {
                         HStack {
                             Spacer()
-                            VStack {
-                                FloatingActionButton(
-                                    model: FloatingActionButtonModel(
-                                        iconName: "notification",
-                                        action: {
-                                            navigateToNotifications.toggle()
-                                            isTabBarVisible.toggle()
+                            VStack(alignment: .trailing) {
+                                HStack(spacing: 16) {
+                                    Button(action: {
+                                        showHelp.toggle()
+                                        isTabBarVisible.toggle()
+                                    }) {
+                                        ZStack {
+                                            Image(systemName: "questionmark")
+                                                .font(.title3)
+                                                .foregroundColor(.accent)
                                         }
+                                        .frame(width: 50, height: 50)
+                                        .background(
+                                            Circle()
+                                                .stroke(.accent, lineWidth: 1)
+                                        )
+                                    }
+                                    
+                                    FloatingActionButton(
+                                        model: FloatingActionButtonModel(
+                                            iconName: "notification",
+                                            action: {
+                                                navigateToNotifications.toggle()
+                                                isTabBarVisible.toggle()
+                                            }
+                                        )
                                     )
-                                )
+                                }
                                 Spacer()
                                 FloatingActionButton(
                                     model: FloatingActionButtonModel(
@@ -155,6 +187,10 @@ struct LocationView: View {
             .navigationDestination(
                 isPresented: $navigateToNotifications,
                 destination: { NotificationView(showNavigationBar: $isTabBarVisible) }
+            )
+            .navigationDestination(
+                isPresented: $showHelp,
+                destination: { HelpView(showNavigationBar: $isTabBarVisible) }
             )
         }
     }

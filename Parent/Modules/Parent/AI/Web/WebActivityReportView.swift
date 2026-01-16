@@ -30,9 +30,7 @@ struct WebActivityReportView: View {
                 model: NavigationBarModel(
                     chevronBackward: true,
                     subTitle: String(localized: "Websites"),
-                    onBackTap: { dismiss() },
-                    onNotificationTap: {},
-                    onConfirmTap: {}
+                    onBackTap: { dismiss() }
                 )
             )
             

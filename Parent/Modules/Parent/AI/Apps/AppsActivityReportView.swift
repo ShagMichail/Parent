@@ -30,9 +30,7 @@ struct AppsActivityReportView: View {
                 model: NavigationBarModel(
                     chevronBackward: true,
                     subTitle: String(localized: "Applications"),
-                    onBackTap: { dismiss() },
-                    onNotificationTap: {},
-                    onConfirmTap: {}
+                    onBackTap: { dismiss() }
                 )
             )
             

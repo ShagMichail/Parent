@@ -36,7 +36,6 @@ struct AppLimitsView: View {
                             onBackTap: {
                                 handleBackButton()
                             },
-                            onNotificationTap: {},
                             onConfirmTap: {
                                 viewModel.saveLimits()
                             }

@@ -67,7 +67,6 @@ struct AddFocusTimeView: View {
                     onBackTap: {
                         onDismiss()
                     },
-                    onNotificationTap: {},
                     onConfirmTap: {
                         saveSchedule()
                     }

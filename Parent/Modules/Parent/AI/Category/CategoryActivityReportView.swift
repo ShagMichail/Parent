@@ -30,9 +30,7 @@ struct CategoryActivityReportView: View {
                 model: NavigationBarModel(
                     chevronBackward: true,
                     subTitle: String(localized: "Active time"),
-                    onBackTap: { dismiss() },
-                    onNotificationTap: {},
-                    onConfirmTap: {}
+                    onBackTap: { dismiss() }
                 )
             )
             

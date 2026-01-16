@@ -223,6 +223,5 @@ struct ChildOnboardingView: View {
 
 #Preview {
     ChildOnboardingView(isPresented: .constant(true))
-    // Не забудьте добавить EnvironmentObject, если он нужен для превью
         .environmentObject(LocationManager.shared)
 }

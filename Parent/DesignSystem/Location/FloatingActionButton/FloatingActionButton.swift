@@ -16,7 +16,7 @@ struct FloatingActionButton: View {
                 Image(model.iconName)
                     .resizable()
                     .font(.title3)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.accent)
                     .frame(width: 24, height: 24)
             }
             .frame(width: 50, height: 50)

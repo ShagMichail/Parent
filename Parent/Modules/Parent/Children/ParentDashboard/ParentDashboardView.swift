@@ -16,6 +16,7 @@ struct ParentDashboardView: View {
     @State private var showDivider = false
     @State private var reportRefreshID = UUID()
     @State private var navigateToNotifications = false
+    @State private var showHelp = false
     @EnvironmentObject var viewModel: ParentDashboardViewModel
     @EnvironmentObject var notificationViewModel: NotificationViewModel
     @Binding var isTabBarVisible: Bool
@@ -30,12 +31,15 @@ struct ParentDashboardView: View {
                         mainTitle: String(localized: "Children"),
                         hasNotification: true,
                         hasNewNotification: notificationViewModel.hasNewNotificationForSelectedChild,
-                        onBackTap: {},
+                        hasQuestions: true,
                         onNotificationTap: {
                             navigateToNotifications.toggle()
                             isTabBarVisible.toggle()
                         },
-                        onConfirmTap: {}
+                        onQuestionsTap: {
+                            showHelp.toggle()
+                            isTabBarVisible.toggle()
+                        }
                     )
                 )
                 ScrollView {
@@ -86,6 +90,10 @@ struct ParentDashboardView: View {
             .onReceive(NotificationCenter.default.publisher(for: Notification.Name("ParentNotificationReceived"))) { _ in
                 handleCommandUpdate()
             }
+            .navigationDestination(
+                isPresented: $showHelp,
+                destination: { HelpView(showNavigationBar: $isTabBarVisible) }
+            )
         }
         .id(viewModel.selectedChild?.id)
     }

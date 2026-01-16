@@ -12,16 +12,46 @@ enum NavigationDestination: Hashable {
     case visitedWebsites(childName: String)
 }
 
-struct NavigationLinkRow: View {
+struct NavigationLinkRowModel {
+    let icon: String?
+    let hasIcon: Bool?
     let title: String
-    var action: () -> Void = {}
+    let action: () -> Void
+    
+    init(
+        icon: String? = nil,
+        hasIcon: Bool? = nil,
+        title: String,
+        action: @escaping () -> Void
+    ) {
+        self.icon = icon
+        self.hasIcon = hasIcon
+        self.title = title
+        self.action = action
+    }
+    
+    
+}
+
+struct NavigationLinkRow: View {
+    let model: NavigationLinkRowModel
     
     var body: some View {
-        Button(action: action) {
+        Button(action: model.action) {
             HStack {
-                Text(title)
-                    .font(.custom("Inter-Regular", size: 16))
-                    .foregroundColor(.blackText)
+                HStack {
+                    if model.hasIcon ?? false {
+                        Image(systemName: model.icon ?? "")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 25, height: 25)
+                            .foregroundStyle(.accent)
+                    }
+                    
+                    Text(model.title)
+                        .font(.custom("Inter-Regular", size: 16))
+                        .foregroundColor(.blackText)
+                }
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14))

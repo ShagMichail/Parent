@@ -110,7 +110,6 @@ struct WebBlockView: View {
                     onBackTap: {
                         handleBackButton()
                     },
-                    onNotificationTap: {},
                     onConfirmTap: {
                         viewModel.saveBlocks()
                     }

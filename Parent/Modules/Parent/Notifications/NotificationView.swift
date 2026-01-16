@@ -25,9 +25,7 @@ struct NotificationView: View {
                         onBackTap: {
                             dismiss()
                             showNavigationBar.toggle()
-                        },
-                        onNotificationTap: {},
-                        onConfirmTap: {}
+                        }
                     )
                 )
                 ScrollView {
