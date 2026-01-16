@@ -29,6 +29,7 @@ struct OnboardingPageView: View {
                 Text(title)
                     .font(.custom("Inter-SemiBold", size: 28))
                     .foregroundColor(.blackText)
+                    .multilineTextAlignment(.center)
                 
                 Text(description)
                     .font(.custom("Inter-Regular", size: 16))
@@ -40,7 +41,7 @@ struct OnboardingPageView: View {
 
             if isRequesting {
                 ProgressView()
-                    .frame(height: 50)
+                    .frame(maxWidth: .infinity, maxHeight: 50)
             } else {
                 ContinueButton(
                     model: ContinueButtonModel(
@@ -54,7 +55,6 @@ struct OnboardingPageView: View {
                 .frame(height: 50)
             }
         }
-        .padding(.horizontal, 20)
     }
 }
 

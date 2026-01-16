@@ -21,6 +21,10 @@ struct ChildOnboardingView: View {
     @State private var alertTitle = ""
     @State private var alertMessage = ""
     
+    enum PermissionType {
+        case notifications
+        case location
+    }
     
     var body: some View {
         VStack {
@@ -48,66 +52,72 @@ struct ChildOnboardingView: View {
                 .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
             }
             if currentPage == 2 {
-                // --- ✅ ОБНОВЛЕННАЯ СТРАНИЦА 3: КЛАВИАТУРА ---
-                // Используем ScrollView, так как инструкция может быть длинной
-                ScrollView {
-                    VStack(spacing: 30) {
-                        Image(systemName: "keyboard.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 100, height: 100)
-                            .foregroundColor(.accentColor)
+                VStack {
+                    Image("child-keyboard")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 250, height: 250)
+                        .padding(.bottom, 30)
+                    
+                    Text("Use the keyboard from 'Parent'")
+                        .font(.custom("Inter-SemiBold", size: 28))
+                        .foregroundColor(.blackText)
+                        .multilineTextAlignment(.center)
+                    
+                    // --- Подробная инструкция ---
+                    VStack(alignment: .leading, spacing: 20) {
+                        InstructionRow(
+                            model: InstructionRowModel(
+                                number: "1",
+                                text: String(localized: "Open the 'Settings' of the child's iPhone.")
+                            )
+                        )
                         
-                        Text("Включите клавиатуру")
-                            .font(.custom("Inter-SemiBold", size: 28))
+                        InstructionRow(
+                            model: InstructionRowModel(
+                                number: "2",
+                                text: String(localized: "Go to 'Basic' -> 'Keyboard' -> 'Keyboards'.")
+                            )
+                        )
                         
-                        // --- Подробная инструкция ---
-                        VStack(alignment: .leading, spacing: 20) {
-                            InstructionStepView(number: "1", text: "Откройте **Настройки** вашего iPhone.")
-                            InstructionStepView(number: "2", text: "Перейдите в **Основные** > **Клавиатура** > **Клавиатуры**.")
-                            InstructionStepView(number: "3", text: "Нажмите **Новые клавиатуры...** и выберите **'Parental Control'** (название вашей клавиатуры).")
-                            InstructionStepView(number: "4", text: "Нажмите на добавленную клавиатуру и **включите 'Разрешить полный доступ'**.")
-                        }
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(12)
+                        InstructionRow(
+                            model: InstructionRowModel(
+                                number: "3",
+                                text: String(localized: "Click on 'New Keyboards' and select 'Parental Control' (the name of your keyboard).")
+                            )
+                        )
                         
-                        Text("Это необходимо для анализа вводимого текста.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        Spacer()
-                        
-                        // Кнопка "Я все сделал(а)!"
-                        Button(action: {
-                            // Просто завершаем онбординг
-                            completeOnboarding()
-                        }) {
-                            Text("Готово")
-                                .font(.custom("Inter-Medium", size: 18))
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(RoundedRectangle(cornerRadius: 15).fill(Color.accentColor))
-                        }
+                        InstructionRow(
+                            model: InstructionRowModel(
+                                number: "4",
+                                text: String(localized: "Click on the added keyboard and enable 'Allow Full Access'.")
+                            )
+                        )
                     }
-                    .padding()
+                    .padding(.bottom, 10)
+                    
+                    Text("This is necessary to analyze the input text.")
+                        .font(.custom("Inter-Regular", size: 12))
+                        .foregroundColor(.strokeTextField)
+                        .multilineTextAlignment(.center)
+                    
+                    Spacer()
+                    
+                    ContinueButton(
+                        model: ContinueButtonModel(
+                            title: String(localized: "Continue"),
+                            isEnabled: true,
+                            action: {
+                                completeOnboarding()
+                            }
+                        )
+                    )
+                    .frame(height: 50)
                 }
-                .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
             }
         }
+        .padding(.horizontal, 20)
         .background(Color.roleBackground.ignoresSafeArea())
-        //        .onChange(of: locationManager.authorizationStatus) { _, newStatus in
-        //            if currentPage == 1 && newStatus != .notDetermined {
-        //                isRequestingPermission = false
-        //
-        //                if newStatus == .authorizedAlways || newStatus == .authorizedWhenInUse {
-        //                    completeOnboarding()
-        //                } else {
-        //                    print("❌ Пользователь отказал в доступе к геолокации.")
-        //                }
-        //            }
-        //        }
         .onChange(of: locationManager.authorizationStatus) { _, newStatus in
             if currentPage == 1 && newStatus != .notDetermined {
                 isRequestingPermission = false
@@ -164,11 +174,6 @@ struct ChildOnboardingView: View {
         }
     }
     
-    enum PermissionType {
-        case notifications
-        case location
-    }
-    
     private func showPermissionDeniedAlert(for permission: PermissionType) {
         if permission == .notifications {
             alertTitle = String(localized: "Notifications are disabled")
@@ -216,20 +221,8 @@ struct ChildOnboardingView: View {
     }
 }
 
-struct InstructionStepView: View {
-    let number: String
-    let text: LocalizedStringKey // Используем LocalizedStringKey для поддержки Markdown
-    
-    var body: some View {
-        HStack(alignment: .top, spacing: 15) {
-            Text(number)
-                .font(.headline.bold())
-                .foregroundColor(.white)
-                .frame(width: 30, height: 30)
-                .background(Circle().fill(Color.accentColor))
-            
-            Text(text)
-                .font(.body)
-        }
-    }
+#Preview {
+    ChildOnboardingView(isPresented: .constant(true))
+    // Не забудьте добавить EnvironmentObject, если он нужен для превью
+        .environmentObject(LocationManager.shared)
 }

