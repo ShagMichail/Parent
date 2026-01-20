@@ -199,7 +199,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             return
         }
         
-        if notification.subscriptionID?.starts(with: "parent-notifications-") == true {
+        if notification.subscriptionID?.starts(with: "parent-notifications-subscription") == true {
             print("🔔 [Parent] Получено новое уведомление от ребенка из Push!")
             
             if let queryNotification = notification as? CKQueryNotification,

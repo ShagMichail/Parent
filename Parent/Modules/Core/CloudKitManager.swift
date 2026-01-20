@@ -15,7 +15,7 @@ import ManagedSettings
 class CloudKitManager: ObservableObject {
     static let shared = CloudKitManager()
     
-    private let container = CKContainer.default()
+    private let container = CKContainer(identifier: "iCloud.com.laborato.Parent")
     
     var publicDatabase: CKDatabase { container.publicCloudDatabase }
     
@@ -1183,5 +1183,3 @@ extension CloudKitManager {
         try await publicDatabase.save(record)
     }
 }
-
-// Не забудьте создать тип записи `KeystrokeLog` в CloudKit Dashboard.
