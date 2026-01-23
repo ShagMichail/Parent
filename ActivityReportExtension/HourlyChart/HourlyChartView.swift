@@ -33,7 +33,7 @@ struct HourlyChartView: View {
             
             Chart(viewModel.hourlyData) { item in
                 BarMark(
-                    x: .value("Hour", item.hour),
+                    x: .value("Hour", Double(item.hour) + 0.4),
                     y: .value("Seconds", item.duration)
                 )
                 .foregroundStyle(.accent)

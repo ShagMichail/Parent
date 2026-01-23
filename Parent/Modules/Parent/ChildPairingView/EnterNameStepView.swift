@@ -12,6 +12,7 @@ struct EnterNameStepView: View {
     let childGender: String
     // Состояния для этого экрана
     @State private var childName = ""
+    @State private var childAppleID = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
     
@@ -29,6 +30,15 @@ struct EnterNameStepView: View {
                 .frame(maxWidth: .infinity, alignment: .center)
             
             TextField("Enter a name", text: $childName)
+                .padding(12)
+                .background(Color.white)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.accent, lineWidth: 1)
+                )
+            
+            TextField("Enter the child's AppleID", text: $childAppleID)
                 .padding(12)
                 .background(Color.white)
                 .cornerRadius(12)
@@ -102,7 +112,8 @@ struct EnterNameStepView: View {
             let parentID = try await CloudKitManager.shared.acceptInvitationByChild(
                 withCode: invitationCode,
                 childName: trimmedName,
-                childGender: childGender
+                childGender: childGender,
+                childAppleID: childAppleID
             )
             print("✅ Успешно подключен к родителю \(parentID). Завершаю настройку.")
             
@@ -110,6 +121,7 @@ struct EnterNameStepView: View {
             UserDefaults.standard.set(trimmedName, forKey: childNameStorageKey)
             if let defaults = UserDefaults(suiteName: "group.com.laborato.test.Parent") {
                 defaults.set(trimmedName, forKey: "myChildName")
+                defaults.set(childAppleID, forKey: "myChildAppleID")
             }
             print("💾 Имя ребенка '\(trimmedName)' сохранено в UserDefaults.")
             // 3. Сохраняем гендер локально

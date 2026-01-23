@@ -18,6 +18,8 @@ struct HourlyChartReport: DeviceActivityReportScene {
     let content: (HourlyChartViewModel) -> HourlyChartView
     
     func makeConfiguration(representing data: DeviceActivityResults<DeviceActivityData>) async -> HourlyChartViewModel {
+        let defaults = UserDefaults(suiteName: "group.com.laborato.test.Parent")
+        let childAppleID = defaults?.string(forKey: "myChildAppleID")
         
         var hourlyData = (0..<24).map { HourlyActivityModel(hour: $0, duration: 0) }
         var appsDict: [ApplicationToken: TimeInterval] = [:]
@@ -28,30 +30,32 @@ struct HourlyChartReport: DeviceActivityReportScene {
         let calendar = Calendar.current
         
         for await deviceActivity in data {
-            for await segment in deviceActivity.activitySegments {
-                let segmentStart = segment.dateInterval.start
-                let segmentDuration = segment.totalActivityDuration
-                
-                if calendar.isDateInToday(segmentStart) {
-                    todayTotal += segmentDuration
+            if deviceActivity.user.appleID == childAppleID {
+                for await segment in deviceActivity.activitySegments {
+                    let segmentStart = segment.dateInterval.start
+                    let segmentDuration = segment.totalActivityDuration
                     
-                    let hour = calendar.component(.hour, from: segmentStart)
-                    if hour >= 0 && hour < 24 {
-                        hourlyData[hour] = HourlyActivityModel(hour: hour, duration: hourlyData[hour].duration + segmentDuration)
-                    }
-                    
-                    for await category in segment.categories {
-                        for await app in category.applications {
-                            let appDuration = app.totalActivityDuration
-                            let token = app.application.token
-                            if let token = token, appDuration > 0 {
-                                appsDict[token, default: 0] += appDuration
+                    if calendar.isDateInToday(segmentStart) {
+                        todayTotal += segmentDuration
+                        
+                        let hour = calendar.component(.hour, from: segmentStart)
+                        if hour >= 0 && hour < 24 {
+                            hourlyData[hour] = HourlyActivityModel(hour: hour, duration: hourlyData[hour].duration + segmentDuration)
+                        }
+                        
+                        for await category in segment.categories {
+                            for await app in category.applications {
+                                let appDuration = app.totalActivityDuration
+                                let token = app.application.token
+                                if let token = token, appDuration > 0 {
+                                    appsDict[token, default: 0] += appDuration
+                                }
                             }
                         }
+                        
+                    } else if calendar.isDateInYesterday(segmentStart) {
+                        yesterdayTotal += segmentDuration
                     }
-                    
-                } else if calendar.isDateInYesterday(segmentStart) {
-                    yesterdayTotal += segmentDuration
                 }
             }
         }

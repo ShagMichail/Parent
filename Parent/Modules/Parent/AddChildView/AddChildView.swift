@@ -65,6 +65,7 @@ struct AddChildView: View {
               let childID = userInfo["childUserRecordID"] as? String,
               let childName = userInfo["childName"] as? String,
               let gender = userInfo["childGender"] as? String,
+              let childAppleID = userInfo["childAppleID"] as? String,
               let acceptedCode = self.invitationCode else {
             return
         }
@@ -80,7 +81,7 @@ struct AddChildView: View {
             }
         }
         
-        let newChild = Child(id: UUID(uuidString: childID) ?? UUID(), name: childName, recordID: childID, gender: gender)
+        let newChild = Child(id: UUID(uuidString: childID) ?? UUID(), name: childName, recordID: childID, gender: gender, childAppleID: childAppleID)
         self.state = .success(newChild)
     }
 }

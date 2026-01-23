@@ -7,6 +7,7 @@
 
 import SwiftUI
 import DeviceActivity
+import FamilyControls
 
 struct ChildDashboardDetailView: View {
     @EnvironmentObject var viewModel: ParentDashboardViewModel

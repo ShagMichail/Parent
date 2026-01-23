@@ -30,7 +30,7 @@ struct ParentDashboardView: View {
                     model: NavigationBarModel(
                         mainTitle: String(localized: "Children"),
                         hasNotification: true,
-                        hasNewNotification: notificationViewModel.hasNewNotificationForSelectedChild,
+                        hasNewNotification: notificationViewModel.hasAnyNewNotification,
                         hasQuestions: true,
                         onNotificationTap: {
                             navigateToNotifications.toggle()
@@ -61,11 +61,12 @@ struct ParentDashboardView: View {
                                 isTabBarVisible: $isTabBarVisible,
                                 animation: animation
                             )
-                                .transition(.opacity.combined(with: .scale(scale: 0.95)))
-                                .id(reportRefreshID)
-                                .onAppear {
-                                    viewModel.refreshChildStatus()
-                                }
+                            .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                            .id(reportRefreshID)
+                            .onAppear {
+                                viewModel.refreshChildStatus()
+                            }
+                            .id(viewModel.selectedChild?.id)
                         } else {
                             ContentUnavailableView("Add a child", systemImage: "person.3.fill", description: Text("Click on the '+' to add the first child."))
                         }
@@ -95,7 +96,6 @@ struct ParentDashboardView: View {
                 destination: { HelpView(showNavigationBar: $isTabBarVisible) }
             )
         }
-        .id(viewModel.selectedChild?.id)
     }
     
     private func handleCommandUpdate() {

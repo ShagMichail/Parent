@@ -28,95 +28,102 @@ struct ChildOnboardingView: View {
     
     var body: some View {
         VStack {
-            if currentPage == 0 {
-                OnboardingPageView(
-                    imageName: "child-notifications",
-                    title: String(localized: "Stay in touch"),
-                    description: String(localized: "Allow notifications so your device can immediately receive commands from your parents."),
-                    isRequesting: $isRequestingPermission
-                ) {
-                    requestNotifications()
-                }
-                .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
-            }
-            
-            if currentPage == 1 {
-                OnboardingPageView(
-                    imageName: "child-location",
-                    title: String(localized: "Safety first"),
-                    description: String(localized: "Allow location access so your parents always know you're safe."),
-                    isRequesting: $isRequestingPermission
-                ) {
-                    requestLocation()
-                }
-                .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
-            }
-            if currentPage == 2 {
-                VStack {
-                    Image("child-keyboard")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 250, height: 250)
-                        .padding(.bottom, 30)
-                    
-                    Text("Use the keyboard from 'Parent'")
-                        .font(.custom("Inter-SemiBold", size: 28))
-                        .foregroundColor(.blackText)
-                        .multilineTextAlignment(.center)
-                    
-                    // --- Подробная инструкция ---
-                    VStack(alignment: .leading, spacing: 20) {
-                        InstructionRow(
-                            model: InstructionRowModel(
-                                number: "1",
-                                text: String(localized: "Open the 'Settings' of the child's iPhone.")
-                            )
-                        )
-                        
-                        InstructionRow(
-                            model: InstructionRowModel(
-                                number: "2",
-                                text: String(localized: "Go to 'Basic' -> 'Keyboard' -> 'Keyboards'.")
-                            )
-                        )
-                        
-                        InstructionRow(
-                            model: InstructionRowModel(
-                                number: "3",
-                                text: String(localized: "Click on 'New Keyboards' and select 'Parental Control' (the name of your keyboard).")
-                            )
-                        )
-                        
-                        InstructionRow(
-                            model: InstructionRowModel(
-                                number: "4",
-                                text: String(localized: "Click on the added keyboard and enable 'Allow Full Access'.")
-                            )
-                        )
+            ZStack {
+                if currentPage == 0 {
+                    OnboardingPageView(
+                        imageName: "child-notifications",
+                        title: String(localized: "Stay in touch"),
+                        description: String(localized: "Allow notifications so your device can immediately receive commands from your parents."),
+                        isRequesting: $isRequestingPermission
+                    ) {
+                        requestNotifications()
                     }
-                    .padding(.bottom, 10)
-                    
-                    Text("This is necessary to analyze the input text.")
-                        .font(.custom("Inter-Regular", size: 12))
-                        .foregroundColor(.strokeTextField)
-                        .multilineTextAlignment(.center)
-                    
-                    Spacer()
-                    
-                    ContinueButton(
-                        model: ContinueButtonModel(
-                            title: String(localized: "Continue"),
-                            isEnabled: true,
-                            action: {
-                                completeOnboarding()
-                            }
+                    .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
+                    .zIndex(currentPage == 0 ? 1 : 0)
+                }
+                
+                if currentPage == 1 {
+                    OnboardingPageView(
+                        imageName: "child-location",
+                        title: String(localized: "Safety first"),
+                        description: String(localized: "Allow location access so your parents always know you're safe."),
+                        isRequesting: $isRequestingPermission
+                    ) {
+                        requestLocation()
+                    }
+                    .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
+                    .zIndex(currentPage == 1 ? 1 : 0)
+                }
+                if currentPage == 2 {
+                    VStack {
+                        Image("child-keyboard")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 250, height: 250)
+                            .padding(.bottom, 30)
+                        
+                        Text("Use the keyboard from 'Parent'")
+                            .font(.custom("Inter-SemiBold", size: 28))
+                            .foregroundColor(.blackText)
+                            .multilineTextAlignment(.center)
+                        
+                        // --- Подробная инструкция ---
+                        VStack(alignment: .leading, spacing: 20) {
+                            InstructionRow(
+                                model: InstructionRowModel(
+                                    number: "1",
+                                    text: String(localized: "Open the 'Settings' of the child's iPhone.")
+                                )
+                            )
+                            
+                            InstructionRow(
+                                model: InstructionRowModel(
+                                    number: "2",
+                                    text: String(localized: "Go to 'Basic' -> 'Keyboard' -> 'Keyboards'.")
+                                )
+                            )
+                            
+                            InstructionRow(
+                                model: InstructionRowModel(
+                                    number: "3",
+                                    text: String(localized: "Click on 'New Keyboards' and select 'Parental Control' (the name of your keyboard).")
+                                )
+                            )
+                            
+                            InstructionRow(
+                                model: InstructionRowModel(
+                                    number: "4",
+                                    text: String(localized: "Click on the added keyboard and enable 'Allow Full Access'.")
+                                )
+                            )
+                        }
+                        .padding(.bottom, 10)
+                        
+                        Text("This is necessary to analyze the input text.")
+                            .font(.custom("Inter-Regular", size: 12))
+                            .foregroundColor(.strokeTextField)
+                            .multilineTextAlignment(.center)
+                        
+                        Spacer()
+                        
+                        ContinueButton(
+                            model: ContinueButtonModel(
+                                title: String(localized: "Continue"),
+                                isEnabled: true,
+                                action: {
+                                    completeOnboarding()
+                                }
+                            )
                         )
-                    )
-                    .frame(height: 50)
+                        .frame(height: 50)
+                    }
+                    .padding(.horizontal, 20)
+                    .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
+                    .zIndex(currentPage == 2 ? 1 : 0)
                 }
             }
+            .animation(.easeInOut(duration: 0.3), value: currentPage)
         }
-        .padding(.horizontal, 20)
         .background(Color.roleBackground.ignoresSafeArea())
         .onChange(of: locationManager.authorizationStatus) { _, newStatus in
             if currentPage == 1 && newStatus != .notDetermined {

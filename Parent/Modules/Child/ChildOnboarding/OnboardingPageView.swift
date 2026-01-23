@@ -55,6 +55,7 @@ struct OnboardingPageView: View {
                 .frame(height: 50)
             }
         }
+        .padding(.horizontal, 20)
     }
 }
 

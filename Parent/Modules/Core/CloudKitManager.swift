@@ -51,7 +51,7 @@ class CloudKitManager: ObservableObject {
     }
     
     /// ВЫЗЫВАЕТСЯ РЕБЕНКОМ для принятия приглашения.
-    func acceptInvitationByChild(withCode code: String, childName: String, childGender: String) async throws -> String {
+    func acceptInvitationByChild(withCode code: String, childName: String, childGender: String, childAppleID: String) async throws -> String {
         let predicate = NSPredicate(format: "invitationCode == %@", code)
         let query = CKQuery(recordType: "Invitation", predicate: predicate)
         
@@ -72,6 +72,7 @@ class CloudKitManager: ObservableObject {
         record["childUserRecordID"] = childID
         record["childName"] = childName
         record["childGender"] = childGender
+        record["childAppleID"] = childAppleID
         
         try await publicDatabase.save(record)
         print("✅ CloudKitManager: Ребенок \(childName) принял приглашение от родителя \(parentID)")
@@ -93,7 +94,7 @@ class CloudKitManager: ObservableObject {
         let notificationInfo = CKSubscription.NotificationInfo()
         
         notificationInfo.shouldSendContentAvailable = true
-        notificationInfo.desiredKeys = ["childUserRecordID", "childName", "childGender"]
+        notificationInfo.desiredKeys = ["childUserRecordID", "childName", "childGender", "childAppleID"]
         
         subscription.notificationInfo = notificationInfo
         
@@ -465,9 +466,10 @@ extension CloudKitManager {
             if let record = try? result.get() {
                 if let childID = record["childUserRecordID"] as? String,
                    let name = record["childName"] as? String,
-                   let gender = record["childGender"] as? String {
+                   let gender = record["childGender"] as? String,
+                   let childAppleID = record["childAppleID"] as? String {
                     
-                    children.append(Child(id: UUID(uuidString: childID) ?? UUID(), name: name, recordID: childID, gender: gender))
+                    children.append(Child(id: UUID(uuidString: childID) ?? UUID(), name: name, recordID: childID, gender: gender, childAppleID: childAppleID))
                 }
             }
         }
@@ -1122,8 +1124,6 @@ extension CloudKitManager {
             print("🛑 ОШИБКА УДАЛЕНИЯ ПОДПИСКИ: \(error)")
         }
         
-        // Предикат: мы хотим получать ВСЕ новые уведомления
-        // ВАЖНО: нужно добавить поле, по которому фильтровать, например, parentID
         let children = try await fetchExistingChildren()
         let childIDs = children.map { $0.recordID }
         
@@ -1139,21 +1139,19 @@ extension CloudKitManager {
         let notificationInfo = CKSubscription.NotificationInfo()
         notificationInfo.shouldSendContentAvailable = true // Нам нужен тихий пуш
         
-        // ✅ ГЛАВНОЕ: Запрашиваем ВСЕ поля, которые нам нужны
         notificationInfo.desiredKeys = [
             "childId",
             "commandName",
             "commandStatus",
             "type",
             "date"
-            // "title", "message", "childName", "type", "isRead" -- УБИРАЕМ
         ]
         
         subscription.notificationInfo = notificationInfo
         
         do {
             try await publicDatabase.save(subscription)
-            print("✅ [Parent] Успешно подписан на получение уведомлений.")
+            print("✅ [Parent] Успешно подписан на получение уведомлений parent-notifications-subscription.")
         } catch {
             print("🛑 [Parent] КРИТИЧЕСКАЯ ОШИБКА: Не удалось подписаться на получение уведомлений.: \(error)")
         }

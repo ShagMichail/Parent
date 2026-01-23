@@ -71,12 +71,13 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                 let childID = recordFields["childUserRecordID"] as? String ?? ""
                 let childName = recordFields["childName"] as? String ?? ""
                 let childGender = recordFields["childGender"] as? String ?? ""
+                let childAppleID = recordFields["childAppleID"] as? String ?? ""
                 
                 NotificationCenter.default.post(
                     name: .invitationAcceptedByChild,
                     object: nil,
-                    //                    userInfo: ["childUserRecordID": childID, "childName": childName, "recordName": recordName]
-                    userInfo: ["childUserRecordID": childID, "childName": childName, "childGender": childGender]
+                    
+                    userInfo: ["childUserRecordID": childID, "childName": childName, "childGender": childGender, "childAppleID": childAppleID]
                 )
             }
             completionHandler(.newData)

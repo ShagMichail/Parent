@@ -21,7 +21,7 @@ struct WebActivityReportView: View {
             end: Date()
         )),
         users: .children,
-        devices: .init([.iPhone, .iPad])
+        devices: .init([.iPhone])
     )
     
     var body: some View {
@@ -76,7 +76,7 @@ struct WebActivityReportView: View {
         filter = DeviceActivityFilter(
             segment: .hourly(during: DateInterval(start: start, end: now)),
             users: .children,
-            devices: .init([.iPhone, .iPad])
+            devices: .init([.iPhone])
         )
     }
 }

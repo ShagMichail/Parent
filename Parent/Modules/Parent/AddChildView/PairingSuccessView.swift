@@ -9,6 +9,8 @@ import SwiftUI
 
 struct PairingSuccessView: View {
     @EnvironmentObject var stateManager: AppStateManager
+    @Environment(\.isPresented) var isPresented
+    @Environment(\.dismiss) var dismiss
     let newChild: Child
     
     var body: some View {
@@ -22,6 +24,7 @@ struct PairingSuccessView: View {
             Text("Do not forget to give all necessary permissions on the child's device for the correct operation of parental controls.")
                 .font(.custom("Inter-Regular", size: 16))
                 .frame(maxWidth: .infinity, alignment: .center)
+                .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
 
             Spacer()
@@ -37,9 +40,7 @@ struct PairingSuccessView: View {
                     title: String(localized: "Begin"),
                     isEnabled: true,
                     action: {
-                        Task {
-                            await parentScreen()
-                        }
+                        handleContinue()
                     }
                 )
             )
@@ -53,11 +54,18 @@ struct PairingSuccessView: View {
         .navigationBarBackButtonHidden(true)
     }
     
-    private func parentScreen() async {
-        stateManager.didAddChild(newChild)
+    private func handleContinue() {
+        if isPresented {
+            print("✅ PairingSuccessView: Закрываем sheet...")
+            stateManager.didAddChild(newChild, isPresented)
+            dismiss()
+        } else {
+            stateManager.didAddChild(newChild, isPresented)
+            print("✅ PairingSuccessView: StateManager изменил состояние для навигации.")
+        }
     }
 }
 
-//#Preview {
-//    PairingSuccessView(newChild: Child(id: UUID(), name: "Ivan", recordID: "", gender: "men"))
-//}
+#Preview {
+    PairingSuccessView(newChild: Child(id: UUID(), name: "Ivan", recordID: "", gender: "men", childAppleID: "123123"))
+}

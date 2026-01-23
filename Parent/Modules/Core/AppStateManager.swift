@@ -90,10 +90,18 @@ class AppStateManager: ObservableObject {
     }
     
     /// Родитель добавил ребенка
-    func didAddChild(_ child: Child) {
-        self.children.append(child)
-        saveLocalState()
-        appState = .parentDashboard
+    func didAddChild(_ child: Child, _ dismiss: Bool) {
+        if !self.children.contains(where: { $0.recordID == child.recordID }) {
+            self.children.append(child)
+            saveLocalState()
+            print("✅ Новый ребенок '\(child.name)' добавлен в список.")
+            
+        } else {
+            print("ℹ️ Ребенок '\(child.name)' уже существует в списке. Добавление пропущено.")
+        }
+        if !dismiss {
+            appState = .parentDashboard
+        }
     }
     
     func didCompletePairing() {
@@ -150,7 +158,7 @@ class AppStateManager: ObservableObject {
             appState = .roleSelection
         }
     }
-
+    
     // Обработка изменения прав ScreenTime (системный коллбэк)
     private func handleScreenTimeAuthStatus(_ status: AuthorizationStatus) {
         print("🛡 ScreenTime Status changed: \(status)")

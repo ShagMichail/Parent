@@ -210,6 +210,7 @@ struct LocationView: View {
             cameraPosition = .camera(
                 MapCamera(centerCoordinate: coordinate, distance: 3000)
             )
+            self.isListExpanded = false
         }
     }
 }

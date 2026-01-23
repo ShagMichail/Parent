@@ -22,23 +22,27 @@ struct TopAppsCardReport: DeviceActivityReportScene {
     let content: ([AppReportModel]) -> TopAppsCardView
 
     func makeConfiguration(representing data: DeviceActivityResults<DeviceActivityData>) async -> [AppReportModel] {
+        let defaults = UserDefaults(suiteName: "group.com.laborato.test.Parent")
+        let childAppleID = defaults?.string(forKey: "myChildAppleID")
         var allApps: [AppReportModel] = []
         
         for await deviceActivity in data {
-            for await activitySegment in deviceActivity.activitySegments {
-                for await category in activitySegment.categories {
-                    for await app in category.applications {
-                        let appName = app.application.localizedDisplayName ?? "Unknown"
-                        let duration = app.totalActivityDuration
-                        // Мы сохраняем токен, чтобы отобразить родную иконку
-                        let token = app.application.token
-                        
-                        allApps.append(AppReportModel(
-                            id: app.application.bundleIdentifier ?? UUID().uuidString,
-                            name: appName,
-                            duration: duration,
-                            token: token
-                        ))
+            if deviceActivity.user.appleID == childAppleID {
+                for await activitySegment in deviceActivity.activitySegments {
+                    for await category in activitySegment.categories {
+                        for await app in category.applications {
+                            let appName = app.application.localizedDisplayName ?? "Unknown"
+                            let duration = app.totalActivityDuration
+                            // Мы сохраняем токен, чтобы отобразить родную иконку
+                            let token = app.application.token
+                            
+                            allApps.append(AppReportModel(
+                                id: app.application.bundleIdentifier ?? UUID().uuidString,
+                                name: appName,
+                                duration: duration,
+                                token: token
+                            ))
+                        }
                     }
                 }
             }

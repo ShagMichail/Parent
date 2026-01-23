@@ -15,6 +15,9 @@ class ParentDashboardViewModel: ObservableObject {
     @Published var selectedChild: Child? {
         didSet {
             if let child = selectedChild {
+                if let defaults = UserDefaults(suiteName: "group.com.laborato.test.Parent") {
+                    defaults.set(child.childAppleID, forKey: "myChildAppleID")
+                }
                 setupSubscription(for: child)
                 refreshChildStatus()
                 saveSelectedChildID()
@@ -99,28 +102,6 @@ class ParentDashboardViewModel: ObservableObject {
             }
         }
     }
-    
-    /// Главная логика загрузки и обработки данных для ОДНОГО ребенка
-//    private func fetchAndProcessStatus(for child: Child) async {
-//        do {
-//            guard let status = try await cloudKitManager.fetchDeviceStatus(for: child.recordID) else {
-//                self.childStreetNames[child.recordID] = String(localized: "No location data available")
-//                return
-//            }
-//            
-//            self.batteryStatuses[child.recordID] = (status.batteryLevel, status.batteryState)
-//            if let location = status.location {
-//                self.childCoordinates[child.recordID] = location.coordinate
-//                await self.reverseGeocode(location: location, for: child.recordID)
-//            } else {
-//                self.childStreetNames[child.recordID] = String(localized: "Coordinates are not defined")
-//            }
-//            
-//        } catch {
-//            print("❌ Ошибка загрузки статуса для \(child.name): \(error)")
-//            self.childStreetNames[child.recordID] = String(localized: "Download error")
-//        }
-//    }
     
     /// Загружает последнюю команду и выставляет UI
     func refreshChildStatus() {
@@ -341,9 +322,6 @@ class ParentDashboardViewModel: ObservableObject {
                 } else if commandName == "unblock_all" {
                     blockStatuses[childID] = false
                 }
-//                else if commandName == "request_location_update" {
-//                    isPinging[childID] = false
-//                }
                 self.saveCachedStatuses()
             }
         }

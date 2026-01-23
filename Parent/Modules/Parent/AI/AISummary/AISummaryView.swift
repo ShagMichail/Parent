@@ -19,7 +19,7 @@ struct AISummaryView: View {
             end: Date()
         )),
         users: .children,
-        devices: .init([.iPhone, .iPad])
+        devices: .init([.iPhone])
     )
     
     @State private var reportId = UUID()
@@ -39,7 +39,7 @@ struct AISummaryView: View {
                     model: NavigationBarModel(
                         mainTitle: String(localized: "AI summary"),
                         hasNotification: true,
-                        hasNewNotification: notificationViewModel.hasNewNotificationForSelectedChild,
+                        hasNewNotification: notificationViewModel.hasAnyNewNotification,
                         hasQuestions: true,
                         onNotificationTap: {
                             navigateToNotifications.toggle()
@@ -196,13 +196,16 @@ struct AISummaryView: View {
     
     private func updateReport() {
         print("🔄 AI Summary: Обновляем график для ребенка \(viewModel.selectedChild?.name ?? "nil")")
+        if let defaults = UserDefaults(suiteName: "group.com.laborato.test.Parent") {
+            defaults.set(viewModel.selectedChild?.childAppleID, forKey: "myChildAppleID")
+        }
         let newFilter = DeviceActivityFilter(
             segment: .hourly(during: DateInterval(
                 start: Calendar.current.date(byAdding: .day, value: -1, to: Calendar.current.startOfDay(for: Date()))!,
                 end: Date()
             )),
             users: .children,
-            devices: .init([.iPhone, .iPad])
+            devices: .init([.iPhone])
         )
         
         withAnimation {

@@ -37,6 +37,7 @@ class NotificationViewModel: ObservableObject {
     
     // Новая переменная для отслеживания новых уведомлений выбранного ребенка
     @Published var hasNewNotificationForSelectedChild: Bool = false
+    @Published var hasAnyNewNotification: Bool = false
     
     private var cancellables = Set<AnyCancellable>()
     private var stateManager: AppStateManager
@@ -84,11 +85,7 @@ class NotificationViewModel: ObservableObject {
         // Отслеживаем изменения списка уведомлений
         $notifications
             .sink { [weak self] _ in
-                guard let self = self else { return }
-                Task {
-                    
-                    self.updateHasNewNotificationFlag()
-                }
+                self?.updateNewNotificationFlags()
             }
             .store(in: &cancellables)
         
@@ -130,8 +127,7 @@ class NotificationViewModel: ObservableObject {
         
         notifications.insert(newNotification, at: 0)
         
-        unreadCount = notifications.filter { !$0.isRead }.count
-        updateHasNewNotificationFlag()
+        updateNewNotificationFlags()
         
         print("✅ ViewModel обновлена данными из Push. Запрос в CloudKit не требуется.")
     }
@@ -199,7 +195,7 @@ class NotificationViewModel: ObservableObject {
             print("❌ Ошибка загрузки уведомлений: \(error)")
             await MainActor.run {
                 isLoading = false
-                updateHasNewNotificationFlag()
+                self.updateNewNotificationFlags()
             }
         }
     }
@@ -237,7 +233,7 @@ class NotificationViewModel: ObservableObject {
                     updated.isRead = true
                     notifications[index] = updated
                     unreadCount = notifications.filter { !$0.isRead }.count
-                    updateHasNewNotificationFlag() // Обновляем флаг после отметки как прочитанное
+                    self.updateNewNotificationFlags()
                 }
             }
             
@@ -261,28 +257,13 @@ class NotificationViewModel: ObservableObject {
             await MainActor.run {
                 notifications.removeAll { $0.id == notification.id }
                 unreadCount = notifications.filter { !$0.isRead }.count
-                updateHasNewNotificationFlag() // Обновляем флаг после удаления
+                self.updateNewNotificationFlags()
             }
         } catch {
             print("❌ Ошибка удаления уведомления: \(error)")
         }
     }
-    
-    func deleteAllNotifications() async {
-        let recordsToDelete = notifications.compactMap { $0.recordID }
-        
-        for recordIDString in recordsToDelete {
-            let recordID = CKRecord.ID(recordName: recordIDString)
-            try? await cloudKitManager.deleteNotification(recordID: recordID)
-        }
-        
-        await MainActor.run {
-            notifications.removeAll()
-            unreadCount = 0
-            updateHasNewNotificationFlag() // Обновляем флаг после полной очистки
-        }
-    }
-    
+
     func refresh() {
         Task {
             if let child = selectedChild {
@@ -293,45 +274,6 @@ class NotificationViewModel: ObservableObject {
         }
     }
     
-    // Вспомогательный метод для получения количества непрочитанных уведомлений для конкретного ребенка
-    func unreadCountForChild(_ child: Child) -> Int {
-        return notifications.filter {
-            $0.childId == child.recordID && !$0.isRead
-        }.count
-    }
-    
-    // Вспомогательный метод для проверки наличия новых уведомлений для конкретного ребенка
-    func hasNewNotificationsForChild(_ child: Child) -> Bool {
-        return unreadCountForChild(child) > 0
-    }
-    
-    func addPendingNotification(
-        childId: String,
-        childName: String,
-        title: String,
-        message: String,
-        commandName: String? = nil
-    ) {
-        let pending = PendingNotification(
-            childId: childId,
-            childName: childName,
-            title: title,
-            message: message,
-            date: Date(),
-            commandName: commandName
-        )
-        
-        pendingNotifications.append(pending)
-        updateHasNewNotificationFlag()
-        
-        print("✅ Добавлено pending уведомление: \(title)")
-    }
-    
-    func clearPendingNotifications() {
-        pendingNotifications.removeAll()
-        updateHasNewNotificationFlag()
-    }
-
     private func updateHasNewNotificationFlag() {
         guard let selectedChild = selectedChild else {
             hasNewNotificationForSelectedChild = false
@@ -348,5 +290,25 @@ class NotificationViewModel: ObservableObject {
         }
         
         hasNewNotificationForSelectedChild = hasRealUnread || hasPending
+    }
+    
+    private func updateNewNotificationFlags() {
+        self.unreadCount = notifications.filter { !$0.isRead }.count
+        
+        let hasAnyUnread = notifications.contains { !$0.isRead }
+        let hasAnyPending = !pendingNotifications.isEmpty
+        self.hasAnyNewNotification = hasAnyUnread || hasAnyPending
+        
+        guard let selectedChild = selectedChild else {
+            hasNewNotificationForSelectedChild = false
+            return
+        }
+        let hasUnreadForSelected = notifications.contains {
+            $0.childId == selectedChild.recordID && !$0.isRead
+        }
+        let hasPendingForSelected = pendingNotifications.contains {
+            $0.childId == selectedChild.recordID
+        }
+        self.hasNewNotificationForSelectedChild = hasUnreadForSelected || hasPendingForSelected
     }
 }

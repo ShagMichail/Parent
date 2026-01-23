@@ -19,6 +19,8 @@ struct WebUsageReport: DeviceActivityReportScene {
     let content: (WebReportViewModel) -> WebUsageView
     
     func makeConfiguration(representing data: DeviceActivityResults<DeviceActivityData>) async -> WebReportViewModel {
+        let defaults = UserDefaults(suiteName: "group.com.laborato.test.Parent")
+        let childAppleID = defaults?.string(forKey: "myChildAppleID")
         
         var detailedDailyWebDict: [WebDomainToken: [Date: TimeInterval]] = [:]
         var detailedHourlyWebDict: [WebDomainToken: [Int: TimeInterval]] = [:]
@@ -35,45 +37,47 @@ struct WebUsageReport: DeviceActivityReportScene {
         var showWeeklyReport = false
         
         for await deviceActivity in data {
-            for await segment in deviceActivity.activitySegments {
-                let start = segment.dateInterval.start
-                let dayStart = calendar.startOfDay(for: start)
-                
-                // --- СБОР ОБЩИХ СУММ ---
-                if calendar.isDateInToday(start) {
-                } else if calendar.isDateInYesterday(start) {
-                } else {
-                    showWeeklyReport = true
-                }
-                
-                // --- Сбор данных ТОЛЬКО по веб-сайтам ---
-                var segmentWebDuration: TimeInterval = 0
-                for await categoryActivity in segment.categories {
-                    for await webDomainActivity in categoryActivity.webDomains {
-                        guard let token = webDomainActivity.webDomain.token, webDomainActivity.totalActivityDuration > 0 else { continue }
-                        
-                        let duration = webDomainActivity.totalActivityDuration
-                        segmentWebDuration += duration
-                        
-                        if webDomains[token] == nil { webDomains[token] = webDomainActivity.webDomain.domain }
-                        detailedDailyWebDict[token, default: [:]][dayStart, default: 0] += duration
-                        if calendar.isDateInToday(start) {
-                            let hour = calendar.component(.hour, from: start)
-                            detailedHourlyWebDict[token, default: [:]][hour, default: 0] += duration
+            if deviceActivity.user.appleID == childAppleID {
+                for await segment in deviceActivity.activitySegments {
+                    let start = segment.dateInterval.start
+                    let dayStart = calendar.startOfDay(for: start)
+                    
+                    // --- СБОР ОБЩИХ СУММ ---
+                    if calendar.isDateInToday(start) {
+                    } else if calendar.isDateInYesterday(start) {
+                    } else {
+                        showWeeklyReport = true
+                    }
+                    
+                    // --- Сбор данных ТОЛЬКО по веб-сайтам ---
+                    var segmentWebDuration: TimeInterval = 0
+                    for await categoryActivity in segment.categories {
+                        for await webDomainActivity in categoryActivity.webDomains {
+                            guard let token = webDomainActivity.webDomain.token, webDomainActivity.totalActivityDuration > 0 else { continue }
+                            
+                            let duration = webDomainActivity.totalActivityDuration
+                            segmentWebDuration += duration
+                            
+                            if webDomains[token] == nil { webDomains[token] = webDomainActivity.webDomain.domain }
+                            detailedDailyWebDict[token, default: [:]][dayStart, default: 0] += duration
+                            if calendar.isDateInToday(start) {
+                                let hour = calendar.component(.hour, from: start)
+                                detailedHourlyWebDict[token, default: [:]][hour, default: 0] += duration
+                            }
                         }
                     }
-                }
-                
-                // --- Наполняем общие графики, используя ТОЛЬКО `segmentWebDuration` ---
-                dailyDataDict[dayStart, default: 0] += segmentWebDuration
-                if calendar.isDateInToday(start) {
-                    todayTotal += segmentWebDuration
-                    let hour = calendar.component(.hour, from: start)
-                    if hour >= 0 && hour < 24 {
-                        hourlyData[hour].duration += segmentWebDuration
+                    
+                    // --- Наполняем общие графики, используя ТОЛЬКО `segmentWebDuration` ---
+                    dailyDataDict[dayStart, default: 0] += segmentWebDuration
+                    if calendar.isDateInToday(start) {
+                        todayTotal += segmentWebDuration
+                        let hour = calendar.component(.hour, from: start)
+                        if hour >= 0 && hour < 24 {
+                            hourlyData[hour].duration += segmentWebDuration
+                        }
+                    } else if calendar.isDateInYesterday(start) {
+                        yesterdayTotal += segmentWebDuration
                     }
-                } else if calendar.isDateInYesterday(start) {
-                    yesterdayTotal += segmentWebDuration
                 }
             }
         }

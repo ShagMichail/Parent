@@ -18,6 +18,8 @@ struct CategoryUsageReport: DeviceActivityReportScene {
     let content: (CategoryReportViewModel) -> CategoryUsageView
 
     func makeConfiguration(representing data: DeviceActivityResults<DeviceActivityData>) async -> CategoryReportViewModel {
+        let defaults = UserDefaults(suiteName: "group.com.laborato.test.Parent")
+        let childAppleID = defaults?.string(forKey: "myChildAppleID")
         
         // --- Словари для сбора сырых данных ---
         var timeByCategory: [ActivityCategory: [Date: TimeInterval]] = [:]
@@ -45,43 +47,45 @@ struct CategoryUsageReport: DeviceActivityReportScene {
         
         // --- Главный цикл сбора данных ---
         for await deviceActivity in data {
-            for await segment in deviceActivity.activitySegments {
-                let start = segment.dateInterval.start
-                let dayStart = calendar.startOfDay(for: start)
-                
-                // --- СБОР ОБЩИХ СУММ ---
-                if calendar.isDateInToday(start) {
-                } else if calendar.isDateInYesterday(start) {
-                } else {
-                    isWeekView = true
-                }
-                
-                dailyTotalDuration[dayStart, default: 0] += segment.totalActivityDuration
-                
-                // Собираем данные для ОБЩЕГО почасового графика
-                if calendar.isDateInToday(start) {
-                    let hour = calendar.component(.hour, from: start)
-                    if hour >= 0 && hour < 24 {
-                        totalHourlyData[hour].duration += segment.totalActivityDuration
-                    }
-                }
-                
-                for await categoryActivity in segment.categories {
-                    timeByCategory[categoryActivity.category, default: [:]][dayStart, default: 0] += categoryActivity.totalActivityDuration
+            if deviceActivity.user.appleID == childAppleID {
+                for await segment in deviceActivity.activitySegments {
+                    let start = segment.dateInterval.start
+                    let dayStart = calendar.startOfDay(for: start)
                     
-                    for await appActivity in categoryActivity.applications {
-                        guard let token = appActivity.application.token else { continue }
+                    // --- СБОР ОБЩИХ СУММ ---
+                    if calendar.isDateInToday(start) {
+                    } else if calendar.isDateInYesterday(start) {
+                    } else {
+                        isWeekView = true
+                    }
+                    
+                    dailyTotalDuration[dayStart, default: 0] += segment.totalActivityDuration
+                    
+                    // Собираем данные для ОБЩЕГО почасового графика
+                    if calendar.isDateInToday(start) {
+                        let hour = calendar.component(.hour, from: start)
+                        if hour >= 0 && hour < 24 {
+                            totalHourlyData[hour].duration += segment.totalActivityDuration
+                        }
+                    }
+                    
+                    for await categoryActivity in segment.categories {
+                        timeByCategory[categoryActivity.category, default: [:]][dayStart, default: 0] += categoryActivity.totalActivityDuration
                         
-                        if applications[token] == nil { applications[token] = appActivity.application }
-                        if appToCategoryMap[token] == nil { appToCategoryMap[token] = categoryActivity.category }
-                        
-                        timeByApp[token, default: [:]][dayStart, default: 0] += appActivity.totalActivityDuration
-                        notificationsByApp[token, default: 0] += appActivity.numberOfNotifications
-                        
-                        // Собираем почасовые данные для КАЖДОГО приложения
-                        if calendar.isDateInToday(start) {
-                            let hour = calendar.component(.hour, from: start)
-                            hourlyUsageByApp[token, default: [:]][hour, default: 0] += appActivity.totalActivityDuration
+                        for await appActivity in categoryActivity.applications {
+                            guard let token = appActivity.application.token else { continue }
+                            
+                            if applications[token] == nil { applications[token] = appActivity.application }
+                            if appToCategoryMap[token] == nil { appToCategoryMap[token] = categoryActivity.category }
+                            
+                            timeByApp[token, default: [:]][dayStart, default: 0] += appActivity.totalActivityDuration
+                            notificationsByApp[token, default: 0] += appActivity.numberOfNotifications
+                            
+                            // Собираем почасовые данные для КАЖДОГО приложения
+                            if calendar.isDateInToday(start) {
+                                let hour = calendar.component(.hour, from: start)
+                                hourlyUsageByApp[token, default: [:]][hour, default: 0] += appActivity.totalActivityDuration
+                            }
                         }
                     }
                 }
