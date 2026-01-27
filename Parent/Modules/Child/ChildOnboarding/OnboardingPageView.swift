@@ -17,7 +17,7 @@ struct OnboardingPageView: View {
     let action: () -> Void
     
     var body: some View {
-        VStack(spacing: 30) {
+        VStack(spacing: 40) {
             Spacer()
             
             Image(imageName)
@@ -25,9 +25,9 @@ struct OnboardingPageView: View {
                 .scaledToFit()
                 .frame(width: 250, height: 250)
             
-            VStack(spacing: 15) {
+            VStack(spacing: 25) {
                 Text(title)
-                    .font(.custom("Inter-SemiBold", size: 28))
+                    .font(.custom("Inter-SemiBold", size: 24))
                     .foregroundColor(.blackText)
                     .multilineTextAlignment(.center)
                 

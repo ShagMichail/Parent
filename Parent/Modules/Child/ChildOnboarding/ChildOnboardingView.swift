@@ -33,7 +33,7 @@ struct ChildOnboardingView: View {
                     OnboardingPageView(
                         imageName: "child-notifications",
                         title: String(localized: "Stay in touch"),
-                        description: String(localized: "Allow notifications so your device can immediately receive commands from your parents."),
+                        description: String(localized: "Allow notifications so your device can immediately receive commands from your parents"),
                         isRequesting: $isRequestingPermission
                     ) {
                         requestNotifications()
@@ -46,7 +46,7 @@ struct ChildOnboardingView: View {
                     OnboardingPageView(
                         imageName: "child-location",
                         title: String(localized: "Safety first"),
-                        description: String(localized: "Allow location access so your parents always know you're safe."),
+                        description: String(localized: "Allow location access so your parents always know you're safe"),
                         isRequesting: $isRequestingPermission
                     ) {
                         requestLocation()
@@ -60,33 +60,34 @@ struct ChildOnboardingView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 250, height: 250)
-                            .padding(.bottom, 30)
+                            .padding(.bottom, 40)
                         
-                        Text("Use the keyboard from 'Parent'")
-                            .font(.custom("Inter-SemiBold", size: 28))
+                        Text("Use the keyboard from Parent")
+                            .font(.custom("Inter-SemiBold", size: 24))
                             .foregroundColor(.blackText)
                             .multilineTextAlignment(.center)
+                            .padding(.bottom, 25)
                         
                         // --- Подробная инструкция ---
                         VStack(alignment: .leading, spacing: 20) {
                             InstructionRow(
                                 model: InstructionRowModel(
                                     number: "1",
-                                    text: String(localized: "Open the 'Settings' of the child's iPhone.")
+                                    text: String(localized: "Open the 'Settings' of the child's iPhone")
                                 )
                             )
                             
                             InstructionRow(
                                 model: InstructionRowModel(
                                     number: "2",
-                                    text: String(localized: "Go to 'Basic' -> 'Keyboard' -> 'Keyboards'.")
+                                    text: String(localized: "Go to 'Basic' -> 'Keyboard' -> 'Keyboards'")
                                 )
                             )
                             
                             InstructionRow(
                                 model: InstructionRowModel(
                                     number: "3",
-                                    text: String(localized: "Click on 'New Keyboards' and select 'Parental Control' (the name of your keyboard).")
+                                    text: String(localized: "Click on 'New Keyboards' and select 'Parental Control' (the name of your keyboard)")
                                 )
                             )
                             
@@ -97,9 +98,9 @@ struct ChildOnboardingView: View {
                                 )
                             )
                         }
-                        .padding(.bottom, 10)
+                        .padding(.bottom, 25)
                         
-                        Text("This is necessary to analyze the input text.")
+                        Text("This is necessary to analyze the input text")
                             .font(.custom("Inter-Regular", size: 12))
                             .foregroundColor(.strokeTextField)
                             .multilineTextAlignment(.center)
@@ -129,7 +130,6 @@ struct ChildOnboardingView: View {
             if currentPage == 1 && newStatus != .notDetermined {
                 isRequestingPermission = false
                 if newStatus == .authorizedAlways || newStatus == .authorizedWhenInUse {
-                    // ✅ ПЕРЕХОД НА СЛЕДУЮЩИЙ ШАГ
                     withAnimation {
                         currentPage = 2
                     }
