@@ -28,16 +28,11 @@ struct HelpView: View {
                 )
             )
             
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Necessary settings on the child's device")
-                    .font(.custom("Inter-Regular", size: 18))
-                    .foregroundColor(.blackText)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                
+            VStack {
                 VStack(spacing: 0) {
                     NavigationLinkRow(
                         model: NavigationLinkRowModel(
-                            icon: "bell.badge.fill",
+                            icon: "notification-small",
                             hasIcon: true,
                             title: String(localized: "Notifications"),
                             action: {
@@ -48,7 +43,7 @@ struct HelpView: View {
                     Divider().padding(.horizontal, 10)
                     NavigationLinkRow(
                         model: NavigationLinkRowModel(
-                            icon: "location.fill",
+                            icon: "location-small",
                             hasIcon: true,
                             title: String(localized: "Location"),
                             action: {
@@ -59,7 +54,7 @@ struct HelpView: View {
                     Divider().padding(.horizontal, 10)
                     NavigationLinkRow(
                         model: NavigationLinkRowModel(
-                            icon: "keyboard.fill",
+                            icon: "keyboard-small",
                             hasIcon: true,
                             title: String(localized: "Keyboard"),
                             action: {

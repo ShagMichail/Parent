@@ -16,9 +16,9 @@ enum HelpTopic: String, CaseIterable, Identifiable {
     
     var iconName: String {
         switch self {
-        case .notifications: return "bell.badge.fill"
-        case .location: return "location.fill"
-        case .keyboard: return "keyboard.fill"
+        case .notifications: return "notification-big"
+        case .location: return "location-big"
+        case .keyboard: return "keyboard-big"
         }
     }
     
@@ -41,11 +41,11 @@ enum HelpTopic: String, CaseIterable, Identifiable {
     var topicDescription: String {
         switch self {
         case .notifications:
-            return String(localized: "Notifications are necessary so that the child's device can instantly receive commands from you, for example, about blocking, updating schedules or limits.")
+            return String(localized: "Notifications are necessary so that the child's device can receive commands from you instantly. For example, about blocking, updating schedules or limits")
         case .location:
-            return String(localized: "Geolocation access allows you to request the coordinates of your child's device in real time and determine where your child is located.")
+            return String(localized: "Geolocation access allows you to request the coordinates of your child's device in real time and determine where your child is located")
         case .keyboard:
-            return String(localized: "A special keyboard allows you to analyze the entered text to prevent dangerous situations.")
+            return String(localized: "A special keyboard allows you to analyze the entered text to prevent dangerous situations")
         }
     }
 }

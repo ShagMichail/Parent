@@ -25,9 +25,9 @@ struct HelpDetailView: View {
             )
             
             ScrollView {
-                VStack(alignment: .leading, spacing: 25) {
-                    HStack {
-                        Image(systemName: topic.iconName)
+                VStack {
+                    HStack(spacing: 20) {
+                        Image(topic.iconName)
                             .font(.system(size: 48))
                             .foregroundColor(.accent)
                         Text(topic.topicOn)
@@ -35,29 +35,29 @@ struct HelpDetailView: View {
                             .foregroundColor(.blackText)
                         Spacer()
                     }
+                    .padding(.bottom, 30)
                     
-                    VStack(alignment: .leading, spacing: 10) {
+                    VStack(spacing: 5) {
                         Text("Why is this necessary?")
-                            .font(.custom("Inter-Medium", size: 18))
+                            .font(.custom("Inter-Medium", size: 16))
                             .foregroundColor(.blackText)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         Text(topic.topicDescription)
                             .font(.custom("Inter-Regular", size: 16))
                             .foregroundColor(.strokeTextField)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    .padding(.bottom, 50)
                     
-                    VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 30) {
                         Text("How to enable it on a child's device:")
                             .font(.custom("Inter-SemiBold", size: 20))
                             .foregroundColor(.blackText)
                         
                         steps(for: topic)
                     }
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
-                    
                 }
-                .padding()
+                .padding(.horizontal, 20)
             }
             .scrollIndicators(.hidden)
         }
@@ -72,63 +72,63 @@ struct HelpDetailView: View {
             InstructionRow(
                 model: InstructionRowModel(
                     number: "1",
-                    text: String(localized: "Open 'Settings' -> 'Applications'.")
+                    text: String(localized: "Open 'Settings' -> 'Applications'")
                 )
             )
             InstructionRow(
                 model: InstructionRowModel(
                     number: "2",
-                    text: String(localized: "Find our 'Parental Control' application in the list.")
+                    text: String(localized: "Find our 'Parental Control' application in the list")
                 )
             )
             InstructionRow(
                 model: InstructionRowModel(
                     number: "3",
-                    text: String(localized: "In the 'Notifications' section, turn on 'Notification Tolerance'.")
+                    text: String(localized: "In the 'Notifications' section, turn on 'Notification Tolerance'")
                 )
             )
         case .location:
             InstructionRow(
                 model: InstructionRowModel(
                     number: "1",
-                    text: String(localized: "Open 'Settings' -> 'Applications'.")
+                    text: String(localized: "Open 'Settings' -> 'Applications'")
                 )
             )
             InstructionRow(
                 model: InstructionRowModel(
                     number: "2",
-                    text: String(localized: "Find our 'Parental Control' application in the list.")
+                    text: String(localized: "Find our 'Parental Control' application in the list")
                 )
             )
             InstructionRow(
                 model: InstructionRowModel(
                     number: "3",
-                    text: String(localized: "In the 'Location' section, allow access 'Always'.")
+                    text: String(localized: "In the 'Location' section, allow access 'Always'")
                 )
             )
         case .keyboard:
             InstructionRow(
                 model: InstructionRowModel(
                     number: "1",
-                    text: String(localized: "Open 'Settings' -> 'Basic' -> 'Keyboard -> 'Keyboards'.")
+                    text: String(localized: "Open 'Settings' -> 'Basic' -> 'Keyboard -> 'Keyboards'")
                 )
             )
             InstructionRow(
                 model: InstructionRowModel(
                     number: "2",
-                    text: String(localized: "Click on 'New Keyboards' and select 'Parental Control'.")
+                    text: String(localized: "Click on 'New Keyboards' and select 'Parental Control'")
                 )
             )
             InstructionRow(
                 model: InstructionRowModel(
                     number: "3",
-                    text: String(localized: "Click on the added keyboard and enable 'Allow Full Access'.")
+                    text: String(localized: "Click on the added keyboard and enable 'Allow Full Access'")
                 )
             )
             InstructionRow(
                 model: InstructionRowModel(
                     number: "4",
-                    text: String(localized: "For a complete analysis, it is necessary to remove all other keyboards.")
+                    text: String(localized: "For a complete analysis, it is necessary to remove all other keyboards")
                 )
             )
         }

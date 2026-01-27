@@ -93,7 +93,7 @@ struct ChildOnboardingView: View {
                             InstructionRow(
                                 model: InstructionRowModel(
                                     number: "4",
-                                    text: String(localized: "Click on the added keyboard and enable 'Allow Full Access'.")
+                                    text: String(localized: "Click on the added keyboard and enable 'Allow Full Access'")
                                 )
                             )
                         }

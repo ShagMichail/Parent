@@ -39,9 +39,9 @@ struct NavigationLinkRow: View {
     var body: some View {
         Button(action: model.action) {
             HStack {
-                HStack {
+                HStack(spacing: 10) {
                     if model.hasIcon ?? false {
-                        Image(systemName: model.icon ?? "")
+                        Image(model.icon ?? "")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 25, height: 25)
