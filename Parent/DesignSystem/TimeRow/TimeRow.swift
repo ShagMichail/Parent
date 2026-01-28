@@ -45,6 +45,7 @@ struct TimeRow: View {
                     model: ContinueButtonModel(
                         title: String(localized: "Done"),
                         isEnabled: true,
+                        fullWidth: true,
                         action: {
                             showingTimePicker = false
                         }

@@ -13,8 +13,9 @@ struct EmptyStateTopAppsCardView: View {
     var body: some View {
             VStack(alignment: .center, spacing: 10) {
                 
-                Image(systemName: model.iconName)
-                    .font(.system(size: 40))
+                Image(model.iconName)
+                    .resizable()
+                    .frame(width: 60, height: 60)
                     .foregroundColor(.gray.opacity(0.5))
                 
                 Text(model.message)

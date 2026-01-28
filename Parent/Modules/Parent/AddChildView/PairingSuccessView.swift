@@ -21,7 +21,7 @@ struct PairingSuccessView: View {
                 .padding(.horizontal, 20)
                 .padding(.bottom, 25)
             
-            Text("Do not forget to give all necessary permissions on the child's device for the correct operation of parental controls.")
+            Text("Do not forget to give all necessary permissions on the child's device for the correct operation of parental controls")
                 .font(.custom("Inter-Regular", size: 16))
                 .frame(maxWidth: .infinity, alignment: .center)
                 .multilineTextAlignment(.center)
@@ -39,6 +39,7 @@ struct PairingSuccessView: View {
                 model: ContinueButtonModel(
                     title: String(localized: "Begin"),
                     isEnabled: true,
+                    fullWidth: true,
                     action: {
                         handleContinue()
                     }

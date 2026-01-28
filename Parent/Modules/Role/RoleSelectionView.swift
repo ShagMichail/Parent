@@ -55,6 +55,7 @@ struct RoleSelectionView: View {
                     model: ContinueButtonModel(
                         title: String(localized: "Continue"),
                         isEnabled: selectedRole != nil,
+                        fullWidth: true,
                         action: {
                             Task {
                                 await handleContinue()
@@ -77,15 +78,22 @@ struct RoleSelectionView: View {
         
         isLoading = true
         
+        // 1. Устанавливаем роль (это нужно, чтобы `requestAuthorization` знала, что запрашивать)
         stateManager.setRole(role)
         
-        await stateManager.requestAuthorization()
+        // 2. ПОЛУЧАЕМ РЕЗУЛЬТАТ ЗАПРОСА
+        let granted = await stateManager.requestAuthorization()
         
-        if role == .parent {
-            stateManager.appState = .authRequired
+        // 3. ПРОВЕРЯЕМ РЕЗУЛЬТАТ
+        if granted {
+            if role == .parent {
+                stateManager.appState = .authRequired
+            } else {
+                stateManager.appState = .childPairing
+            }
         } else {
-            stateManager.appState = .childPairing
+            print("ℹ️ Разрешение не получено, остаемся на экране выбора роли.")
+            isLoading = false
         }
-        isLoading = false
     }
 }

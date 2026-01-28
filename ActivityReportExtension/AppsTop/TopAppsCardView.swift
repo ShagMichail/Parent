@@ -26,14 +26,12 @@ struct TopAppsCardView: View {
                                 Label(token)
                                     .labelStyle(.iconOnly)
                                     .scaleEffect(1.2)
-                                    .frame(width: 32, height: 32)
-                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                                    .frame(width: 24, height: 24)
                             } else {
                                 Image(systemName: "app.dashed")
                                     .labelStyle(.iconOnly)
-                                    .scaleEffect(1.5)
-                                    .frame(width: 32, height: 32)
-                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                                    .scaleEffect(1.2)
+                                    .frame(width: 24, height: 24)
                                     .foregroundColor(.timestamps)
                             }
                             Text(model.name)
@@ -49,14 +47,12 @@ struct TopAppsCardView: View {
                     }
                     if apps.count == 1 {
                         HStack(spacing: 15) {
-                            Image(systemName: "app.dashed")
-                                .labelStyle(.iconOnly)
-                                .scaleEffect(1.5)
-                                .frame(width: 32, height: 32)
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                            Image("empty-app")
+                                .resizable()
+                                .frame(width: 24, height: 24)
                                 .foregroundColor(.timestamps)
                             
-                            Text("No other application was active.")
+                            Text("No other applications were used")
                                 .font(.custom("Inter-Regular", size: 16))
                                 .foregroundColor(.timestamps)
                                 .multilineTextAlignment(.leading)
@@ -67,8 +63,8 @@ struct TopAppsCardView: View {
                 } else {
                     EmptyStateTopAppsCardView(
                         model: EmptyStateTopAppsCardViewModel(
-                            iconName: "moon.zzz.fill",
-                            message: String(localized: "The device has not been used yet")
+                            iconName: "no-apps",
+                            message: String(localized: "The device was inactive")
                         )
                     )
                 }

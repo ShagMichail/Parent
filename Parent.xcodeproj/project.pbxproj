@@ -105,6 +105,13 @@
 			);
 			target = FC4656BA2EC766E100BBCD62 /* ActivityReportExtension */;
 		};
+		0F41B17F2F2A38B300CF8F53 /* Exceptions for "ActivityReportExtension" folder in "Parent" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				ActivityReportModels.swift,
+			);
+			target = FC8A8A112EC1499C009A90EF /* Parent */;
+		};
 		0F7BD59D2EEC55FA00FFBDDD /* Exceptions for "ParentControlNSE" folder in "ParentControlNSE" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -133,13 +140,6 @@
 				Info.plist,
 			);
 			target = FC4656BA2EC766E100BBCD62 /* ActivityReportExtension */;
-		};
-		FC6DAA682ED8887D000C582E /* Exceptions for "ActivityReportExtension" folder in "Parent" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				ActivityReportModels.swift,
-			);
-			target = FC8A8A112EC1499C009A90EF /* Parent */;
 		};
 		FC8124DC2EE02EBB0085AD05 /* Exceptions for "ActivityMonitorExtension" folder in "ActivityMonitorExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -186,7 +186,7 @@
 		FC4656BC2EC766E100BBCD62 /* ActivityReportExtension */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				FC6DAA682ED8887D000C582E /* Exceptions for "ActivityReportExtension" folder in "Parent" target */,
+				0F41B17F2F2A38B300CF8F53 /* Exceptions for "ActivityReportExtension" folder in "Parent" target */,
 				FC4656CB2EC766E100BBCD62 /* Exceptions for "ActivityReportExtension" folder in "ActivityReportExtension" target */,
 			);
 			path = ActivityReportExtension;

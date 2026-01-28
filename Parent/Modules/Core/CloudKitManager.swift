@@ -33,7 +33,7 @@ class CloudKitManager: ObservableObject {
     }
     
     /// ВЫЗЫВАЕТСЯ РОДИТЕЛЕМ для создания кода-приглашения.
-    func createInvitationByParent() async throws -> String {
+    func createInvitationByParent(expirationInterval: TimeInterval = 300) async throws -> String {
         guard let parentID = await fetchUserRecordID() else {
             throw NSError(domain: "CloudKitManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Не удалось получить ID родителя"])
         }
@@ -44,10 +44,17 @@ class CloudKitManager: ObservableObject {
         record["invitationCode"] = invitationCode as CKRecordValue
         record["parentUserRecordID"] = parentID as CKRecordValue
         record["createdAt"] = Date() as CKRecordValue
+        record["expiresAt"] = Date().addingTimeInterval(expirationInterval) as CKRecordValue
         
-        try await publicDatabase.save(record)
-        print("✅ CloudKitManager: Родитель создал приглашение с кодом \(invitationCode).")
-        return invitationCode
+        do {
+            print("▶️ [Parent] Пытаемся создать подписку...")
+            try await publicDatabase.save(record)
+            print("✅ [Parent] Родитель создал приглашение с кодом \(invitationCode).")
+            return "ERROR" //invitationCode
+        } catch {
+            print("🛑 [Parent] КРИТИЧЕСКАЯ ОШИБКА: Не удалось создал приглашение с кодом: \(error)")
+            return "ERROR"
+        }
     }
     
     /// ВЫЗЫВАЕТСЯ РЕБЕНКОМ для принятия приглашения.
@@ -69,14 +76,65 @@ class CloudKitManager: ObservableObject {
             throw NSError(domain: "CloudKitManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Не удалось получить ID ребенка"])
         }
         
+        if let expirationDate = record["expiresAt"] as? Date, expirationDate < Date() {
+            print("❌ Код \(code) истек.")
+            return "Срок действия кода истек. Попросите родителя сгенерировать новый."
+        }
+        
         record["childUserRecordID"] = childID
         record["childName"] = childName
         record["childGender"] = childGender
         record["childAppleID"] = childAppleID
+
+        do {
+            print("▶️ [Child] Пытаемся принять приглашение...")
+            try await publicDatabase.save(record)
+            print("✅ [Child] Ребенок \(childName) принял приглашение от родителя \(parentID).")
+            return parentID
+        } catch {
+            print("🛑 [Child] КРИТИЧЕСКАЯ ОШИБКА: Не удалось принять приглашение от родителя: \(error)")
+            return "ERROR"
+        }
+    }
+    
+    func deleteInvitation(withCode code: String) async {
+        let predicate = NSPredicate(format: "invitationCode == %@", code)
+        let query = CKQuery(recordType: "Invitation", predicate: predicate)
         
-        try await publicDatabase.save(record)
-        print("✅ CloudKitManager: Ребенок \(childName) принял приглашение от родителя \(parentID)")
-        return parentID
+        do {
+            let (matchResults, _) = try await publicDatabase.records(matching: query, resultsLimit: 1)
+            if let recordID = matchResults.first?.0 {
+                try await publicDatabase.deleteRecord(withID: recordID)
+                print("🗑️ CloudKit: Приглашение с кодом \(code) удалено.")
+            }
+        } catch {
+            print("⚠️ Не удалось удалить приглашение с кодом \(code): \(error)")
+        }
+    }
+    
+    /// РЕБЕНОК: Проверяет валидность и срок действия кода приглашения
+    func checkInvitationStatus(withCode code: String) async -> InvitationStatus {
+        let predicate = NSPredicate(format: "invitationCode == %@", code)
+        let query = CKQuery(recordType: "Invitation", predicate: predicate)
+        
+        do {
+            let (matchResults, _) = try await publicDatabase.records(matching: query, resultsLimit: 1)
+            
+            guard let record = try matchResults.first?.1.get() else {
+                return .notFound
+            }
+            
+            // Проверяем срок годности
+            if let expirationDate = record["expiresAt"] as? Date, expirationDate < Date() {
+                return .expired
+            }
+            
+            return .valid
+            
+        } catch {
+            print("❌ Ошибка при проверке кода приглашения: \(error)")
+            return .notFound
+        }
     }
     
     /// ВЫЗЫВАЕТСЯ РОДИТЕЛЕМ для подписки на принятие приглашения.

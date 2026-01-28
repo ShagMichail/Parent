@@ -15,11 +15,13 @@ class AuthViewModel: ObservableObject {
     @Published var showValidationErrors = false
     @Published var credentials = AuthCredentials()
     
+    @Published var mode: AuthMode
+    
     @Published private(set) var emailValidation = FieldValidationState()
     @Published private(set) var passwordValidation = PasswordValidationState()
     @Published private(set) var isFormValid = false
     
-    private let mode: AuthMode
+//    private let mode: AuthMode
     private var cancellables = Set<AnyCancellable>()
     
     init(mode: AuthMode) {
@@ -109,14 +111,15 @@ class AuthViewModel: ObservableObject {
             }
             .store(in: &cancellables)
         
-        Publishers.CombineLatest($emailValidation, $passwordValidation)
-            .map { [weak self] (emailValidation, passwordValidation) -> Bool in
-                guard let self = self else { return false }
+        Publishers.CombineLatest3($credentials, $emailValidation, $passwordValidation)
+            .combineLatest($mode)
+            .map { (combined, mode) -> Bool in
+                let (credentials, emailValidation, passwordValidation) = combined
                 
-                if self.mode == .register {
+                if mode == .register {
                     return emailValidation.isValid && passwordValidation.isPasswordSectionValid
                 } else {
-                    return emailValidation.isValid && !self.credentials.password.isEmpty
+                    return emailValidation.isValid && !credentials.password.isEmpty
                 }
             }
             .assign(to: \.isFormValid, on: self)

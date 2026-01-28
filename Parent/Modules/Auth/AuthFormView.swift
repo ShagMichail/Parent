@@ -30,8 +30,8 @@ struct AuthFormView: View {
             .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                headerView
-                formView
+                headerView(mode: viewModel.mode)
+                formView(mode: viewModel.mode)
             }
             .ignoresSafeArea(.keyboard, edges: .bottom)
         }
@@ -39,7 +39,7 @@ struct AuthFormView: View {
     }
     
     @ViewBuilder
-    private var headerView: some View {
+    private func headerView(mode: AuthMode) -> some View {
         VStack(spacing: 20) {
             Image("logocontrol")
                 .resizable()
@@ -57,7 +57,7 @@ struct AuthFormView: View {
     }
     
     @ViewBuilder
-    private var formView: some View {
+    private func formView(mode: AuthMode) -> some View {
         VStack(spacing: 24) {
             AuthTextField(
                 model: .init(title: String(localized: "Mail"), placeholder: String(localized: "Enter your email")),
@@ -116,7 +116,7 @@ struct AuthFormView: View {
                     
                     Button(action: {
                         withAnimation {
-                            mode = (mode == .login) ? .register : .login
+                            viewModel.mode = (viewModel.mode == .login) ? .register : .login
                         }
                     }) {
                         Text(mode == .register ? "Login" : "Register")

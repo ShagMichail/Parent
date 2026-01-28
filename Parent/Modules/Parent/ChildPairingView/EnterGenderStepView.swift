@@ -60,6 +60,7 @@ struct EnterGenderStepView: View {
                     model: ContinueButtonModel(
                         title: String(localized: "Continue"),
                         isEnabled: selectedRole != nil,
+                        fullWidth: true,
                         action: {
                             isGenderStepActive = true
                         }

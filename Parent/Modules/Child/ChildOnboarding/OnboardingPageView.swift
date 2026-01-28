@@ -47,6 +47,7 @@ struct OnboardingPageView: View {
                     model: ContinueButtonModel(
                         title: String(localized: "Continue"),
                         isEnabled: true,
+                        fullWidth: true,
                         action: {
                             action()
                         }

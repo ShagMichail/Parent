@@ -45,11 +45,19 @@ struct NotificationView: View {
                                 .transition(.opacity.combined(with: .scale(scale: 0.95)))
                                 .id(reportRefreshID)
                         } else {
-                            // вот тут исправить
-                            ContentUnavailableView("Add a child", systemImage: "person.3.fill", description: Text("Click on the '+' to add the first child."))
+                            VStack(spacing: 10) {
+                                Image(systemName: "person.3.fill")
+                                    .font(.system(size: 50))
+                                    .foregroundColor(.gray)
+                                Text("Add a child")
+                                    .font(.headline)
+                                Text("Click on the '+' to add the first child.")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding()
                         }
                     }
-//                    .padding(.bottom, 20)
                 }
                 .refreshable {
                     reportRefreshID = UUID()

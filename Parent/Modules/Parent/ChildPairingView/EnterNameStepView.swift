@@ -14,7 +14,15 @@ struct EnterNameStepView: View {
     @State private var childName = ""
     @State private var childAppleID = ""
     @State private var isLoading = false
+    
+    @State private var errorMessageName: String?
+    @State private var isFailedName: Bool = false
+    
+    @State private var errorMessageAppleID: String?
+    @State private var isFailedAppleID: Bool = false
+    
     @State private var errorMessage: String?
+    @State private var isFailed: Bool = false
     
     @State private var isCompletedStepActive = false
     
@@ -29,25 +37,57 @@ struct EnterNameStepView: View {
                 .font(.custom("Inter-SemiBold", size: 24))
                 .frame(maxWidth: .infinity, alignment: .center)
             
-            TextField("Enter a name", text: $childName)
-                .padding(12)
-                .background(Color.white)
-                .cornerRadius(12)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.accent, lineWidth: 1)
-                )
+            VStack(spacing: 16) {
+                TextField("Enter a name", text: $childName)
+                    .padding(12)
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.accent, lineWidth: 1)
+                    )
+                    .onChange(of: childName) { _, _ in
+                        if isFailedName {
+                            isFailedName = false
+                            errorMessageName = nil
+                        }
+                        if isFailed {
+                            isFailed = false
+                            errorMessage = nil
+                        }
+                    }
+                
+                if let error = errorMessageName, isFailedName {
+                    ValidationErrorView(text: error)
+                }
+            }
             
-            TextField("Enter the child's AppleID", text: $childAppleID)
-                .padding(12)
-                .background(Color.white)
-                .cornerRadius(12)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.accent, lineWidth: 1)
-                )
-
-            if let error = errorMessage {
+            VStack(spacing: 16) {
+                TextField("Enter the child's AppleID", text: $childAppleID)
+                    .padding(12)
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.accent, lineWidth: 1)
+                    )
+                    .onChange(of: childAppleID) { _, _ in
+                        if isFailedAppleID {
+                            isFailedAppleID = false
+                            errorMessageAppleID = nil
+                        }
+                        if isFailed {
+                            isFailed = false
+                            errorMessage = nil
+                        }
+                    }
+                
+                if let error = errorMessageAppleID, isFailedAppleID {
+                    ValidationErrorView(text: error)
+                }
+            }
+            
+            if let error = errorMessage, isFailed {
                 ValidationErrorView(text: error)
             }
             
@@ -62,6 +102,7 @@ struct EnterNameStepView: View {
                 model: ContinueButtonModel(
                     title: String(localized: "Continue"),
                     isEnabled: invitationCode.count == 6,
+                    fullWidth: true,
                     action: {
                         Task {
                             await acceptInvitation()
@@ -96,16 +137,21 @@ struct EnterNameStepView: View {
     }
     
     private func acceptInvitation() async {
-        // --- Проверка на пустое имя ---
         let trimmedName = childName.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedName.isEmpty else {
-            errorMessage = String(localized: "Please enter your name.")
-            return
-        }
+        let trimmedAppleID = childAppleID.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // 1. Обновляем состояния одной строкой для каждого поля
+        isFailedName = trimmedName.isEmpty
+        errorMessageName = trimmedName.isEmpty ? String(localized: "Please enter your name") : nil
+
+        isFailedAppleID = trimmedAppleID.isEmpty
+        errorMessageAppleID = trimmedAppleID.isEmpty ? String(localized: "Please enter your Apple ID") : nil
+
+        // 2. Проверяем: если хоть одно поле пустое — выходим
+        guard !trimmedName.isEmpty, !trimmedAppleID.isEmpty else { return }
         
-        // --- Начало асинхронной операции ---
         isLoading = true
-        errorMessage = nil
+        
         
         do {
             // 1. Отправляем данные в CloudKit
@@ -133,6 +179,7 @@ struct EnterNameStepView: View {
             
         } catch {
             // 5. Обрабатываем ошибку
+            isFailed = true
             errorMessage = error.localizedDescription
             print("❌ Ошибка при принятии приглашения: \(error.localizedDescription)")
         }
@@ -142,3 +189,9 @@ struct EnterNameStepView: View {
     }
 }
 
+
+#Preview {
+    // Состояние: Темная тема
+    EnterNameStepView(invitationCode: "123456", childGender: "girl")
+        .environmentObject(AppStateManager(authService: AuthenticationService(), cloudKitManager: CloudKitManager()))
+}

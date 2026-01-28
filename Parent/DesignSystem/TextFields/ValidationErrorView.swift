@@ -12,7 +12,6 @@ struct ValidationErrorView: View {
     
     var body: some View {
         HStack(spacing: 4) {
-            Image(systemName: "exclamationmark.circle")
             Text(text)
         }
         .font(.custom("Inter-Regular", size: 12))

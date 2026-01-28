@@ -8,22 +8,24 @@
 import SwiftUI
 
 struct OTPField: View {
+    var isError: Bool = false
     let numberOfFields: Int
     @Binding var code: String
-    @FocusState private var isFocused: Bool
+    @FocusState private var focusedField: Int?
 
     var body: some View {
         ZStack(alignment: .center) {
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color.white)
                 .stroke(.accent, lineWidth: 1)
+                .stroke(isError ? Color.errorMessage : Color.accent, lineWidth: 1)
                 .frame(maxHeight: 75)
             TextField("", text: $code)
                 .keyboardType(.numbersAndPunctuation)
                 .textContentType(.oneTimeCode)
                 .autocapitalization(.allCharacters)
                 .frame(width: 0, height: 0)
-                .focused($isFocused)
+                .focused($focusedField, equals: 0)
                 .onChange(of: code) { _, newValue in
                     if newValue.count > numberOfFields {
                         code = String(newValue.prefix(numberOfFields))
@@ -41,10 +43,14 @@ struct OTPField: View {
             }
         }
         .onTapGesture {
-            isFocused = true
+            focusedField = 0
         }
-        .onAppear {
-            isFocused = true
+        .onChange(of: focusedField) { _, newFocusValue in
+            if newFocusValue != nil {
+                if !code.isEmpty {
+                    code = ""
+                }
+            }
         }
     }
 

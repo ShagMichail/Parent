@@ -209,15 +209,23 @@ class AppStateManager: ObservableObject {
         UserDefaults.standard.removeObject(forKey: isPairedKey)
     }
     
-    func requestAuthorization() async {
+    func requestAuthorization() async -> Bool {
         do {
             if userRole == .child {
                 try await center.requestAuthorization(for: .child)
             } else {
                 try await center.requestAuthorization(for: .individual)
             }
+            if center.authorizationStatus == .approved {
+                print("✅ [FamilyControls] Разрешение получено.")
+                return true
+            } else {
+                print("❌ [FamilyControls] Пользователь отклонил разрешение.")
+                return false
+            }
         } catch {
-            print("Auth request failed: \(error)")
+            print("🚨 [FamilyControls] Ошибка при запросе авторизации: \(error)")
+            return false
         }
     }
 }
