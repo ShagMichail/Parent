@@ -85,7 +85,7 @@ class CloudKitManager: ObservableObject {
         record["childName"] = childName
         record["childGender"] = childGender
         record["childAppleID"] = childAppleID
-
+        
         do {
             print("▶️ [Child] Пытаемся принять приглашение...")
             try await publicDatabase.save(record)
@@ -510,6 +510,29 @@ extension CloudKitManager {
 }
 
 extension CloudKitManager {
+    func fetchExistingParent() async throws -> Bool {
+        guard let childID = await fetchUserRecordID() else { return false }
+        
+        let predicate = NSPredicate(format: "parentUserRecordID != %@ AND childUserRecordID == %@", "nil", childID)
+        let query = CKQuery(recordType: "Invitation", predicate: predicate)
+        
+        let (matchResults, _) = try await publicDatabase.records(matching: query)
+        
+        for (_, result) in matchResults {
+            if let record = try? result.get() {
+                if let childID = record["childUserRecordID"] as? String,
+                   let name = record["childName"] as? String,
+                   let gender = record["childGender"] as? String,
+                   let childAppleID = record["childAppleID"] as? String {
+                    print("👨‍👩‍👧 CloudKit: Родители найдены.")
+                    return true
+                }
+            }
+        }
+        print("👨‍👩‍👧 CloudKit: Родители не найдены.")
+        return false
+    }
+    
     func fetchExistingChildren() async throws -> [Child] {
         guard let parentID = await fetchUserRecordID() else { return [] }
         
@@ -620,7 +643,7 @@ extension CloudKitManager {
             print("ℹ️ Нет изменений для синхронизации.")
             return
         }
-
+        
         // --- Шаг 2: Используем операцию для сохранения/обновления всех записей разом ---
         let modifyOperation = CKModifyRecordsOperation(recordsToSave: recordsToSave, recordIDsToDelete: recordIDsToDelete)
         
@@ -629,7 +652,7 @@ extension CloudKitManager {
         modifyOperation.savePolicy = .allKeys
         
         print("☁️ Отправка в CloudKit: \(recordsToSave.count) лимитов...")
-
+        
         // --- Шаг 3: Выполняем операцию и ждем результата ---
         return try await withCheckedThrowingContinuation { continuation in
             modifyOperation.modifyRecordsResultBlock = { result in
@@ -761,7 +784,7 @@ extension CloudKitManager {
             print("ℹ️ Нет изменений для синхронизации.")
             return
         }
-
+        
         // --- Шаг 2: Используем операцию для сохранения/обновления всех записей разом ---
         let modifyOperation = CKModifyRecordsOperation(recordsToSave: recordsToSave, recordIDsToDelete: recordIDsToDelete)
         
@@ -770,7 +793,7 @@ extension CloudKitManager {
         modifyOperation.savePolicy = .allKeys
         
         print("☁️ Отправка в CloudKit: \(recordsToSave.count) блокирововк...")
-
+        
         // --- Шаг 3: Выполняем операцию и ждем результата ---
         return try await withCheckedThrowingContinuation { continuation in
             modifyOperation.modifyRecordsResultBlock = { result in
@@ -869,7 +892,7 @@ extension CloudKitManager {
         // Используем операцию с .allKeys для создания/обновления
         let modifyOp = CKModifyRecordsOperation(recordsToSave: [record])
         modifyOp.savePolicy = .allKeys
-
+        
         return try await withCheckedThrowingContinuation { continuation in
             modifyOp.modifyRecordsResultBlock = { result in
                 switch result {
@@ -888,7 +911,7 @@ extension CloudKitManager {
     func triggerBlocksUpdateSignal(for childID: String) async throws {
         let recordID = CKRecord.ID(recordName: "signal_\(childID)")
         let record = CKRecord(recordType: "ConfigSignal", recordID: recordID)
-
+        
         record["targetChildID"] = childID as CKRecordValue
         record["lastUpdate"] = Date() as CKRecordValue
         record["signalType"] = "blocks" as CKRecordValue
@@ -913,7 +936,7 @@ extension CloudKitManager {
     func triggerWebBlocksUpdateSignal(for childID: String) async throws {
         let recordID = CKRecord.ID(recordName: "signal_\(childID)")
         let record = CKRecord(recordType: "ConfigSignal", recordID: recordID)
-
+        
         record["targetChildID"] = childID as CKRecordValue
         record["lastUpdate"] = Date() as CKRecordValue
         record["signalType"] = "web" as CKRecordValue
@@ -945,7 +968,7 @@ extension CloudKitManager {
         let (matchResults, _) = try await publicDatabase.records(matching: query)
         let serverRecords = try matchResults.map { try $0.1.get() }
         let serverRecordIDs = Set(serverRecords.map { $0.recordID })
-
+        
         // --- Шаг 2: Формируем записи для сохранения/обновления на основе локального списка ---
         let recordsToSave: [CKRecord] = blocks.map { block in
             // Создаем уникальное имя записи, устойчивое к опечаткам
@@ -1071,7 +1094,7 @@ extension CloudKitManager {
     /// Отправляет уведомление родителю при выполнении команды ребенком
     func sendNotificationToParent(childId: String, childName: String, commandName: String, status: String) async throws {
         let notificationType: ChildNotification.NotificationType =
-            status == "executed" ? .commandExecuted : .commandFailed
+        status == "executed" ? .commandExecuted : .commandFailed
         
         let title: String
         let message: String
@@ -1216,26 +1239,34 @@ extension CloudKitManager {
     }
 }
 
-
-// Модель для хранения лога
-struct KeystrokeLog: Codable {
-    let text: String
-    let timestamp: Date
-    let appBundleID: String? // В каком приложении был сделан ввод
-}
-
 extension CloudKitManager {
-    /// Сохраняет порцию введенного текста в CloudKit
-    func saveKeystrokeLog(_ log: KeystrokeLog, for childID: String) async throws {
-        let record = CKRecord(recordType: "KeystrokeLog") // Новый тип записи
+    func fetchLastBlockCommand(for childID: String) async throws -> String? {
+        print("☁️ Проверка последнего статуса блокировки для: \(childID)...")
         
-        record["text"] = log.text as CKRecordValue
-        record["timestamp"] = log.timestamp as CKRecordValue
-        record["targetChildID"] = childID as CKRecordValue
-        if let bundleID = log.appBundleID {
-            record["appBundleID"] = bundleID as CKRecordValue
+        let predicate = NSPredicate(
+            format: "targetChildID == %@ AND commandName IN %@",
+            childID,
+            ["block_all", "unblock_all"]
+        )
+        
+        let query = CKQuery(recordType: "Command", predicate: predicate)
+
+        query.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
+        
+        // 3. Запрос: Берем только 1 запись (самую последнюю)
+        let (matchResults, _) = try await publicDatabase.records(matching: query, resultsLimit: 1)
+        
+        // 4. Обработка результата
+        if let result = matchResults.first {
+            let record = try result.1.get()
+            
+            if let commandName = record["commandName"] as? String {
+                print("✅ Найдена последняя команда: \(commandName)")
+                return commandName
+            }
         }
         
-        try await publicDatabase.save(record)
+        print("ℹ️ Команд блокировки не найдено (устройство разблокировано по умолчанию).")
+        return nil
     }
 }

@@ -35,6 +35,7 @@ class ChildDashboardViewModel: ObservableObject {
         Task {
             // Запускаем загрузку всех типов ограничений параллельно
             await withTaskGroup(of: Void.self) { group in
+                group.addTask { await self.fetchLastBlockCommand(for: childID) }
                 // 1. Загрузка блокировок приложений
                 group.addTask { await self.fetchAppBlocks(for: childID) }
                 // 2. Загрузка лимитов приложений
@@ -69,6 +70,21 @@ class ChildDashboardViewModel: ObservableObject {
                 restrictions.append(item)
             }
         } catch { print("Ошибка загрузки блокировок: \(error)") }
+    }
+    
+    private func fetchLastBlockCommand(for childID: String) async {
+        do {
+            let block = try await cloudKitManager.fetchLastBlockCommand(for: childID)
+            if block != nil && block == "block_all" {
+                let item = RestrictionItem(
+                    id: UUID().uuidString,
+                    title: String(localized: "The device is locked"),
+                    description: String(localized: "The device is locked at the parent's command"),
+                    iconName: "lock-command"
+                )
+                restrictions.append(item)
+            }
+        } catch { print("Ошибка загрузки состояния блокировки: \(error)") }
     }
     
     private func fetchAppLimits(for childID: String) async {

@@ -61,22 +61,31 @@ class AppStateManager: ObservableObject {
     // Запуск приложения и определение экрана
     func initializeApp() async {
         print("📱 StateManager: Инициализация приложения...")
-        
+        let status = center.authorizationStatus
         // 1. Загружаем сохраненное состояние
         loadLocalState()
 
         // 2. Если роль уже сохранена ранее, пытаемся восстановить сессию
         if userRole == .parent {
-            let isSessionValid = await authService.checkSession()
-            if isSessionValid {
-                // Если сессия валидна, делаем то же самое, что и при логине
-                parentDidAuthenticate()
-            } else {
-                appState = .authRequired
+            switch status {
+            case .approved:
+                let isSessionValid = await authService.checkSession()
+                if isSessionValid {
+                    // Если сессия валидна, делаем то же самое, что и при логине
+                    parentDidAuthenticate()
+                } else {
+                    appState = .authRequired
+                }
+            case .denied:
+                appState = .accessDenied
+            case .notDetermined:
+                appState = .roleSelection
+            default:
+                appState = .roleSelection
             }
         } else if userRole == .child {
             // Для ребенка просто идем по обычной логике (проверка isPaired)
-            determineNavigationPath()
+            determineNavigationPath(status)
         } else {
             // 3. Если роль не сохранена (userRole == .unknown) - это первый запуск.
             // Оставляем appState как .roleSelection.
@@ -117,18 +126,19 @@ class AppStateManager: ObservableObject {
     
     // MARK: Privale Method
     
-    private func determineNavigationPath() {
+    private func determineNavigationPath(_ status: AuthorizationStatus) {
         if userRole == .unknown {
             appState = .roleSelection
             return
         }
-        let status = center.authorizationStatus
-        
-        if status == .approved {
+        switch status {
+        case .approved:
             routeBasedOnRole()
-        } else if status == .denied {
+        case .denied:
             appState = .accessDenied
-        } else {
+        case .notDetermined:
+            appState = .roleSelection
+        default:
             routeBasedOnRole()
         }
     }
@@ -146,8 +156,19 @@ class AppStateManager: ObservableObject {
             
         case .child:
             if isPaired {
-                print("👶 Ребенок: Привязан -> Dashboard")
-                appState = .childDashboard
+                Task {
+                    do {
+                        print("👶 Ребенок: Проверяем наличие родителей")
+                        let existingParent = try await cloudKitManager.fetchExistingParent()
+                        if existingParent {
+                            print("👶 Ребенок: Привязан -> Dashboard")
+                            appState = .childDashboard
+                        } else {
+                            print("👶 Ребенок: Не привязан -> Pairing")
+                            appState = .childPairing
+                        }
+                    }
+                }
                 // Тут можно запустить фоновые процессы ребенка
             } else {
                 print("👶 Ребенок: Не привязан -> Pairing")
@@ -174,7 +195,7 @@ class AppStateManager: ObservableObject {
             appState = .accessDenied
         } else if status == .approved {
             // Вызываем навигацию только если мы НЕ в процессе первоначальной настройки.
-            determineNavigationPath()
+            determineNavigationPath(status)
         }
     }
     
