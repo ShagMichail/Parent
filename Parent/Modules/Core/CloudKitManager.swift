@@ -50,7 +50,7 @@ class CloudKitManager: ObservableObject {
             print("▶️ [Parent] Пытаемся создать подписку...")
             try await publicDatabase.save(record)
             print("✅ [Parent] Родитель создал приглашение с кодом \(invitationCode).")
-            return "ERROR" //invitationCode
+            return invitationCode
         } catch {
             print("🛑 [Parent] КРИТИЧЕСКАЯ ОШИБКА: Не удалось создал приглашение с кодом: \(error)")
             return "ERROR"
