@@ -1039,7 +1039,7 @@
 				CODE_SIGN_ENTITLEMENTS = Parent/Parent.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_ASSET_PATHS = "\"Parent/Preview Content\"";
 				DEVELOPMENT_TEAM = 497Z5AY56K;
 				ENABLE_PREVIEWS = YES;
@@ -1078,7 +1078,7 @@
 				CODE_SIGN_ENTITLEMENTS = Parent/Parent.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_ASSET_PATHS = "\"Parent/Preview Content\"";
 				DEVELOPMENT_TEAM = 497Z5AY56K;
 				ENABLE_PREVIEWS = YES;
